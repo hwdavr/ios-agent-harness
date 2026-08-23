@@ -55,12 +55,25 @@ skill's required report schema and run:
 bash harness/scripts/check-stage-artifacts.sh create-ui-and-verify ui-verification docs/current
 ```
 
-For every design-critical spatial relationship—such as edges that meet a border, center alignment,
-overlay anchoring, spacing, or a compact visual inside a larger touch target—the report must link
-the approved reference and actual screenshot to a bounds-based instrumented assertion. Name the
-visual bounds `accessibilityIdentifier` (not only the outer touch target) and record the measured relation and
-tolerance. A broad screenshot with a statement such as "matches design" is not sufficient proof
-of placement.
+For every design-critical spatial relationship—such as text hierarchy, component size, edges that
+meet a border, center alignment, overlay anchoring, spacing, or a compact visual inside a larger
+touch target—create one design anchor in `design/design_anchors.json`. Each anchor names the
+visual bounds `accessibilityIdentifier` (not only the outer touch target), one `x`, `y`, `width`,
+or `height` metric in pt, the numeric value measured from the approved reference, and a numeric
+tolerance.
+
+Run an XCUITest that writes `evidence/ui_frames.json` plus one actual screenshot for every
+anchored screen. The frame capture must identify itself as `XCUITest`, name the producing test,
+and record numeric `x`, `y`, `width`, and `height` values in pt for every anchored identifier.
+The report's `structural_verification.checks` is an inventory of anchor IDs only: it must not
+copy expected/actual measurements or self-declare PASS. The artifact validator calculates the
+delta itself and fails if an anchor is missing, outside tolerance, is based on non-XCUITest
+evidence, or lacks a screenshot.
+
+A broad screenshot with a statement such as "matches design", an assertion that only checks a
+larger touch target, or a hand-written frame value is not sufficient proof of placement or size.
+If an XCUITest frame capture cannot be produced, record a verification FAIL/BLOCKED result; do
+not record PASS.
 
 **Loop rule — if verification FAILS:**
 - Return to **Stage 1 — UI Implementation** to fix the implementation.

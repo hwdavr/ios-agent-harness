@@ -1,6 +1,13 @@
 {
   "version": "<N>",
   "reference_design": "design/<approved_mockup_or_screenshot>.png",
+  "design_anchors": "design/design_anchors.json",
+  "runtime_evidence": "evidence/ui_frames.json",
+
+  "evidence_contract": {
+    "rule": "The validator calculates all design-anchor deltas from runtime_evidence; do not record expected, actual, or pass/fail values in structural_verification.checks.",
+    "frame_capture": "Produced by an XCUITest that reads named accessibilityIdentifier visual bounds in pt."
+  },
 
   "build_and_static_checks": {
     "xcodebuild build": "PASS / FAIL",
@@ -54,20 +61,41 @@
   ],
 
   "structural_verification": {
-    "tolerances": {
-      "position_dp": 4,
-      "size_percent": 5,
-      "spacing_dp": 4
-    },
     "checks": [
       {
         "region": "<region>",
-        "element": "<element>",
-        "property": "<exists / position / size / alignment / spacing / visibility / clipping / overlap / cross_state_invariance>",
-        "expected": "<value>",
-        "actual": "<value>",
-        "within_tolerance": true,
-        "result": "PASS / FAIL"
+        "screen": "<screen_name_in_runtime_evidence>",
+        "element_id": "<visual_bounds_accessibilityIdentifier>",
+        "metric": "<x / y / width / height>",
+        "note": "<what this anchor proves; numeric expected/tolerance live only in design/design_anchors.json>"
+      }
+    ]
+  },
+
+  "design_anchors_schema": {
+    "coordinate_space": { "unit": "pt", "reference_resolution": { "width": 390, "height": 844 } },
+    "anchors": [
+      {
+        "screen": "<screen_name>",
+        "element_id": "<visual_bounds_accessibilityIdentifier>",
+        "metric": "<x / y / width / height>",
+        "expected": "<number measured from approved design>",
+        "tolerance_pt": "<non-negative number>"
+      }
+    ]
+  },
+
+  "runtime_evidence_schema": {
+    "producer": { "kind": "XCUITest", "test_name": "<test class/method>" },
+    "coordinate_space": { "unit": "pt" },
+    "normalization": { "theme": "light", "font_scale": 1.0, "locale": "en-US" },
+    "screens": [
+      {
+        "name": "<screen_name>",
+        "screenshot": "evidence/<screen>.png",
+        "elements": {
+          "<accessibilityIdentifier>": { "x": 0, "y": 0, "width": 0, "height": 0 }
+        }
       }
     ]
   },
