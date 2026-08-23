@@ -1,0 +1,4 @@
+interface:
+  display_name: "Android to iOS UI Migration"
+  short_description: "Migrate Compose UI to measured SwiftUI parity"
+  default_prompt: "Use $android-to-ios-ui-migration to migrate this Compose screen to SwiftUI with token mapping and measured visual verification."
