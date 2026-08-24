@@ -31,10 +31,10 @@ Name the Android screen, its destination iOS screen, supported visual states, ta
 and approved reference. Separate product behavior from visual parity; route missing behavior
 requirements to the normal specification workflow.
 
-### 2. Extract the Android UI inventory
+### 2. Extract the Android UI contract
 
 Read only the target's reachable UI surface. Record every rendered element in
-`docs/current/android_ui_inventory.json`:
+`docs/current/android_ui_contract.json`:
 
 - Compose file, composable, and stable semantics/test tag;
 - layout direction, parent-child hierarchy, `dp` size/padding/spacing, weight, alignment, and
@@ -49,7 +49,7 @@ path and line number for every design-critical token or layout decision.
 
 ### 3. Map, do not mechanically convert
 
-Create `docs/current/ios_design_mapping.md` with one row per design-critical inventory item:
+Create `docs/current/ios_design_mapping.md` with one row per design-critical contract item:
 
 | Android evidence | iOS token/component | Decision | Visual anchor | Exception |
 |---|---|---|---|---|
@@ -88,7 +88,7 @@ statement is not sufficient evidence.
 
 ## Completion Criteria
 
-- Android inventory cites source evidence for all design-critical elements and states.
+- Android contract cites source evidence for all design-critical elements and states.
 - iOS mapping cites an iOS design-system token/component or an explicit approved exception.
 - Every critical visual size, spacing, and alignment relationship has a numeric anchor.
 - SwiftUI behavior respects iOS architecture, localization, accessibility, and touch-target rules.
