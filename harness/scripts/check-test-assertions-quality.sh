@@ -14,7 +14,7 @@
 
 set -e
 
-TEST_DIR="${1:-app/src/test}"
+TEST_DIR="${1:-NotesTakingAppiOSTests}"
 
 fail() {
   echo "FAIL: $1" >&2
@@ -29,7 +29,7 @@ trap 'rm -f "$VIOLATIONS_FILE"' EXIT
 
 # Collect test files into a temp file to avoid pipe subshell
 FILE_LIST="${TMPDIR:-/tmp}/.test-file-list.$$"
-find "$TEST_DIR" \( -name "*Test.swift" -o -name "*IntegrationTest.swift" \) -print > "$FILE_LIST" 2>/dev/null
+find "$TEST_DIR" -name "*.swift" -type f -print > "$FILE_LIST" 2>/dev/null
 
 while IFS= read -r test_file; do
   [ -n "$test_file" ] || continue

@@ -12,7 +12,9 @@
   "build_and_static_checks": {
     "xcodebuild build": "PASS / FAIL",
     "lintDebug": "PASS / FAIL",
-    "swiftlintCheck": "PASS / FAIL"
+    "swiftlintCheck": "PASS / FAIL",
+    "native_sheet_presentation_contract": "passed / blocked / not_applicable",
+    "native_sheet_detent_contract": "passed / blocked / not_applicable"
   },
 
   "instrumented_tests": {

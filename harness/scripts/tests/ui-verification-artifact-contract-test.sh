@@ -96,7 +96,24 @@ write_valid_fixture "$valid"
 (cd "$REPO_ROOT" && bash "$VALIDATOR" "$valid")
 (cd "$REPO_ROOT" && bash "$STAGE_VALIDATOR" create-ui-and-verify ui-verification "$valid")
 
-# Test 2: an oversized component cannot self-attest PASS; the validator uses
+# Test 2: a native-sheet surface pass cannot omit detent/content-fit evidence.
+# This is the regression fixture for the bottom-sheet false pass.
+native_sheet_missing_detent="$fixture_root/native-sheet-missing-detent"
+write_valid_fixture "$native_sheet_missing_detent"
+jq '.build_and_static_checks.native_sheet_presentation_contract = "passed"' \
+  "$native_sheet_missing_detent/ui_verification.json" > "$native_sheet_missing_detent/ui_verification.tmp"
+mv "$native_sheet_missing_detent/ui_verification.tmp" "$native_sheet_missing_detent/ui_verification.json"
+expect_failure "declares native_sheet_presentation_contract=passed but is missing native_sheet_detent_contract=passed" \
+  bash "$VALIDATOR" "$native_sheet_missing_detent"
+
+native_sheet_complete="$fixture_root/native-sheet-complete"
+write_valid_fixture "$native_sheet_complete"
+jq '.build_and_static_checks.native_sheet_presentation_contract = "passed" | .build_and_static_checks.native_sheet_detent_contract = "passed"' \
+  "$native_sheet_complete/ui_verification.json" > "$native_sheet_complete/ui_verification.tmp"
+mv "$native_sheet_complete/ui_verification.tmp" "$native_sheet_complete/ui_verification.json"
+(cd "$REPO_ROOT" && bash "$VALIDATOR" "$native_sheet_complete")
+
+# Test 3: an oversized component cannot self-attest PASS; the validator uses
 # the captured 32 pt height rather than any report claim.
 oversized="$fixture_root/oversized-self-attestation"
 write_valid_fixture "$oversized"
@@ -106,7 +123,7 @@ mv "$oversized/evidence/ui_frames.tmp" "$oversized/evidence/ui_frames.json"
 expect_failure "editor/editor_row_handle_visual/height is outside tolerance: expected 24 pt ± 2 pt, measured 32 pt" \
   bash "$VALIDATOR" "$oversized"
 
-# Test 3: the previous free-text schema is a false pass and must now fail.
+# Test 4: the previous free-text schema is a false pass and must now fail.
 legacy="$fixture_root/legacy-free-text"
 write_valid_fixture "$legacy"
 jq 'del(.design_anchors, .runtime_evidence) | .structural_verification.checks = [{"element":"editor_row_handle_visual", "expected":"24 pt", "actual":"24 pt", "result":"PASS"}]' \
@@ -114,14 +131,14 @@ jq 'del(.design_anchors, .runtime_evidence) | .structural_verification.checks = 
 mv "$legacy/ui_verification.tmp" "$legacy/ui_verification.json"
 expect_failure "missing required key 'design_anchors'" bash "$VALIDATOR" "$legacy"
 
-# Test 4: missing runtime screenshot evidence fails even when frames are present.
+# Test 5: missing runtime screenshot evidence fails even when frames are present.
 missing_screenshot="$fixture_root/missing-screenshot"
 write_valid_fixture "$missing_screenshot"
 rm "$missing_screenshot/evidence/editor_actual.png"
 expect_failure "references missing or empty screenshot evidence/editor_actual.png" \
   bash "$VALIDATOR" "$missing_screenshot"
 
-# Test 5: a token file cannot stand in for a real screenshot capture.
+# Test 6: a token file cannot stand in for a real screenshot capture.
 tiny_screenshot="$fixture_root/tiny-screenshot"
 write_valid_fixture "$tiny_screenshot"
 printf 'not a capture' > "$tiny_screenshot/evidence/editor_actual.png"

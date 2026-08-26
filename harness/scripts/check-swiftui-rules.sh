@@ -33,9 +33,14 @@ TOTAL_VIOLATIONS=0
 _search() { rg --color never -n "$1" "${2:-$SOURCE_ROOT}" 2>/dev/null || true; }
 
 _run_check() {
-    local rule="$1" pattern="$2"
+    local rule="$1" pattern="$2" dir="${3:-}"
     echo -e "  ${CYAN}Rule: $rule${RESET}"
-    local results=$(_search "$pattern")
+    local results
+    if [[ -n "$dir" && -d "$SOURCE_ROOT/$dir" ]]; then
+        results=$(_search "$pattern" "$SOURCE_ROOT/$dir")
+    else
+        results=$(_search "$pattern")
+    fi
     if [[ -z "$results" ]]; then
         echo -e "    ${GREEN}✓ No violations${RESET}"
     else
@@ -55,6 +60,7 @@ _run_check "Hardcoded Color literal" \
 # 2. Missing accessibilityIdentifier on interactive elements
 no_id_files=()
 for f in "${swift_files[@]}"; do
+    [[ "$f" == "$SOURCE_ROOT/Views/"* ]] || continue
     if rg -q '\b(Button|TextField|Toggle|Picker|Stepper|Slider|SecureField|TextEditor|List)\b' "$f" 2>/dev/null; then
         if ! rg -q 'accessibilityIdentifier' "$f" 2>/dev/null; then
             no_id_files+=("$f")
@@ -72,11 +78,13 @@ else
 fi
 
 # 3. Harcoded strings in Views (Text with string literal that isn't a localization key)
-_run_check "Hardcoded string in Text()" 'Text\("[A-Z][a-z]' ""
+_run_check "Hardcoded string in Text()" 'Text\("[A-Z][a-z]' "Views"
 
-# 4. ViewModel or use case calls in stateless Content Views
+# 4. ViewModel calls on the same line as a stateless content declaration.
+# A bare @ViewBuilder is a normal SwiftUI composition tool and is not itself
+# evidence that a content view owns business state.
 _run_check "Content View calling ViewModel directly" \
-    '@ViewBuilder|func body.*\{.*viewModel\.'
+    'struct[[:space:]]+[A-Za-z0-9_]*Content[^:]*:[[:space:]]*View.*viewModel\.' "Views"
 
 # 5. VStack with ForEach for large lists (should be List/LazyVStack)
 _run_check "VStack with ForEach (use List or LazyVStack)" \

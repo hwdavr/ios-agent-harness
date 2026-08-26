@@ -66,6 +66,14 @@ for key in version reference_design design_anchors runtime_evidence \
     || fail "$REPORT is missing required key '$key'"
 done
 
+# Native iOS sheet surface evidence is incomplete without a content-fit check.
+# Keep this conditional so reports for features without native sheets retain the
+# existing schema while sheet reports cannot silently omit detent geometry.
+if jq -e '.build_and_static_checks.native_sheet_presentation_contract == "passed"' "$REPORT" >/dev/null 2>&1; then
+  jq -e '.build_and_static_checks.native_sheet_detent_contract == "passed"' "$REPORT" >/dev/null 2>&1 \
+    || fail "$REPORT declares native_sheet_presentation_contract=passed but is missing native_sheet_detent_contract=passed"
+fi
+
 # Verdict must have a result
 VERDICT_RESULT=$(jq -r '.verdict.result' "$REPORT" 2>/dev/null)
 [ -n "$VERDICT_RESULT" ] && [ "$VERDICT_RESULT" != "null" ] \

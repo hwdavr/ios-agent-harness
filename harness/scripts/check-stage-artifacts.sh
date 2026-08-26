@@ -2,8 +2,8 @@
 # Verifies required stage artifacts exist on disk before advancing a workflow stage.
 #
 # Usage: bash harness/scripts/check-stage-artifacts.sh <workflow> <stage> [artifact-directory]
-#   workflow: feature-delivery | bug-fixing | api-contract-update | harness-planning | create-ui-and-verify
-#   stage:    requirement-analysis | implementation-plan | feature-specification | slice-planning | ui-verification
+#   workflow: feature-delivery | bug-fixing | api-contract-update | harness-planning | create-ui-and-verify | android-to-ios-migration
+#   stage:    requirement-analysis | implementation-plan | feature-specification | slice-planning | ui-verification | android-analysis | specification | test-migration
 #
 # Exits 0 if required artifacts are present, 1 otherwise.
 # Designed to run on macOS /bin/bash (Bash 3.2) — no mapfile, no arrays with set -u.
@@ -18,8 +18,8 @@ DOCS_DIR="${3:-docs/current}"
 
 if [ -z "$WORKFLOW" ] || [ -z "$STAGE" ]; then
   echo "Usage: $0 <workflow> <stage> [artifact-directory]" >&2
-  echo "Workflows: feature-delivery, bug-fixing, api-contract-update, harness-planning, create-ui-and-verify" >&2
-  echo "Stages: requirement-analysis, implementation-plan, feature-specification, slice-planning, ui-verification" >&2
+  echo "Workflows: feature-delivery, bug-fixing, api-contract-update, harness-planning, create-ui-and-verify, android-to-ios-migration" >&2
+  echo "Stages: requirement-analysis, implementation-plan, feature-specification, slice-planning, ui-verification, android-analysis, specification, test-migration" >&2
   exit 2
 fi
 
@@ -222,6 +222,32 @@ EOF
   create-ui-and-verify/*)
     echo "SKIP: create-ui-and-verify has no doc-artifact gate for '$STAGE'."
     ;;
+  android-to-ios-migration/android-analysis)
+    require_file "android_logic_map.md" "Android-to-iOS logic map"
+    require_file "spec.md" "requirement spec"
+    require_file "summary.md" "stage progress tracker"
+    ;;
+  android-to-ios-migration/specification)
+    require_file "spec.md" "requirement spec"
+    if [ -f "$DOCS_DIR/design.md" ] || grep -q "Screen States" "$DOCS_DIR/spec.md"; then
+      if [ ! -f "docs/product/design_system.md" ]; then
+        echo "FAIL: docs/product/design_system.md is required for UI planning." >&2
+        exit 1
+      fi
+      require_file "design.md" "design specification"
+      if ! grep -Fq "docs/product/design_system.md" "$DOCS_DIR/design.md"; then
+        echo "FAIL: $DOCS_DIR/design.md must reference docs/product/design_system.md." >&2
+        exit 1
+      fi
+    fi
+    ;;
+  android-to-ios-migration/implementation-plan)
+    require_file "implementation_plan.md" "implementation plan"
+    require_file "test_plan.md" "test plan"
+    ;;
+  android-to-ios-migration/*)
+    echo "SKIP: android-to-ios-migration has no doc-artifact gate for '$STAGE' (RED evidence recorded in summary.md)."
+    ;;
   *)
     echo "FAIL: unknown workflow/stage '$WORKFLOW/$STAGE'." >&2
     echo "Known workflow/stage pairs:" >&2
@@ -235,6 +261,10 @@ EOF
     echo "  harness-planning/slice-planning" >&2
     echo "  create-ui-and-verify/ui-verification" >&2
     echo "  create-ui-and-verify/* (no artifact gate for other stages)" >&2
+    echo "  android-to-ios-migration/android-analysis" >&2
+    echo "  android-to-ios-migration/specification" >&2
+    echo "  android-to-ios-migration/implementation-plan" >&2
+    echo "  android-to-ios-migration/* (no artifact gate for other stages)" >&2
     exit 2
     ;;
 esac
