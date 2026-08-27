@@ -6,7 +6,7 @@
 
   "evidence_contract": {
     "rule": "The validator calculates all design-anchor deltas from runtime_evidence; do not record expected, actual, or pass/fail values in structural_verification.checks.",
-    "frame_capture": "Produced by an XCUITest that reads named accessibilityIdentifier visual bounds in pt."
+    "frame_capture": "Produced by an XCUITest that reads named accessibilityIdentifier visual bounds in pt. A compact visual inside a larger hit target must use its own visual-shape identifier (for example *_handle_visual), never only the interactive *_handle identifier."
   },
 
   "build_and_static_checks": {

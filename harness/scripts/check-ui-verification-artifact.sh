@@ -127,6 +127,14 @@ ANCHOR_KEY_COUNT=$(jq '[.anchors[] | [.screen, .element_id, .metric] | join("\\u
 [ "$ANCHOR_COUNT" -eq "$ANCHOR_KEY_COUNT" ] \
   || fail "$DESIGN_ANCHORS contains duplicate screen, element_id, metric anchors"
 
+while IFS= read -r element_id; do
+  case "$element_id" in
+    *_handle|*-handle)
+      fail "$DESIGN_ANCHORS must use the handle's visual shape identifier, not interactive target $element_id"
+      ;;
+  esac
+done < <(jq -r '.anchors[].element_id' "$DOCS_DIR/$DESIGN_ANCHORS")
+
 jq -e '(type == "object") and ((.version | type) == "string" or (.version | type) == "number") and (.producer.kind == "XCUITest") and (.producer.test_name | type == "string" and length > 0) and (.coordinate_space.unit == "pt") and (.normalization.theme | type == "string" and length > 0) and (.normalization.font_scale | type == "number") and (.normalization.locale | type == "string" and length > 0) and (.screens | type == "array" and length > 0) and all(.screens[]; (.name | type == "string" and length > 0) and (.screenshot | type == "string" and length > 0) and (.elements | type == "object") and all(.elements[]; (.x | type == "number") and (.y | type == "number") and (.width | type == "number" and . >= 0) and (.height | type == "number" and . >= 0)))' "$DOCS_DIR/$RUNTIME_EVIDENCE" >/dev/null 2>&1 \
   || fail "$RUNTIME_EVIDENCE must be an XCUITest pt-frame capture with screenshots and numeric element frames"
 

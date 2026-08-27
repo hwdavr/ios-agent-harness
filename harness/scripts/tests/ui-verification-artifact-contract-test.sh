@@ -96,6 +96,19 @@ write_valid_fixture "$valid"
 (cd "$REPO_ROOT" && bash "$VALIDATOR" "$valid")
 (cd "$REPO_ROOT" && bash "$STAGE_VALIDATOR" create-ui-and-verify ui-verification "$valid")
 
+# Test 1a: a compact handle anchor cannot use only the interactive target's
+# bounds; the visual shape needs its own identifier.
+target_only_handle_anchor="$fixture_root/target-only-handle-anchor"
+write_valid_fixture "$target_only_handle_anchor"
+sed 's/editor_row_handle_visual/editor_row_handle/g' \
+  "$target_only_handle_anchor/design/design_anchors.json" > "$target_only_handle_anchor/design/design_anchors.tmp"
+mv "$target_only_handle_anchor/design/design_anchors.tmp" "$target_only_handle_anchor/design/design_anchors.json"
+sed 's/editor_row_handle_visual/editor_row_handle/g' \
+  "$target_only_handle_anchor/evidence/ui_frames.json" > "$target_only_handle_anchor/evidence/ui_frames.tmp"
+mv "$target_only_handle_anchor/evidence/ui_frames.tmp" "$target_only_handle_anchor/evidence/ui_frames.json"
+expect_failure "must use the handle's visual shape identifier, not interactive target editor_row_handle" \
+  bash "$VALIDATOR" "$target_only_handle_anchor"
+
 # Test 2: a native-sheet surface pass cannot omit detent/content-fit evidence.
 # This is the regression fixture for the bottom-sheet false pass.
 native_sheet_missing_detent="$fixture_root/native-sheet-missing-detent"
