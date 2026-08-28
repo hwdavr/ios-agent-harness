@@ -222,6 +222,10 @@ EOF
   create-ui-and-verify/*)
     echo "SKIP: create-ui-and-verify has no doc-artifact gate for '$STAGE'."
     ;;
+  android-to-ios-migration/ui-verification)
+    require_file "ui_verification.json" "UI verification report"
+    bash "$SCRIPT_DIR/check-ui-verification-artifact.sh" "$DOCS_DIR"
+    ;;
   android-to-ios-migration/android-analysis)
     require_file "android_logic_map.md" "Android-to-iOS logic map"
     require_file "spec.md" "requirement spec"

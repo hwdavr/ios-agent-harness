@@ -107,6 +107,14 @@ valid="$fixture_root/valid"
 write_valid_fixture "$valid"
 (cd "$REPO_ROOT" && bash "$VALIDATOR" "$valid")
 (cd "$REPO_ROOT" && bash "$STAGE_VALIDATOR" create-ui-and-verify ui-verification "$valid")
+(cd "$REPO_ROOT" && bash "$STAGE_VALIDATOR" android-to-ios-migration ui-verification "$valid")
+
+# Test 1c: Android-to-iOS UI verification cannot be skipped by the generic
+# migration-stage fallback when the report is missing.
+missing_migration_report="$fixture_root/missing-migration-report"
+mkdir -p "$missing_migration_report"
+expect_failure "no file matching 'ui_verification.json'" \
+  bash "$STAGE_VALIDATOR" android-to-ios-migration ui-verification "$missing_migration_report"
 
 # Test 1b: a version 2 PASS cannot omit the visual-risk contract that makes
 # icon/label/layout/action review explicit.

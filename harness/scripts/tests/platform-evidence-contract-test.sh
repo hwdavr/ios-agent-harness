@@ -89,7 +89,7 @@ write_feature_list "$deferred_slice"
 write_matrix "$deferred_slice" "Planned"
 jq '.features[0].acceptance_test_ids = []' "$deferred_slice/feature_list.json" > "$deferred_slice/feature_list.json.tmp"
 mv "$deferred_slice/feature_list.json.tmp" "$deferred_slice/feature_list.json"
-(cd "$deferred_slice" && bash "$VALIDATOR" . --evaluate --slice US-1) | \
+(cd "$deferred_slice" && bash "$VALIDATOR" . --evaluate --slice US-1 2>&1) | \
   grep -Fq "slice US-1 does not own a declared real platform boundary test"
 
 owner_missing_evidence="$fixture_root/owner-missing-evidence"
