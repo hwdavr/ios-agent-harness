@@ -4,6 +4,19 @@
   "design_anchors": "design/design_anchors.json",
   "runtime_evidence": "evidence/ui_frames.json",
 
+  "visual_contract": {
+    "required_roles": ["icon_identity", "layout_relationship", "action_presence"],
+    "checks": [
+      {
+        "screen": "<screen_name>",
+        "element_id": "<runtime-backed accessibilityIdentifier>",
+        "role": "<declared visual-risk role>",
+        "runtime_test": "<XCUITest class/method producing the evidence>",
+        "assertion": "<concrete visible icon, label, layout, or action assertion>"
+      }
+    ]
+  },
+
   "evidence_contract": {
     "rule": "The validator calculates all design-anchor deltas from runtime_evidence; do not record expected, actual, or pass/fail values in structural_verification.checks.",
     "frame_capture": "Produced by an XCUITest that reads named accessibilityIdentifier visual bounds in pt. A compact visual inside a larger hit target must use its own visual-shape identifier (for example *_handle_visual), never only the interactive *_handle identifier."

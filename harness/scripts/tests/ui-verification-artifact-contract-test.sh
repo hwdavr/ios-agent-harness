@@ -54,6 +54,18 @@ FIXTURE
   "reference_design": "design/mockup_editor.png",
   "design_anchors": "design/design_anchors.json",
   "runtime_evidence": "evidence/ui_frames.json",
+  "visual_contract": {
+    "required_roles": ["visual_bounds"],
+    "checks": [
+      {
+        "screen": "editor",
+        "element_id": "editor_row_handle_visual",
+        "role": "visual_bounds",
+        "runtime_test": "NotesTakingAppiOSUITests/testEditorVisualAnchors",
+        "assertion": "The rendered handle shape is measured separately from its touch target."
+      }
+    ]
+  },
   "build_and_static_checks": { "xcodebuild build": "PASS", "swiftlintCheck": "PASS" },
   "instrumented_tests": { "passed": "1", "total": "1" },
   "normalization": {
@@ -95,6 +107,24 @@ valid="$fixture_root/valid"
 write_valid_fixture "$valid"
 (cd "$REPO_ROOT" && bash "$VALIDATOR" "$valid")
 (cd "$REPO_ROOT" && bash "$STAGE_VALIDATOR" create-ui-and-verify ui-verification "$valid")
+
+# Test 1b: a version 2 PASS cannot omit the visual-risk contract that makes
+# icon/label/layout/action review explicit.
+missing_visual_contract="$fixture_root/missing-visual-contract"
+write_valid_fixture "$missing_visual_contract"
+jq 'del(.visual_contract)' \
+  "$missing_visual_contract/ui_verification.json" > "$missing_visual_contract/ui_verification.tmp"
+mv "$missing_visual_contract/ui_verification.tmp" "$missing_visual_contract/ui_verification.json"
+expect_failure "version 2+ PASS reports must declare non-empty visual_contract roles and checks" \
+  bash "$VALIDATOR" "$missing_visual_contract"
+
+missing_visual_frame="$fixture_root/missing-visual-frame"
+write_valid_fixture "$missing_visual_frame"
+jq '.visual_contract.checks[0].element_id = "missing_visual_icon"' \
+  "$missing_visual_frame/ui_verification.json" > "$missing_visual_frame/ui_verification.tmp"
+mv "$missing_visual_frame/ui_verification.tmp" "$missing_visual_frame/ui_verification.json"
+expect_failure "visual_contract check visual_bounds/editor/missing_visual_icon is missing from runtime evidence" \
+  bash "$VALIDATOR" "$missing_visual_frame"
 
 # Test 1a: a compact handle anchor cannot use only the interactive target's
 # bounds; the visual shape needs its own identifier.

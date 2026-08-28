@@ -70,6 +70,12 @@ copy expected/actual measurements or self-declare PASS. The artifact validator c
 delta itself and fails if an anchor is missing, outside tolerance, is based on non-XCUITest
 evidence, or lacks a screenshot.
 
+For version 2+ reports, declare a `visual_contract` with the visual-risk roles present in the
+changed surface (for example `icon_identity`, `layout_relationship`, and `action_presence`).
+Each role must name a runtime-backed identifier, the producing XCUITest method, and the concrete
+visual assertion being proved. A button's existence or 48 pt touch-target frame is not proof of
+its visible icon, label treatment, relative placement, or presence of a secondary action.
+
 A broad screenshot with a statement such as "matches design", an assertion that only checks a
 larger touch target, or a hand-written frame value is not sufficient proof of placement or size.
 If an XCUITest frame capture cannot be produced, record a verification FAIL/BLOCKED result; do

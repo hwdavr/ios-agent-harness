@@ -86,6 +86,38 @@ artifacts to `ui-verification`; its artifact gate must calculate the design-anch
 `evidence/ui_frames.json`. A screenshot review, a Compose source reading, or a report's own PASS
 statement is not sufficient evidence.
 
+### 6. Migrate Android UI tests to XCUITest
+
+Read the Android UI test files for the target screen — Espresso tests, Compose test rules
+(`createComposeRule`, `onNodeWithTag`, `onNodeWithText`, `performClick`, assertion chains), and
+any screenshot/golden-image tests. Record the inventory in
+`docs/current/android_ui_test_inventory.md`:
+
+| Android test file | Test method | What it verifies | Mapped iOS test method | Status |
+|---|---|---|---|---|
+
+For each Android UI test, create the equivalent XCUITest following these rules:
+
+- **Map selectors.** Android `testTag` / `contentDescription` → iOS `accessibilityIdentifier`.
+  Android `onNodeWithText("…")` → iOS `app.staticTexts["…"]` only when the text is
+  locale-stable; prefer identifier-based queries.
+- **Map actions.** `performClick()` → `.tap()`, `performScrollTo()` → `swipeUp()` /
+  `scrollViews.firstMatch.swipeUp()`, `performTextInput()` → `.typeText()`.
+- **Map assertions.** `assertIsDisplayed()` → `XCTAssertTrue(element.exists)` +
+  `waitForExistence(timeout:)`, `assertTextEquals()` → `XCTAssertEqual(element.label, …)`,
+  `assertIsEnabled()` / `assertIsNotEnabled()` → `XCTAssertTrue/False(element.isEnabled)`.
+- **Map state-driven tests.** Android tests that inject ViewModel state via Hilt/test modules →
+  iOS tests that use launch arguments or environment variables to trigger fixture data.
+- **One main scenario per test.** Do not bundle multiple Android test methods into one XCUITest.
+- **No `sleep()`.** Use `waitForExistence(timeout:)` or XCTest expectations.
+- **Cover every mapped state.** Initial loading, populated content, empty state, error state,
+  refresh with cached content, selection/editing, navigation handoff, and action controls
+  (sheet, menu, dialog) as identified in the Android test inventory.
+
+The migrated UI tests must be RED (failing or non-compiling) against the current iOS codebase
+before any production code changes. Record RED evidence in the dated workspace
+`evidence/red_ui_test_migration.txt`.
+
 ## Completion Criteria
 
 - Android contract cites source evidence for all design-critical elements and states.
@@ -93,3 +125,6 @@ statement is not sufficient evidence.
 - Every critical visual size, spacing, and alignment relationship has a numeric anchor.
 - SwiftUI behavior respects iOS architecture, localization, accessibility, and touch-target rules.
 - XCUITest evidence and the UI-verification gate pass on the declared portrait simulator target.
+- Every Android UI test method is mapped to an equivalent XCUITest with documented selector,
+  action, and assertion correspondence; migrated UI tests produce RED evidence before
+  production implementation.

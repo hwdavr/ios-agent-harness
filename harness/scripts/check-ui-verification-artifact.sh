@@ -143,6 +143,35 @@ SCREEN_NAME_COUNT=$(jq '[.screens[] | .name] | unique | length' "$DOCS_DIR/$RUNT
 [ "$SCREEN_COUNT" -eq "$SCREEN_NAME_COUNT" ] \
   || fail "$RUNTIME_EVIDENCE contains duplicate screen names"
 
+# Version 2+ PASS reports must declare the visual risks that the screenshot review is
+# responsible for proving. The contract is intentionally separate from numeric anchors:
+# anchors prove geometry, while these entries make icon identity, label treatment, layout
+# relationships, and action presence explicit and traceable to captured runtime elements.
+if jq -e '((.version | tostring | tonumber) >= 2) and (.verdict.result == "PASS")' "$REPORT" >/dev/null 2>&1; then
+  jq -e '
+    . as $report |
+    ($report.visual_contract | type == "object") and
+    ($report.visual_contract.required_roles | type == "array" and length > 0) and
+    ($report.visual_contract.checks | type == "array" and length > 0) and
+    all($report.visual_contract.required_roles[]; . as $role | any($report.visual_contract.checks[]; .role == $role)) and
+    all($report.visual_contract.checks[];
+      (.screen | type == "string" and length > 0) and
+      (.element_id | type == "string" and length > 0) and
+      (.role | type == "string" and length > 0) and
+      (.runtime_test | type == "string" and length > 0) and
+      (.assertion | type == "string" and length > 0)
+    )
+  ' "$REPORT" >/dev/null 2>&1 \
+    || fail "$REPORT version 2+ PASS reports must declare non-empty visual_contract roles and checks"
+
+  while IFS=$'\t' read -r screen element_id role; do
+    jq -e --arg screen "$screen" --arg element_id "$element_id" '
+      any(.screens[]; .name == $screen and (.elements | has($element_id)))
+    ' "$DOCS_DIR/$RUNTIME_EVIDENCE" >/dev/null 2>&1 \
+      || fail "$REPORT visual_contract check $role/$screen/$element_id is missing from runtime evidence"
+  done < <(jq -r '.visual_contract.checks[] | [.screen, .element_id, .role] | @tsv' "$REPORT")
+fi
+
 while IFS= read -r screenshot; do
   require_runtime_asset "$screenshot"
 done <<EOF
