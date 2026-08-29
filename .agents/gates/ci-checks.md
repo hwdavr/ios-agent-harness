@@ -45,7 +45,18 @@ bash harness/scripts/check-architecture-rules.sh
 - ViewModel calling data sources directly
 - Business logic in SwiftUI Views
 
-### 6. SwiftUI Rules Check
+### 6. Navigation Rules Check
+```bash
+bash harness/scripts/check-navigation-rules.sh
+```
+**Must pass.** Catches navigation violations:
+- Missing typed root `NavigationStack`/`NavigationSplitView` destination handling
+- Non-`Hashable` routes and complex route arguments
+- Conditional root destination swapping and untyped destination links
+- Destination booleans or persistent route state in ViewModels
+- Auth exit paths that fail to clear route state
+
+### 7. SwiftUI Rules Check
 ```bash
 bash harness/scripts/check-swiftui-rules.sh
 ```
@@ -56,37 +67,37 @@ bash harness/scripts/check-swiftui-rules.sh
 - ViewModel or repository calls inside stateless `Content` Views
 - Unstable `accessibilityIdentifier` values (string interpolation)
 
-### 7. Localization Check
+### 8. Localization Check
 ```bash
 bash harness/scripts/check-localization-rules.sh
 ```
 **Must pass.** Detects hardcoded strings in SwiftUI Views.
 
-### 8. Test Assertions Quality
+### 9. Test Assertions Quality
 ```bash
 bash harness/scripts/check-test-assertions-quality.sh
 ```
 **Must pass.** Ensures tests do not use envelope-only or shallow assertions.
 
-### 9. No Dummy Code
+### 10. No Dummy Code
 ```bash
 grep -rn "fatalError.*TODO\|#warning.*stub\|// dummy\|// placeholder\|// stub" NotesTakingAppiOS/ sharedContracts/
 ```
 **Must pass.** Must return zero matches. No stubs, `fatalError("TODO")`, `#warning("stub")`, or `// dummy implementation` comments in production code.
 
-### 10. Feature Lifecycle Validation
+### 11. Feature Lifecycle Validation
 ```bash
 bash harness/scripts/check-feature-lifecycle.sh
 ```
 **Must pass** before selecting a complex feature and after every tracker transition.
 
-### 11. Visual Evidence Contract (when visual verification is required)
+### 12. Visual Evidence Contract (when visual verification is required)
 ```bash
 bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"
 ```
 **Must pass.** Every visual verification method in the final owner's `feature_list.json` must have a matching sprint-contract row, acceptance-test ID, successful test evidence, a non-empty screenshot, and reference-anchor proof.
 
-### 12. Keyboard-Visible Planning Mockup (when a planned screen or sheet has text input)
+### 13. Keyboard-Visible Planning Mockup (when a planned screen or sheet has text input)
 ```bash
 bash harness/scripts/check-keyboard-mockup-contract.sh "$FEATURE_DIR"
 ```

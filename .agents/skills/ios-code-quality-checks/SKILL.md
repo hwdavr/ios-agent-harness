@@ -35,25 +35,33 @@ bash harness/scripts/check-architecture-rules.sh
 ```
 Verifies layer boundaries, no DTO leaks, no framework imports in domain layer.
 
-### 4. SwiftUI Rules Check
+### 4. Navigation Rules Check
+```bash
+bash harness/scripts/check-navigation-rules.sh
+```
+Verifies typed root navigation, Hashable route definitions, ID-style route arguments,
+and ViewModel navigation-state constraints. The companion contract test can be run with
+`bash harness/scripts/tests/navigation-rules-contract-test.sh`.
+
+### 5. SwiftUI Rules Check
 ```bash
 bash harness/scripts/check-swiftui-rules.sh
 ```
 Verifies no hardcoded strings, no hardcoded colors, all interactive elements have `accessibilityIdentifier`.
 
-### 5. Localization Check
+### 6. Localization Check
 ```bash
 bash harness/scripts/check-localization-rules.sh
 ```
 Detects hardcoded strings in SwiftUI Views.
 
-### 6. Test Assertions Quality
+### 7. Test Assertions Quality
 ```bash
 bash harness/scripts/check-test-assertions-quality.sh
 ```
 Ensures no envelope-only assertions.
 
-### 7. No Dummy Code
+### 8. No Dummy Code
 ```bash
 grep -rn "fatalError.*TODO\|#warning.*stub\|// dummy\|// placeholder\|// stub" NotesTakingAppiOS/ sharedContracts/
 ```
