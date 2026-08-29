@@ -36,6 +36,7 @@ Load:
 
 Create the dated workspace `docs/product/<YYYY-MM-DD>-<feature-short-name>/` with:
 - `android_logic_map.md` — one row per Android class/method/behavior: Android source path (cite file + line), iOS equivalent, parity decision (exact port / platform adaptation / deferred), and any data-layer or contract gap found. Include UI states, gestures, controls, presentation styles, accessibility semantics, and responsive bounds when applicable.
+- For every source-rendered UI component, record presence separately from behavior: preserve it by default, or record an approved specification/migration-map rationale for its absence. A `deferred` parity decision describes action behavior and never authorizes removing the visible component.
 - `assets/` — screenshots, state captures, measurement notes, and other migration evidence when UI is affected.
 - `summary.md` — stage progress table (use `harness/templates/progress-template.md` and the workflow stage table below).
 
@@ -54,6 +55,7 @@ Gate: no open questions remain; `bash harness/scripts/check-stage-artifacts.sh a
 
 The plan must:
 - Map every parity decision in `android_logic_map.md` to files (create/modify/delete) and change types.
+- Any `delete` entry for a source-rendered UI component must cite the approved specification/migration-map rationale authorizing its absence; without that evidence, the component remains in the iOS UI and its action is handled as enabled, disabled, or deferred.
 - Include the data-layer gaps found in Stage 1 (e.g., repository methods missing Android semantics) with explicit fixes.
 - Define the iOS public API surface the migrated tests will target.
 - Order the work as: tests first (RED), then implementation (GREEN).
@@ -69,6 +71,7 @@ Gate: `bash harness/scripts/check-stage-artifacts.sh android-to-ios-migration im
 - Shared JSON scenarios from `sharedContracts/test-scenarios/` for any API-touching integration tests.
 - Update existing tests that assert the old production behavior being removed.
 - UI tests must cover every mapped user-facing state and interaction: initial loading, refresh with cached content, empty/error states, overflow or horizontal scrolling, each action control, navigation handoff, and the platform-adapted presentation (sheet/menu/dialog) where applicable.
+- For each source-rendered control retained in the migration map, UI tests must assert component presence independently from enabled/action behavior; deferred controls must remain discoverable and have their disabled or deferred state asserted separately.
 - Give every interactive element a stable accessibility identifier and verify the identifier and accessible frame, not just screen existence.
 
 Run the test suite (or `xcodebuild build-for-testing` for the test target) and record RED evidence — failing assertions or a non-compiling test target against the current iOS API — in `<dated-workspace>/evidence/red_test_migration.txt`. Do not modify production code in this stage.
@@ -81,7 +84,7 @@ Gate: tests exist, encode Android-parity behavior, and are RED with recorded evi
 1. Data layer: fix gaps found in Stage 1 (e.g., folder rename parity), keeping DTOs and mappings in the data layer.
 2. Domain layer: add framework-independent model helpers the migration needs (e.g., `NoteDocument.toPlainText()` port).
 3. ViewModel layer: repository-backed projections, actions, validation, refresh/sync orchestration, error notices, navigation handoff — no data-layer imports.
-4. UI layer: render the new state while preserving the visual shell, semantic tokens, and accessibility identifiers. Preserve Android interaction and presentation semantics, using an explicitly documented iOS adaptation where the platform differs.
+4. UI layer: render the new state while preserving the visual shell, semantic tokens, and accessibility identifiers. Preserve every source-rendered component unless an approved specification/migration-map rationale explicitly authorizes its absence; deferred behavior is not permission to remove the component. Preserve Android interaction and presentation semantics, using an explicitly documented iOS adaptation where the platform differs.
 
 Gate: `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build` passes; all layer rules satisfied; migrated tests pass.
 
