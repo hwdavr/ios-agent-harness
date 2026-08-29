@@ -13,18 +13,11 @@ This workflow starts only after the user approves `feature_list.json` and `sprin
 
 ---
 
-## 🔁 Gate Failure Resolution Policy
+## Gate Semantics
 
-When **any** gate check fails during the pipeline (verification commands, checklist items, lifecycle checks, install commands, etc.), **do not stop the pipeline**. Instead, apply the following resolution loop **for each failing gate item independently**:
+Every required stage gate is a hard stop. A gate may advance only after its command exits `0` and its required evidence is recorded. Any failure or unavailable prerequisite must be recorded as `⚠️ Blocked` or non-passing, and the workflow must stop before the next stage.
 
-1. **Diagnose**: Read the full error output. Identify the root cause (compilation error, test failure, lint violation, missing file, etc.).
-2. **Fix**: Apply a targeted, minimal fix for that specific failure. Follow all project rules (no suppressions, no workarounds).
-3. **Re-run**: Re-execute **only** the failing gate command to confirm the fix resolved it.
-4. **Retry limit**: Allow up to **3 fix attempts per gate item**. If a gate item still fails after 3 attempts, mark it as `⚠️ unresolved` in the summary, log the last error output, and **continue to the next gate item**.
-5. **After all gate items are processed**: If any gate item remains `⚠️ unresolved`, mark the stage as `⚠️ partial` (not ✅) in the summary and list all unresolved items. Do **not** block the entire pipeline — proceed to the next stage, but clearly document the gap so the next session or evaluator can address it.
-
-> [!WARNING]
-> The resolution loop must never introduce suppression annotations, baseline changes, or rule exclusions to force a gate to pass. Only genuine code fixes are acceptable.
+---
 
 ---
 
@@ -44,8 +37,9 @@ Verify target simulator runtime environment readiness.
         ```bash
         xcrun simctl list devices | grep Booted
         ```
-    2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Setup** stage status to completed (✅) with notes and current timestamp.
+    2. If the command succeeds, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Setup** stage status as completed (✅) with notes and the current timestamp. If it fails, record Setup as `⚠️ Blocked` and stop.
 *   **Objective**: Confirm simulator availability for runtime testing. Register progress in the summary.
+*   **Gate**: The command must exit `0` and identify a booted simulator. If it exits non-zero or no booted simulator is found, mark Setup `⚠️ Blocked` with the raw output and stop the pipeline. Do not advance to Verify Baseline or Implement.
 
 ### Stage 3 — Verify Baseline
 Ensure that the existing codebase compiles and all tests pass before making any changes. The previous session or developer may have introduced bugs or broken tests.
@@ -55,8 +49,9 @@ Ensure that the existing codebase compiles and all tests pass before making any 
         xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build
         xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' test
         ```
-    2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Verify Baseline** stage status to completed (✅) with notes and current timestamp.
+    2. If both commands succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Verify Baseline** stage status as completed (✅) with notes and the current timestamp. If either fails, record Verify Baseline as `⚠️ Blocked` and stop.
 *   **Objective**: Confirm the repository is in a perfectly stable, compilable, and green state. If the baseline is broken, stop and fix existing regressions first! Register status in `$FEATURE_DIR/summary_{feature_id}.md`.
+*   **Gate**: Both commands must exit `0`. If either command fails, mark Verify Baseline `⚠️ Blocked`, record the command and raw failure output, and stop the pipeline. Do not begin implementation.
 
 ### Stage 4 — Implement
 Build out the selected feature across the necessary layers.
@@ -69,13 +64,14 @@ Build out the selected feature across the necessary layers.
 Verify the correctness of the implemented behavior visually and logically.
 *   **Action**:
     1. **INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism. Implement every `Acceptance Test Cases` row in the selected user story. The primary acceptance test must exercise the production entry point; an isolated helper or use-case test cannot substitute for user-visible or cross-layer behavior. Verify through the actual UI/API and meet code coverage targets (overall project **≥ 80%**, ViewModel & Use Case **≥ 90%**).
-    2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Test** stage status to completed (✅) detailing coverage percentages, passed test counts, and any blocked runtime explicitly.
+    2. If all required tests and coverage checks succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Test** stage status as completed (✅), detailing coverage percentages and passed test counts. If any required check fails, record Test as `⚠️ Blocked` with the command and raw output and stop.
 *   **Objective**: All local tests pass cleanly, coverage targets are fully met, and verification evidence is documented in the summary.
 
 ### Stage 6 — Code Quality Fix
 Run all static check suites, lint rules, and custom compliance rules, and resolve all violations.
 *   **Action**: **INVOKE** the `code-quality-fix` skill via the Skill tool (name: `code-quality-fix`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 *   **Objective**: Diagnose and resolve all formatting, quality, localization, and architectural style guidelines issues, reconcile any newly discovered rule trigger with the approved matrix, and log check success in `$FEATURE_DIR/summary_{feature_id}.md`.
+*   **Gate**: All required quality checks must exit `0`. If any check fails, record the failing command and raw output, mark this stage `⚠️ Blocked`, and stop the pipeline.
 
 ### Stage 7 — Finalize & Exit
 Verify all acceptance criteria, update project state, commit, and prepare for handoff.
@@ -86,11 +82,11 @@ Verify all acceptance criteria, update project state, commit, and prepare for ha
 > **Gate Check Policy**:
 > 1. **Identify Gate Criteria**: Read the selected user story in `$FEATURE_DIR/sprint-contract.md`. Every `Acceptance Test Cases` command is a mandatory gate. The active feature's `"verification"` field must reference the same Test IDs and commands.
 > 2. **Execute Each Command**: Run every verification command (e.g., `xcodebuild test` or specific test command). Process them **one by one**.
-> 3. **On Failure — Apply Gate Failure Resolution Policy**: If any verification command fails (exit code `non-zero`), **do not stop**. Apply the **Gate Failure Resolution Policy** (diagnose → fix → re-run, up to 3 attempts) for that specific failing command before moving to the next one.
+> 3. **On Failure**: If any verification command fails (exit code `non-zero`), record the command, exit status, and raw failure output; keep the feature `in_progress` or mark it `blocked`, and stop the pipeline. Do not continue to another verification command or stage.
 > 4. **Validate & Attach Evidence**:
 >    *   The status can **ONLY** transition to `passing` if **every** acceptance-test command eventually executes successfully (exit code `0`) — either on the first run or after resolution.
 >    *   You **MUST** attach objective evidence for every Test ID, including the command, exit status, fix attempts (if any), and final result, inside the `"evidence"` field of the active feature object.
->    *   If any verification command remains unresolved after 3 fix attempts, the status must be marked as `blocked` or returned to `in_progress`. Document all unresolved items.
+>    *   If any verification command fails, the status must be marked as `blocked` or returned to `in_progress`. Document the unresolved command and prerequisite.
 >    *   A visual-verification owner cannot transition to `passing` unless `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` exits `0`. This requires a non-empty screenshot and a `visual_evidence/reference-anchor-verification.md` row for every visual Test ID; the row must connect the approved reference to a visual bounds `accessibilityIdentifier`, a runtime assertion, and a concrete measured relationship.
 
 *   **Action**:
@@ -107,7 +103,7 @@ Verify all acceptance criteria, update project state, commit, and prepare for ha
         ```bash
         git commit -m "feat(<area>): <short description of implemented feature>"
         ```
-    5. Review the **[`clean-state-checklist-template.md`](../../harness/templates/clean-state-checklist-template.md)** — architecture & standards (§2), observability (§5), and cleanliness (§6) items are code-review checks. Build, test, and quality checks (§1, §3, §4) are already covered by the verification gate above — reference that evidence, do not re-run commands. If any review item fails, apply the **Gate Failure Resolution Policy**.
+    5. Review the **[`clean-state-checklist-template.md`](../../harness/templates/clean-state-checklist-template.md)** — architecture & standards (§2), observability (§5), and cleanliness (§6) items are code-review checks. Build, test, and quality checks (§1, §3, §4) are already covered by the verification gate above — reference that evidence, do not re-run commands. If any review item fails, record it and stop the pipeline.
     6. Create or update **`$FEATURE_DIR/session-handoff.md`** by strictly following **[`session-handoff-template.md`](../../harness/templates/session-handoff-template.md)**. Detail what is working, what changed, unverified paths, risks, unresolved gate items, and next steps.
     7. **Never move the feature directory.** Its `docs/product/` path is stable; only tracker and per-slice statuses change.
     8. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Finalize & Exit** stage status to completed (✅), transition the selected slice summary to Complete, and document key outcomes, open items, and handoff decisions.
@@ -123,4 +119,4 @@ Install the completed debug build to the simulator as the final generator step.
         ```
     2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Install App To Simulator** stage status to completed (✅), logging the simulator UDID, install command, timestamp, and exit status.
 *   **Objective**: Leave the implemented feature installed on the simulator for immediate manual review.
-*   **Gate**: The install command exits with code `0`. If the install fails, apply the **Gate Failure Resolution Policy** (diagnose → fix → re-run, up to 3 attempts). If no simulator is booted, mark this stage blocked with the `xcrun simctl list devices` output and do not claim the generator session is fully complete.
+*   **Gate**: The install command must exit with code `0`. If the install fails, mark this stage `⚠️ Blocked` with the command and raw output and stop the pipeline. If no simulator is booted, mark this stage blocked with the `xcrun simctl list devices` output and do not claim the generator session is fully complete.
