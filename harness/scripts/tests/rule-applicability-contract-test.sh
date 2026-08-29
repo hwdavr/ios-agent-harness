@@ -48,6 +48,7 @@ for required_file in \
     "$PROJECT_ROOT/.agents/skills/implementation-plan/SKILL.md" \
     "$PROJECT_ROOT/.agents/skills/ios-testing/SKILL.md" \
     "$PROJECT_ROOT/.agents/skills/feature-orient/SKILL.md" \
+    "$PROJECT_ROOT/.agents/skills/android-to-ios-ui-migration/SKILL.md" \
     "$PROJECT_ROOT/.agents/skills/code-quality-fix/SKILL.md" \
     "$PROJECT_ROOT/.agents/skills/ios-code-quality-checks/SKILL.md" \
     "$PROJECT_ROOT/.agents/skills/ios-code-review/SKILL.md" \
@@ -76,6 +77,8 @@ assert_contains "$PROJECT_ROOT/.agents/skills/requirement-capture/SKILL.md" "Rul
 assert_contains "$PROJECT_ROOT/.agents/skills/implementation-plan/SKILL.md" "Rule Applicability Implementation"
 assert_contains "$PROJECT_ROOT/.agents/skills/ios-implementation/SKILL.md" "Analytics and observability are conditional"
 assert_contains "$PROJECT_ROOT/.agents/skills/ios-ui-layer/SKILL.md" "neither is mandatory"
+assert_contains "$PROJECT_ROOT/.agents/skills/android-to-ios-ui-migration/SKILL.md" "Cover every mapped analytics trigger"
+assert_contains "$PROJECT_ROOT/.agents/skills/android-to-ios-ui-migration/SKILL.md" "SwiftUI handoff must explicitly verify"
 assert_contains "$PROJECT_ROOT/.agents/skills/ios-testing/SKILL.md" "Every required Rule Applicability row"
 assert_contains "$PROJECT_ROOT/.agents/skills/feature-orient/SKILL.md" "complete Rule Applicability matrix"
 assert_contains "$PROJECT_ROOT/.agents/skills/code-quality-fix/SKILL.md" "Rule Applicability matrix"

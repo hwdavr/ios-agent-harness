@@ -17,6 +17,11 @@ prove the rendered result. Do not translate Compose code line-for-line into Swif
   and navigation state.
 - The approved Android design/screenshot or Pencil/Figma reference, if available.
 - `docs/product/design_system.md` and the affected iOS SwiftUI code.
+- `.agents/rules/ios-architecture.md`, `.agents/rules/swiftui-rules.md`,
+  `.agents/rules/localization-rules.md`, `.agents/rules/navigation-rules.md`,
+  `.agents/rules/implementation-rules.md`, `.agents/rules/testing-strategy.md`,
+  `.agents/rules/observability.md`, and `.agents/rules/analytics-rules.md`.
+- `harness/templates/rule-applicability-template.md`.
 - `references/compose-to-swiftui-mapping.md` for implementation mappings and measurement rules.
 
 If the Android source or an approved visual reference is unavailable, state which evidence is
@@ -29,7 +34,9 @@ visual parity from source inspection alone.
 
 Name the Android screen, its destination iOS screen, supported visual states, target simulator,
 and approved reference. Separate product behavior from visual parity; route missing behavior
-requirements to the normal specification workflow.
+requirements to the normal specification workflow. Read the approved Rule Applicability matrix
+and record the SUI, L10N, NAV, OBS, and ANL decisions before implementation. Android behavior
+does not override an iOS rule without a documented user-approved exception.
 
 ### 2. Extract the Android UI contract
 
@@ -43,6 +50,9 @@ Read only the target's reachable UI surface. Record every rendered element in
 - color, typography, shape, and spacing tokens with their Android declaration path;
 - normal, selected, disabled, loading, empty, error, and focused states;
 - interaction, navigation destination, and visual bounds distinct from any larger touch target.
+- analytics events or logging signals triggered by each interactive state, including the
+  Android source location, event name/payload, and production outcome; record `analytics: none`
+  when no product event is justified.
 
 Read values through theme/component tokens before recording literals. Preserve the Android source
 path and line number for every design-critical token or layout decision.
@@ -51,7 +61,7 @@ path and line number for every design-critical token or layout decision.
 
 Create `docs/current/ios_design_mapping.md` with one row per design-critical contract item:
 
-| Android evidence | iOS token/component | Decision | Visual anchor | Exception |
+| Android evidence | iOS token/component or ViewModel action | Decision | Visual anchor | Exception |
 |---|---|---|---|---|
 
 Map colors, typography, radii, spacing, icons, and states to the existing iOS design system first.
@@ -66,6 +76,15 @@ rendered hierarchy, not by a blind one-to-one point conversion.
 Document every deliberate platform adaptation and obtain explicit user approval before it can
 override the approved visual reference.
 
+For each Android analytics event, map the UI trigger to an iOS ViewModel action and preserve the
+approved event name and payload. Do not place analytics calls in a SwiftUI View. Map diagnostic
+logging to the appropriate iOS async/error boundary and use `os.Logger` only when OBS is required;
+never log PII, secrets, or full user-generated content.
+
+Before handoff, add or update the Rule Applicability reconciliation in the active specification:
+record the decision, trigger/rationale, implementation location, and verification evidence for
+SUI, L10N, NAV, OBS, and ANL. Keep the other rule rows present as well.
+
 ### 4. Define measurable parity anchors
 
 Create `docs/current/design/design_anchors.json` for text/container heights, widths, margins,
@@ -78,8 +97,15 @@ anchors where selection, focus, sheet presentation, or navigation can shift layo
 
 ### 5. Hand off implementation and verification
 
-Implement through `ios-ui-layer` under the iOS architecture and localization rules. Preserve
-behavior in ViewModels/domain layers; do not move Android UI/business logic into SwiftUI Views.
+Implement through `ios-ui-layer` under the iOS architecture, SwiftUI, localization, navigation,
+observability, analytics, implementation, and testing rules. Preserve behavior in ViewModels/
+domain layers; do not move Android UI/business logic or analytics calls into SwiftUI Views.
+
+The SwiftUI handoff must explicitly verify: stateless `Content` plus stateful `Screen`, no business
+logic or data-layer calls in Views, semantic colors, localized user-visible text and accessibility
+labels, stable accessibility identifiers on interactive elements, typed navigation when in scope,
+and keyboard-visible behavior for text inputs. Do not add analytics or logs merely to satisfy a
+not-applicable matrix row.
 
 Run an XCUITest that captures numeric frames and screenshots for each anchored screen. Feed those
 artifacts to `ui-verification`; its artifact gate must calculate the design-anchor deltas from
@@ -113,6 +139,10 @@ For each Android UI test, create the equivalent XCUITest following these rules:
 - **Cover every mapped state.** Initial loading, populated content, empty state, error state,
   refresh with cached content, selection/editing, navigation handoff, and action controls
   (sheet, menu, dialog) as identified in the Android test inventory.
+- **Cover every mapped analytics trigger.** For each migrated Android event, assert the iOS
+  ViewModel action emits the approved event and payload; if no event applies, retain the explicit
+  `analytics: none` decision. Test logging behavior only for required observability boundaries,
+  and assert that prohibited sensitive data is absent.
 
 The migrated UI tests must be RED (failing or non-compiling) against the current iOS codebase
 before any production code changes. Record RED evidence in the dated workspace
@@ -124,6 +154,10 @@ before any production code changes. Record RED evidence in the dated workspace
 - iOS mapping cites an iOS design-system token/component or an explicit approved exception.
 - Every critical visual size, spacing, and alignment relationship has a numeric anchor.
 - SwiftUI behavior respects iOS architecture, localization, accessibility, and touch-target rules.
+- SwiftUI implementation satisfies the approved Rule Applicability decisions for SUI, L10N, NAV,
+  OBS, and ANL, with no unsupported `Not applicable` or unapproved exception.
+- Every Android analytics event is mapped to an iOS ViewModel action, or the migration artifact
+  explicitly records why analytics is not applicable.
 - XCUITest evidence and the UI-verification gate pass on the declared portrait simulator target.
 - Every Android UI test method is mapped to an equivalent XCUITest with documented selector,
   action, and assertion correspondence; migrated UI tests produce RED evidence before
