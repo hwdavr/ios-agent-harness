@@ -117,20 +117,18 @@ Every change needs a description that stands alone in version control history.
 
 ## Review Process
 
-### Step 0: Load All In-Scope Rule Files (Mandatory)
+### Step 0: Reconcile the Approved Rule Contract (Mandatory)
 
-Before looking at any code, identify which project rule files are in scope and load them all.
+Before looking at code, read the active specification's Rule Applicability matrix and
+the implementation/test plans. Load the L1 rules and all six conditional L2 rule files:
+`swiftui-rules.md`, `localization-rules.md`, `navigation-rules.md`,
+`api-contract-rules.md`, `observability.md`, and `analytics-rules.md`.
 
-| If the diff touches... | Load this rule file |
-|------------------------|--------------------|
-| Any Composable or UI file | `rules/swiftui-rules.md` |
-| Any user-visible text | `rules/localization-rules.md` |
-| Any layer boundary (ViewModel, Repository, etc.) | `rules/ios-architecture.md` |
-| Any navigation code | `rules/navigation-rules.md` |
-| Any API / data layer | `rules/api-contract-rules.md` |
-| Any analytics event | `rules/analytics-rules.md` |
-
-**Do not skip a rule file because you believe the diff is unlikely to violate it.** Load it, scan against it, and record the result explicitly. If you haven't loaded a rule file, you cannot claim its rules were checked.
+For ARCH, IMPL, TEST, SUI, L10N, NAV, API, OBS, and ANL, independently inspect the
+diff for a trigger and record the approved decision, observed trigger, evidence, and
+result. A missing decision, a triggered rule marked `Not applicable`, or an exception
+without the cited user approval blocks approval. Analytics and observability remain
+conditional: do not demand new events or logs when their triggers are absent.
 
 ### Step 1: Understand the Context
 
@@ -275,7 +273,7 @@ Part of code review is dependency review:
 1. Does the existing stack solve this? (Often it does.)
 2. How large is the dependency? (Check bundle impact.)
 3. Is it actively maintained? (Check last commit, open issues.)
-4. Does it have known vulnerabilities? (`npm audit`)
+4. Does it have known vulnerabilities? (review package metadata and security advisories)
 5. What's the license? (Must be compatible with the project.)
 
 **Rule:** Prefer standard library and existing utilities over new dependencies. Every dependency is a liability.
@@ -317,28 +315,18 @@ Part of code review is dependency review:
 - [ ] No unbounded operations
 - [ ] Pagination on list endpoints
 
-### Project-Specific Rules
-
-#### swiftui-rules.md *(if UI changed)*
-- [ ] No hardcoded colors (`Color.White`, `Color(0x...)`, etc.) — all via `LocalAppColors.current.<token>`
-- [ ] New color tokens added to both `LightAppColors` and `DarkAppColors`
-- [ ] No hardcoded strings in `Text()`, labels, or hints — all via `LocalizedStringKey`
-- [ ] All interactive elements have `accessibilityIdentifier(...)` with stable names
-- [ ] Stateless `Content` composable separated from the stateful `Screen` wrapper
-
-#### localization-rules.md *(if UI changed)*
-- [ ] Every new string defined in `strings.xml` with pattern `<screen>_<component>_<type>`
-- [ ] Plural strings use `<plurals>` block
-- [ ] Non-text interactive elements have `contentDescription = stringResource(...)` — not `null`
-
-#### ios-architecture.md
-- [ ] No cross-layer imports
-- [ ] No fully-qualified class names inline in function bodies
-- [ ] DTOs not exposed outside data layer
-
-#### navigation-rules.md — PASS / FAIL / N/A
-#### api-contract-rules.md — PASS / FAIL / N/A
-#### analytics-rules.md — PASS / FAIL / N/A
+### Rule Applicability
+- [ ] I reconciled all nine approved decisions with the diff: ARCH, IMPL, TEST, SUI,
+  L10N, NAV, API, OBS, and ANL.
+- [ ] Every triggered rule is Required or has a direct user-approved exception.
+- [ ] SwiftUI uses stateless content/stateful screen boundaries, semantic colors, and
+  stable `accessibilityIdentifier`s when UI is in scope.
+- [ ] User-visible strings and icon labels use `LocalizedStringKey` / `String(localized:)`
+  and `Localizable.xcstrings` when localization is in scope.
+- [ ] Navigation, API, observability, and analytics implementation matches its approved
+  decision. Analytics/logging is not required when the rule is correctly non-applicable.
+- [ ] Every changed function, branch, and callback implements its required behavior;
+  no dummy, stub, or no-op production code exists.
 
 ### Verification
 - [ ] Tests pass

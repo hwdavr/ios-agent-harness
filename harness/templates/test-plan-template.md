@@ -20,6 +20,26 @@ Use this template when producing the test plan in the **Implementation Plan** st
 
 ---
 
+## Rule-Driven Verification
+
+Copy the approved Rule Applicability decisions. For every `Required` row, name the
+test ID, static check, or review evidence that verifies it. Preserve the concrete
+rationale for `Not applicable` and approved exceptions.
+
+| Rule ID | Approved decision | Test / static-check / review evidence | Notes |
+|---|---|---|---|
+| ARCH | <decision> | <evidence> | |
+| IMPL | <decision> | <evidence> | |
+| TEST | <decision> | <evidence> | |
+| SUI | <decision> | <evidence> | |
+| L10N | <decision> | <evidence> | |
+| NAV | <decision> | <evidence> | |
+| API | <decision> | <evidence> | |
+| OBS | <decision> | <evidence> | |
+| ANL | <decision> | <evidence> | |
+
+---
+
 ## Test Cases
 
 List every test case grouped by the class under test. Assign a short ID (e.g. `T1`) so cases can be referenced in reviews and PRs.

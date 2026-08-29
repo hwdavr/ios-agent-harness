@@ -26,7 +26,10 @@ Determine scope before running any stage:
 
 ## Load
 - `rules/ios-architecture.md`
+- `rules/implementation-rules.md`
+- `rules/testing-strategy.md`
 - `rules/api-contract-rules.md`
+- `harness/templates/rule-applicability-template.md`
 - `docs/current/implementation_plan_v<N>.md` (once generated in Stage 2)
 
 ---
@@ -40,6 +43,8 @@ Adapt the skill output to cover:
 - API impact classification (additive, breaking, partial)
 - DTO and Domain model changes required
 - Identify which layers are affected (data, domain, UI)
+- The complete Rule Applicability matrix. API is `Required` for this workflow; every
+  other rule still needs an explicit decision and evidence plan.
 
 Run `bash harness/scripts/check-stage-artifacts.sh api-contract-update requirement-analysis` — must exit 0 before proceeding.
 
@@ -82,7 +87,7 @@ Mandatory: at least one integration test per changed API endpoint using shared J
 **INVOKE** the `code-quality-fix` skill via the Skill tool (name: `code-quality-fix`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
 Scope guidance:
-- Always run static analysis checks (Ktlint, Detekt, Lint).
+- Always run SwiftLint and applicable harness rule checks.
 - Skip UI-related scripts or rules if Stage 5 was skipped.
 
 ---
@@ -99,7 +104,7 @@ Only run if the contract change involves a tricky mapping, a breaking change, a 
 - Updated `sharedContracts/openapi.yaml`
 - Updated DTOs, mappers, SwiftData entities/DAOs (if affected)
 - Updated domain models and use cases (if affected)
-- Updated Compose screens/ViewModels (if UI scope)
+- Updated SwiftUI screens/ViewModels (if UI scope)
 - Integration tests for every changed endpoint using shared JSON scenarios
 - `docs/current/coding_report_v<N>.md` updated through each stage
 - `docs/current/summary_v<N>.md` with all completed stages marked
@@ -112,9 +117,9 @@ Only run if the contract change involves a tricky mapping, a breaking change, a 
 - [ ] `sharedContracts/openapi.yaml` reflects the new contract
 - [ ] No DTOs referenced outside the data layer
 - [ ] All changed API endpoints have at least one integration test using shared JSON scenarios
-- [ ] Ktlint, Detekt, and Lint pass with zero new violations
-- [ ] Build passes: `./gradlew xcodebuild build`
-- [ ] Unit + integration tests pass: `./gradlew xcodebuild test`
+- [ ] SwiftLint and applicable harness checks pass with zero new violations
+- [ ] Build passes: `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build`
+- [ ] Unit + integration tests pass: `xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16'`
 - [ ] `summary_v<N>.md` marks all executed stages as complete with artifact references
 
 **APPROVED →** This skill is complete. Return control to the caller or close the task.

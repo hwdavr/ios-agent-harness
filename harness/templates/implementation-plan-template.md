@@ -40,6 +40,25 @@ Use this template when producing the plan in the **Implementation Plan** stage.
 
 ---
 
+## Rule Applicability Implementation
+
+Copy the approved Rule Applicability matrix from the requirement artifact. Keep all
+nine rows; do not replace a `Not applicable` or approved exception with silence.
+
+| Rule ID | Approved decision | Planned work or retained rationale | Verification evidence |
+|---|---|---|---|
+| ARCH | <decision> | <files/boundary decision or rationale> | <evidence> |
+| IMPL | <decision> | <files/real behavior or rationale> | <evidence> |
+| TEST | <decision> | <test layer or rationale> | <evidence> |
+| SUI | <decision> | <UI work or rationale> | <evidence> |
+| L10N | <decision> | <catalog/accessibility work or rationale> | <evidence> |
+| NAV | <decision> | <route/back-stack work or rationale> | <evidence> |
+| API | <decision> | <OpenAPI/DTO work or rationale> | <evidence> |
+| OBS | <decision> | <logger/error-boundary work or rationale> | <evidence> |
+| ANL | <decision> | <event work or `analytics: none` rationale> | <evidence> |
+
+---
+
 ## Files to Create
 
 | File | Purpose |

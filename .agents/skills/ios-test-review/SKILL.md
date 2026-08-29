@@ -12,11 +12,20 @@ Review test quality independently from the code review: coverage targets, assert
 
 ## Load
 - `rules/testing-strategy.md`
+- `harness/templates/rule-applicability-template.md`
 - `skills/shared-json-scenarios/SKILL.md`
 
 ---
 
 ## Execute
+
+### Rule Applicability Test Reconciliation
+
+Read the approved matrix from the active specification and test plan. For every rule,
+record whether its planned verification evidence exists and exercises a real production
+trigger where applicable. Independently flag a test gap when the diff triggers a rule
+marked `Not applicable`, or when an exception lacks its cited user approval. Do not
+invent analytics or logging tests for a correctly non-applicable row.
 
 ### Coverage Review
 - [ ] Overall project ≥ 80% line coverage (`xccov`)
@@ -49,3 +58,5 @@ Review test quality independently from the code review: coverage targets, assert
 ## Output
 Test review findings with severity.
 Coverage report snapshot with actual percentages.
+Include a Rule Applicability Test Reconciliation table with the approved decision,
+trigger/test evidence, and result for all nine rules.

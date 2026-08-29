@@ -29,14 +29,15 @@ Read all four baseline documents produced by the `/feature-delivery` workflow be
 
 | Document | Location | What to extract |
 |---|---|---|
-| `spec_v<N>.md` | `docs/current/` | Acceptance Criteria · Scope · Exclusions |
+| `summary_v<N>.md` | `docs/current/` | Stage evidence and approved-artifact versions |
+| `spec_v<N>.md` | `docs/current/` | Acceptance Criteria · Scope · Exclusions · complete Rule Applicability matrix |
 | `implementation_plan_v<N>.md` | `docs/current/` | Approved architecture · layer breakdown · file list |
 | `test_plan_v<N>.md` | `docs/current/` | Approved test strategy · scenarios · coverage targets |
 
 > [!IMPORTANT]
 > If any of these files are missing, **immediately flag it as a blocking gap** in the Stage 5 rubric (`Handoff readiness` category). Do not silently skip a missing baseline — absent plans mean the review has no ground truth to compare against.
 
-After reading, summarise the key constraints and open decisions you will verify during Stages 2–4. Use these notes as your checklist anchor throughout the review.
+After reading, summarise the key constraints and all nine rule decisions you will verify during Stages 2–4. Independently compare the diff with the matrix: missing rows, unsupported `Not applicable` outcomes, and unapproved exceptions are blocking findings. Use these notes as your checklist anchor throughout the review.
 
 ---
 
@@ -44,6 +45,7 @@ After reading, summarise the key constraints and open decisions you will verify 
 **INVOKE** the `ios-test-review` skill via the Skill tool (name: `ios-test-review`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism. Evaluate test coverage, assertions, and shared JSON scenario completeness. Do not stop after this stage — proceed immediately to Stage 3.
 
 - Test review report: `docs/current/test_review_v<N>.md`
+- The report must include the Rule Applicability Test Reconciliation table.
 
 ---
 
@@ -51,6 +53,7 @@ After reading, summarise the key constraints and open decisions you will verify 
 **INVOKE** the `ios-code-review` skill via the Skill tool (name: `ios-code-review`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism. Perform static analysis and identify logic/architectural flaws. Do not stop after this stage — proceed immediately to Stage 4.
 
 - Code review report: `docs/current/code_review_v<N>.md`
+- The report must include the Rule Applicability Reconciliation table.
 
 ---
 

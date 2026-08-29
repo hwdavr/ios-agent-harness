@@ -1,5 +1,5 @@
 ---
-description: You are a senior Android developer clarifying requirements and planning a complex feature by breaking it into deliverable vertical slices — harness-planning workflow.
+description: You are a senior iOS developer clarifying requirements and planning a complex feature by breaking it into deliverable vertical slices — harness-planning workflow.
 ---
 
 # Workflow: Harness Planning
@@ -44,10 +44,11 @@ Objective:
 - Ask targeted clarifying questions in chat until every material ambiguity is resolved.
 - Create `FEATURE_DIR=docs/product/<YYYY-MM-DD>-<feature-short-name>` before writing artifacts.
 - Write `$FEATURE_DIR/spec.md` (always) and `$FEATURE_DIR/design.md` (for new screens or UI enhancements/flows).
+- Record the complete Rule Applicability matrix in `$FEATURE_DIR/spec.md`; every row needs a supported decision, trigger or rationale, and planned evidence before slice planning.
 - For UI work, read `docs/product/design_system.md` before design decisions, link it from `$FEATURE_DIR/design.md`, and record every explicit user-approved exception. Generated mockups must use its exact applicable tokens and component patterns.
 
 Output: `$FEATURE_DIR/spec.md` + `$FEATURE_DIR/design.md` + `$FEATURE_DIR/design/mockup_*.png` visual mockup images (user-provided or AI-generated, if the change includes UI modifications). Conditional requirements — design-system conformance and the keyboard-visible state/mockups for text-input surfaces — are defined in the `feature-specification` skill's Output section.
-Gate: Update the tracker status to `Awaiting specification approval`, then run `bash harness/scripts/check-stage-artifacts.sh harness-planning feature-specification "$FEATURE_DIR"` — it validates stage artifacts, lifecycle state, and the keyboard-visible mockup contract and must exit 0. For UI work, also verify `design.md` cites `docs/product/design_system.md`. **STOP — present specification, design document, and visual mockup images to user for review. Do not proceed until user explicitly approves.**
+Gate: Update the tracker status to `Awaiting specification approval`, then run `bash harness/scripts/check-stage-artifacts.sh harness-planning feature-specification "$FEATURE_DIR"` — it validates stage artifacts, lifecycle state, the complete Rule Applicability contract, and the keyboard-visible mockup contract and must exit 0. For UI work, also verify `design.md` cites `docs/product/design_system.md`. **STOP — present specification, design document, and visual mockup images to user for review. Do not proceed until user explicitly approves.**
 
 ### Stage 2 — Slice Planning ⛔ STOP FOR APPROVAL
 **INVOKE** the `slice-planning` skill via the Skill tool (name: `slice-planning`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.

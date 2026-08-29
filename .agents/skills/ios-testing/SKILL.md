@@ -20,12 +20,15 @@ The article principle: write the failing test *before* touching the application 
 - `skills/ios-ui-test/SKILL.md`
 - `skills/shared-json-scenarios/SKILL.md`
 - `rules/testing-strategy.md`
+- `harness/templates/rule-applicability-template.md`
 
 **Adhoc workflows** (`feature-delivery`, `bug-fixing`):
 - `docs/current/test_plan_v<N>.md` — test cases, layers, and coverage targets approved by user
+- `docs/current/spec_v<N>.md` — approved Rule Applicability decisions and triggers
 
 **Harness workflow** (`harness-generator`):
 - `$FEATURE_DIR/sprint-contract.md` — verification plan mapped to each acceptance criterion
+- `$FEATURE_DIR/spec.md` — approved Rule Applicability decisions and triggers
 - `$FEATURE_DIR/summary_{feature_id}.md` — active feature context and stage progress
 
 ---
@@ -33,7 +36,13 @@ The article principle: write the failing test *before* touching the application 
 ## Execute
 
 ### 1. Execute Planned Tests
-For ad-hoc workflows, read the approved `docs/current/test_plan_v<N>.md`. For the harness workflow, read the selected user story and its acceptance-test rows in `$FEATURE_DIR/sprint-contract.md`, plus the matching `verification` entry in `$FEATURE_DIR/feature_list.json`.
+For ad-hoc workflows, read the approved `docs/current/test_plan_v<N>.md` and Rule
+Applicability matrix in `spec_v<N>.md`. For the harness workflow, read the selected
+user story and its acceptance-test rows in `$FEATURE_DIR/sprint-contract.md`, the
+matching `verification` entry in `$FEATURE_DIR/feature_list.json`, and the matrix in
+`$FEATURE_DIR/spec.md`. Map every `Required` rule to a test, static check, or explicit
+review evidence. Preserve the rationale for non-applicable/exception rows; do not
+invent analytics or logging tests without a trigger.
 
 ### 2. Unit tests (`NotesTakingAppiOSTests/`)
 Write unit tests for all new or modified:
@@ -104,6 +113,7 @@ Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active w
 - [ ] At least one integration test per new or changed API endpoint
 - [ ] Shared JSON scenarios used — no inline mock response data in test files
 - [ ] UI tests pass (if added)
+- [ ] Every required Rule Applicability row has the planned verification evidence
 
 **APPROVED →** Return to the active workflow file and proceed to the next stage defined there.
 

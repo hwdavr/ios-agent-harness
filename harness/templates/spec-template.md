@@ -34,6 +34,27 @@ Use this template when producing `spec_v<N>.md` in the **Requirement, Impact & D
 
 ---
 
+## Rule Applicability
+
+Copy the complete matrix from
+[`rule-applicability-template.md`](rule-applicability-template.md). Keep all nine rows
+and replace each `<decision>` with a supported decision before the requirements stage
+can pass.
+
+| Rule ID | Rule document | Default | Decision for this change | Trigger / rationale | Planned evidence |
+|---|---|---|---|---|---|
+| ARCH | `ios-architecture.md` | Always | <decision> | <trigger/rationale> | <evidence> |
+| IMPL | `implementation-rules.md` | Always | <decision> | <trigger/rationale> | <evidence> |
+| TEST | `testing-strategy.md` | Always | <decision> | <trigger/rationale> | <evidence> |
+| SUI | `swiftui-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
+| L10N | `localization-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
+| NAV | `navigation-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
+| API | `api-contract-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
+| OBS | `observability.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
+| ANL | `analytics-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
+
+---
+
 ## Edge Cases
 
 - What happens when [boundary condition]?

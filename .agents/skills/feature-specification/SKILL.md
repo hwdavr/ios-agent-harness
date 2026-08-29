@@ -29,7 +29,10 @@ This skill ends only when every material question has been answered by the user 
 ## Load
 
 - `docs/product/design_system.md` — mandatory for every UI-affecting specification and design
-- `rules/compose-rules.md` — **Keyboard / IME Behavior** section: when screen content or a bottom sheet has text input, the bottom toolbar must dismiss while the keyboard is visible
+- `rules/ios-architecture.md`, `rules/implementation-rules.md`, `rules/testing-strategy.md`
+- `rules/swiftui-rules.md`, `rules/localization-rules.md`, `rules/navigation-rules.md`
+- `rules/api-contract-rules.md`, `rules/observability.md`, `rules/analytics-rules.md`
+- `harness/templates/rule-applicability-template.md`
 - `harness/templates/feature-spec-template.md`
 - `harness/templates/feature-design-template.md`
 
@@ -58,6 +61,15 @@ Before asking questions, determine the task type:
 - **Logic-only**: No UI changes. Requires `spec.md` only (skip all screen-specific sections).
 
 State the classification to the user and confirm before proceeding.
+
+#### Rule applicability decision
+
+Before asking product questions, copy the complete matrix from
+`harness/templates/rule-applicability-template.md` and decide every row. Use only
+`Required`, `Not applicable — <feature-specific reason>`, or
+`Exception — approved by <user/date>`. Record the trigger and evidence for required
+rows. Assess analytics and observability explicitly; they do not require new events or
+logs when their triggers are absent.
 
 ### 3. Ask Clarifying Questions In Chat
 
@@ -91,6 +103,7 @@ Before writing any artifacts, verify:
 - [ ] Scope boundaries and non-goals are explicit.
 - [ ] Every user-visible state has a defined behavior (if UI is involved).
 - [ ] Every destructive or irreversible action has a defined confirmation/recovery behavior.
+- [ ] Every rule-applicability row has a supported decision, rationale, and planned evidence.
 - [ ] The user has confirmed the clarified scope is correct.
 
 If any item fails, ask more questions and do not write the artifacts yet.
@@ -110,6 +123,7 @@ The spec file must always describe:
 - Explicit assumptions
 - Open questions (all must be ✅ Answered)
 - Verification expectations
+- The complete **Rule Applicability** matrix, copied from the canonical template
 
 **Outcome decomposition (one AC per named outcome):** Each functional requirement decomposes into acceptance criteria covering every distinct behavior its text promises — the happy path plus each fallback, error, boundary, and persistence/compatibility outcome. A single AC per FR is valid only when the FR names exactly one outcome. In particular, a requirement that promises *backward/forward compatibility* or *graceful fallback for missing/unknown input* must include a dedicated AC for each fallback path — a clean round-trip AC alone does not cover it.
 
@@ -140,7 +154,7 @@ Before handling either design-input path, read `docs/product/design_system.md`. 
 Input: The clarified requirements from Steps 1–5, the active artifact directory, and the task type classification.
 Output: `design.md` + `design/mockup_*.png` AI-generated visual mockup images in the active artifact directory.
 
-**Keyboard-visible state (any screen or bottom sheet with text input):** If the screen content or a bottom sheet contains a text box, text field, search field, or other text input, `design.md` must define the keyboard-visible state and reference a distinct keyboard-visible mockup asset alongside the base mockup. For a bottom sheet, that mockup must show the sheet **still open** with the keyboard — tapping the text input must not dismiss the sheet; only a scrim tap, swipe-down, or close action does (per the Keyboard / IME Behavior rule in `rules/compose-rules.md`). When the screen has a bottom toolbar, the keyboard-visible state must show the bottom toolbar **dismissed** while the keyboard is visible, per the same rule. The bottom toolbar must never be depicted behind the keyboard.
+**Keyboard-visible state (any screen or bottom sheet with text input):** If the screen content or a bottom sheet contains a text box, text field, search field, or other text input, `design.md` must define the keyboard-visible state and reference a distinct keyboard-visible mockup asset alongside the base mockup. For a bottom sheet, that mockup must show the sheet **still open** with the keyboard — tapping the text input must not dismiss the sheet; only a scrim tap, swipe-down, or close action does (per the Keyboard / IME Behavior rule in `rules/swiftui-rules.md`). When the screen has a bottom toolbar, the keyboard-visible state must show the bottom toolbar **dismissed** while the keyboard is visible, per the same rule. The bottom toolbar must never be depicted behind the keyboard.
 
 ---
 
@@ -148,10 +162,11 @@ Output: `design.md` + `design/mockup_*.png` AI-generated visual mockup images in
 
 - Ad-hoc workflows: `docs/current/spec.md`, `docs/current/design.md`, and `docs/current/design/` mockup assets (user-provided or generated)
 - Harness planning: `$FEATURE_DIR/spec.md`, `$FEATURE_DIR/design.md`, and `$FEATURE_DIR/design/` mockup assets (user-provided or generated)
+- Every `spec.md`: complete Rule Applicability matrix with nine decisions, triggers or rationales, and planned evidence
 
 **Design-system conformance:** for UI work, `design.md` must link `docs/product/design_system.md` and list every explicit user-approved exception (or state that none exist).
 
-**Keyboard-visible state (conditional — mechanics in Step 6):** if a bottom sheet contains text input, or screen content has text input with a bottom toolbar, `design.md` must define the keyboard-visible state and reference a distinct keyboard-visible mockup asset alongside the base mockup. For a bottom sheet, the keyboard-visible mockup must show the sheet **still open** with the keyboard — tapping the text input must not dismiss the sheet; only a scrim tap, swipe-down, or close action does. When the text input is on screen content with a bottom toolbar (no modal sheet), the keyboard-visible state must show the bottom toolbar **dismissed** while the keyboard is visible. Both follow the Keyboard / IME Behavior rule in `rules/compose-rules.md`.
+**Keyboard-visible state (conditional — mechanics in Step 6):** if a bottom sheet contains text input, or screen content has text input with a bottom toolbar, `design.md` must define the keyboard-visible state and reference a distinct keyboard-visible mockup asset alongside the base mockup. For a bottom sheet, the keyboard-visible mockup must show the sheet **still open** with the keyboard — tapping the text input must not dismiss the sheet; only a scrim tap, swipe-down, or close action does. When the text input is on screen content with a bottom toolbar (no modal sheet), the keyboard-visible state must show the bottom toolbar **dismissed** while the keyboard is visible. Both follow the Keyboard / IME Behavior rule in `rules/swiftui-rules.md`.
 
 ---
 
@@ -160,6 +175,7 @@ Output: `design.md` + `design/mockup_*.png` AI-generated visual mockup images in
 Present the produced artifacts to the user and confirm:
 
 - [ ] `spec.md` exists with all required sections filled and no open questions.
+- [ ] `spec.md` has all nine Rule Applicability rows with supported decisions and evidence.
 - [ ] `design.md` exists (if task type is new screen or UI enhancement) with all sections filled according to template.
 - [ ] `design.md` links to `docs/product/design_system.md` and records approved exceptions (or states that none exist).
 - [ ] Visual mockup images exist in `design/` for every screen in `design.md` (user-provided screenshot or generated `mockup_*.png`).

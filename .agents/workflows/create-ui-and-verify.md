@@ -32,6 +32,13 @@ design reference.
 The active plan must cite the approved design reference/mockup path and keep defect evidence
 separate. A generated mockup becomes the Stage 2 design reference only after user approval.
 
+Before Stage 1, the active `docs/current/spec_v<N>.md` must contain the complete Rule
+Applicability matrix. If no active specification exists, **INVOKE** `requirement-analysis`
+to create one; then run `bash harness/scripts/check-stage-artifacts.sh feature-delivery
+requirement-analysis`. For UI work, SUI is required and L10N/NAV/OBS/ANL must still be
+explicitly assessed. Do not begin implementation until the design and rule decisions are
+approved by the user.
+
 ### Stage 1 — UI Implementation
 **INVOKE** the `ios-ui-layer` skill via the Skill tool (name: `ios-ui-layer`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
@@ -39,6 +46,8 @@ Read `docs/product/design_system.md`, then implement the UI changes using the ap
 from Stage 0. If the reference intentionally differs from the project design system, record the
 explicit user-approved exception in `docs/current/design.md`; otherwise reuse the project tokens
 and component patterns.
+Read the approved Rule Applicability matrix and implement only its required rows; a new
+trigger requires a specification update before implementation continues.
 
 ### Stage 2 — UI Verification ↩️ Loop
 **INVOKE** the `ui-verification` skill via the Skill tool (name: `ui-verification`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
@@ -94,8 +103,12 @@ not record PASS.
 
 Run the code-quality-fix stage to verify complete baseline correctness.
 
+Then **INVOKE** `ios-test-review` and `ios-code-review` to create review reports that
+reconcile all nine Rule Applicability rows against the final UI diff.
+
 Gate:
 - All conditions in `skills/code-quality-fix/SKILL.md` pass
+- Both review reports contain complete rule-applicability reconciliation tables
 - **⛔ STOP — present results to user. Do not proceed until user explicitly approves.**
 
 ## Best Practices

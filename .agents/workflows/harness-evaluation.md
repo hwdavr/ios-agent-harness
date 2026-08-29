@@ -27,6 +27,7 @@ When a feature is submitted for review, execute these steps in order:
 - Run `bash harness/scripts/check-feature-lifecycle.sh`; stop if lifecycle state is invalid.
 - Select the active non-complete `FEATURE_DIR` from the Harness Feature Tracker in `docs/product/product.md`. Do not infer lifecycle state by scanning product directories.
 - Read `$FEATURE_DIR/sprint-contract.md` to see the agreed **Acceptance Criteria**, **Scope**, and **Exclusions**.
+- Read `$FEATURE_DIR/spec.md` to obtain the complete approved Rule Applicability matrix; independently compare every row with the submitted diff. A missing row, unsupported `Not applicable` outcome, or unapproved exception is a review failure.
 - Read `$FEATURE_DIR/feature_list.json` to verify the target feature definition and its current status.
 - When `feature_list.json` declares a visual-verification owner, validate visual traceability with `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"`; a visual method without a sprint-contract row, successful evidence, non-empty screenshot, or reference-anchor proof is a review failure.
 - If the change affects UI, read `docs/product/design_system.md`, `$FEATURE_DIR/design.md`, and its visual assets. Treat unexplained deviations from the global design system as review findings.
@@ -38,6 +39,7 @@ When a feature is submitted for review, execute these steps in order:
 
 **Output**:
 - Test review report: `$FEATURE_DIR/test_review_{feature_id}.md`
+- The report includes the Rule Applicability Test Reconciliation table.
 
 ---
 
@@ -46,6 +48,7 @@ When a feature is submitted for review, execute these steps in order:
 
 **Output**:
 - Code review report: `$FEATURE_DIR/code_review_{feature_id}.md`
+- The report includes the Rule Applicability Reconciliation table.
 
 ---
 

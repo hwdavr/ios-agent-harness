@@ -8,26 +8,29 @@ SwiftUI + SwiftData iOS notes app. Treat it as a production product, not a demo.
 **Tech stack**: SwiftUI · SwiftData · URLSession · Swift Testing · XCTest · XCUITest · Xcode 16+ · iOS 18+
 
 **Module structure**:
-- `app/` — Android application module
-- `UX/` — design assets
+- `NotesTakingAppiOS/` — Application source code (Views, ViewModels, Domain, Data)
+- `NotesTakingAppiOSTests/` — Unit and integration tests (Swift Testing + XCTest)
+- `NotesTakingAppiOSUITests/` — UI tests (XCUITest)
 - `sharedContracts/` — OpenAPI contract + shared test scenarios
+
 ---
 ## Context Loading — L1 / L2 / L3
 Load context in layers to keep the context window below 40% fill. More is not better.
 
 | Layer | When | What to load |
 |-------|------|-------------|
-| **L1 — Always** | Every session | This file + `.agents/rules/android-architecture.md` + `.agents/rules/testing-strategy.md` |
-| **L2 — Phase-triggered** | Per stage | The skill(s) listed in the current stage's **Load** section; for UI work also load `docs/product/design_system.md` |
-| **L3 — On-demand** | When needed | `docs/knowledge/` docs, specific `.agents/rules/` files, `sharedContracts/openapi.yaml` |
+| **L1 — Always** | Every session | This file + `.agents/rules/ios-architecture.md` + `.agents/rules/implementation-rules.md` + `.agents/rules/testing-strategy.md` |
+| **L2 — Phase-triggered** | Per stage | The current stage's skill(s) and, for requirements/planning/review, `harness/templates/rule-applicability-template.md` plus `swiftui-rules.md`, `localization-rules.md`, `navigation-rules.md`, `api-contract-rules.md`, `observability.md`, and `analytics-rules.md`; for UI work also load `docs/product/design_system.md` |
+| **L3 — On-demand** | When needed | `docs/knowledge/`, `sharedContracts/openapi.yaml`, and feature-specific evidence or rule detail newly triggered by the approved Rule Applicability matrix |
 
-Do not preload all rules and all skills at once. Load what the current stage requires.
+Do not preload unrelated skills. Requirements, planning, and review must load the full L1/L2 rule contract so every rule is decided and reconciled; implementation loads only the rules marked required plus any newly triggered rule.
+
 ---
 ## Harness Structure
 | Folder | Purpose |
 |--------|---------|
 | `.agents/workflows/` | **Start here.** Pick the workflow that matches the task. |
-| `.agents/rules/` | Mandatory constraints (L1 core + L3 on-demand). |
+| `.agents/rules/` | Mandatory constraints (L1 always-applicable + L2 applicability decisions + L3 evidence detail). |
 | `.agents/skills/` | How-to guides and modular workflow steps (L2). |
 | `.agents/gates/` | CI checks and review/release checklists. |
 | `harness/templates/` | Standard output formats for plans, reviews, tests. |
@@ -45,6 +48,7 @@ Do not preload all rules and all skills at once. Load what the current stage req
 | **Planner** | Defines requirements & architectural slices | Creates implementation plans & vertical slice checklists |
 | **Coder** | Implements robust features & solves tasks | Delivers clean Swift/SwiftUI/SwiftData changes incrementally |
 | **Evaluator** | Performs automated & manual quality gates | Runs code quality checks, static analysis, & test coverage reviews |
+
 ---
 ## Workflow Routing — Mandatory Step Before Any Task
 
@@ -56,6 +60,7 @@ Do not preload all rules and all skills at once. Load what the current stage req
 |-----------|----------------------|
 | Bug, crash, regression, or unexpected behavior | `.agents/workflows/bug-fixing.md` |
 | New feature or simple enhancement | `.agents/workflows/feature-delivery.md` |
+| Migrating behavior or business logic from the Android app | `.agents/workflows/android-to-ios-migration.md` |
 | UI implementation or update from a mockup | `.agents/workflows/create-ui-and-verify.md` |
 | Independent code review before merge | `.agents/workflows/feature-review.md` |
 
@@ -72,47 +77,43 @@ Do not preload all rules and all skills at once. Load what the current stage req
 ## Skills Index
 Key skills under `.agents/skills/`:
 - **Planning & Requirements**: `spec-driven-development`, `feature-specification`, `slice-planning`, `implementation-plan`
-- **UX & Design**: `ux-design`
-- **Implementation**: `android-implementation`, `android-data-layer`, `android-domain-layer`, `android-ui-layer`, `api-contract-update`
-- **Testing & Verification**: `android-testing`, `ui-verification`, `android-unit-test`, `android-instrumented-ui-test`, `shared-json-scenarios`
-- **Review & Quality**: `code-quality-fix`, `android-code-review`, `code-review-and-quality`, `android-test-review`, `android-code-quality-checks`
+- **UX & Design**: `ux-design`, `android-to-ios-ui-migration` (Compose-to-SwiftUI parity; required by Android migration when UI is affected)
+- **Implementation**: `ios-implementation`, `ios-data-layer`, `ios-domain-layer`, `ios-ui-layer`, `api-contract-update`
+- **Testing & Verification**: `ios-testing`, `ui-verification`, `ios-unit-test`, `ios-ui-test`, `shared-json-scenarios`
+- **Review & Quality**: `code-quality-fix`, `ios-code-review`, `code-review-and-quality`, `ios-test-review`, `ios-code-quality-checks`
 - **Session & Knowledge**: `context-management`, `knowledge-capture`, `documentation-and-adrs`, `karpathy-guidelines`
 
 ---
 ## Non-negotiable Rules
-- **No secrets in source code** — use `local.properties` + `BuildConfig`
-- **No business logic in Composables**
+- **No secrets in source code** — use `.xcconfig` files + `Info.plist` / `BuildConfig`
+- **No business logic in SwiftUI Views**
 - **No DTOs outside the data layer**
-- **No hardcoded strings** — always `stringResource()`
+- **No hardcoded strings** — always `LocalizedStringKey` / `String(localized:)`
 - **All UI design, implementation, verification, and review must follow `docs/product/design_system.md`** — feature designs may override it only with an explicit user-approved exception
 - **All interactive elements must have `accessibilityIdentifier`**
 - **Every new feature must have tests**
-- **Platform-bound features must include a platform capability matrix and a real instrumented boundary test** — fake/JVM-only tests are supplemental; missing runtimes, devices, models, locales, permissions, or services fail loudly and cannot be recorded as passing evidence
-- **No dummy code in production** — every function, branch, and callback must implement the actual requirement logic; no `TODO()`, `NotImplementedError`, stub return values, no-op handlers, or `// dummy implementation` comments. See `.agents/rules/implementation-rules.md`
+- **No dummy code in production** — every function, branch, and callback must implement the actual requirement logic; no `fatalError("TODO")`, `#warning("stub")`, stub return values, no-op handlers, or `// dummy implementation` comments. See `.agents/rules/implementation-rules.md`
 - **Implementation authorization must be approved by the user before code is written** — ad-hoc workflows require approval of `implementation_plan_v<N>.md`; the complex harness path uses the approved `feature_list.json` and `sprint-contract.md` from `harness-planning` and must not generate a duplicate implementation plan in `harness-generator`
 - **Every stage gate must pass before advancing** — do not skip gates
 - **Every stage skill must be invoked via the Skill tool** — reading the SKILL.md manually is not a substitute. The workflow's "INVOKE" instruction is a command, not a suggestion
 - **Memory of prior approval does not bypass workflow stages** — source of truth is on disk. Ad-hoc workflows use `docs/current/`; every complex harness feature uses one stable dated workspace under `docs/product/`. If a required artifact is missing, re-run the stage via its skill. Require the approved `spec.md`, `design.md` when UI is affected, `feature_list.json`, and `sprint-contract.md` in that workspace.
 - **Validate harness lifecycle state** — run `bash harness/scripts/check-feature-lifecycle.sh` before selecting a complex feature and after every tracker transition. Folder location never represents status; the tracker and per-slice evidence do.
 - **Stage completion requires evidence** — when marking a stage complete in `summary_v<N>.md`, cite the artifact path and paste a one-line excerpt. A stage is not complete until the artifact exists on disk and is referenced from the summary
-- **Do not suppress rule violations** — agents must fix root causes, not add `@Suppress`, `@SuppressLint`, `tools:ignore`, swiftlint disable comments, baselines, or broader excludes unless the user explicitly approves a documented false positive
+- **Do not suppress rule violations** — agents must fix root causes, not add `@preconcurrency import`, `// swiftlint:disable`, inline `#if DEBUG` workarounds, or broader excludes unless the user explicitly approves a documented false positive
 - **Fix rule/workflow/skill mismatches through a PR** — if an agent finds conflicting, stale, or mismatched instructions across rules, workflows, skills, gates, or templates, it must state the issue and why the fix is needed, then raise a PR that corrects the source instruction instead of silently working around it
 - **Keep `docs/product/product.md` current** — update the Harness Feature Tracker, Current Product Capabilities, Product Portfolio Summary, and roadmap as delivery state changes. It is the product and complex-feature lifecycle source of truth for agents and humans.
 
 ---
 ## Build Commands — run from project root
 ```bash
-xcodebuild build              # build check
-xcodebuild test          # unit + integration tests
-xcrun xccov                   # coverage (must be ≥ 80% overall)
-swiftlint                # formatting
-swiftlint                     # static analysis
-xcodebuild test (UI Tests)  # instrumented UI tests (when UI changed)
+xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build
+xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' test
+swiftlint                                  # static analysis
 ```
 
 ---
 ## Distribution Commands
-Package and distribute to Firebase App Distribution: `
+Archive and distribute via Xcode Organizer or `xcodebuild archive`.
 
 ## When you find a bug in the harness itself
 Fix it immediately — update the relevant stage/rule/gate to prevent recurrence, and document in `docs/knowledge/pitfalls/` if it could affect future changes.

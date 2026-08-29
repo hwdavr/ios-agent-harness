@@ -34,8 +34,9 @@ Adapt for bugs:
 - Root cause statement (triggered when \<cond\>, causing \<behavior\>)
 - Design the fix (UIState changes if needed)
 
-Output: `docs/current/spec_v<N>.md` created; `docs/current/summary_v<N>.md` updated with bug context, fault area, and root cause.
-Gate: root cause is specific enough that a reproduction test can be written. Run `bash harness/scripts/check-stage-artifacts.sh bug-fixing requirement-analysis` — must exit 0.
+Output: `docs/current/spec_v<N>.md` created; `docs/current/summary_v<N>.md` updated with bug context, fault area, root cause, and the complete Rule Applicability matrix.
+The specification must assess only the fix scope and retain an explicit rationale for every non-applicable rule.
+Gate: root cause is specific enough that a reproduction test can be written and all nine rule decisions are explicit. Run `bash harness/scripts/check-stage-artifacts.sh bug-fixing requirement-analysis` — must exit 0.
 
 ---
 
@@ -56,6 +57,7 @@ Gate: test exits RED (non-zero), failure message matches root cause, no applicat
 Adapt — the plan must include:
 - Root cause (reference the reproduction test as evidence)
 - Proposed fix (minimal)
+- The approved Rule Applicability decisions, including changed triggers and verification evidence
 
 Output: `docs/current/implementation_plan_v<N>.md` created; `docs/current/summary_v<N>.md` updated.
 Gate: Run `bash harness/scripts/check-stage-artifacts.sh bug-fixing implementation-plan` — must exit 0. **STOP — present fix plan to user. Do not proceed until user explicitly approves.**

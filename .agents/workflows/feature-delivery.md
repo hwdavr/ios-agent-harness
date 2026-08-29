@@ -30,8 +30,8 @@ Pipeline: Requirement, Impact & Design → Plan → [User Approval] → Implemen
 ### Stage 1 — Requirement, Impact & Design Analysis
 **INVOKE** the `requirement-analysis` skill via the Skill tool (name: `requirement-analysis`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
-Output: `docs/current/spec_v<N>.md` created; `docs/current/summary_v<N>.md` updated with requirements, impacted files, API classification, and UIState/Navigation design.
-Gate: requirements clear, impacted files identified, API classified, UIState/Navigation designed. Run `bash harness/scripts/check-stage-artifacts.sh feature-delivery requirement-analysis` — must exit 0.
+Output: `docs/current/spec_v<N>.md` created; `docs/current/summary_v<N>.md` updated with requirements, impacted files, API classification, UIState/Navigation design, and the complete Rule Applicability matrix.
+Gate: requirements clear, impacted files identified, API classified, UIState/Navigation designed, and all nine rule decisions are explicit. Run `bash harness/scripts/check-stage-artifacts.sh feature-delivery requirement-analysis` — must exit 0.
 
 **If the feature involves new screens or UI changes:**
 - Read `docs/product/design_system.md` before writing requirements or design artifacts. Treat it as the project-wide visual source of truth; record any explicit user-approved exception in `docs/current/design.md`.
@@ -43,7 +43,7 @@ Gate: requirements clear, impacted files identified, API classified, UIState/Nav
 ### Stage 2 — Implementation Plan ⛔ STOP
 **INVOKE** the `implementation-plan` skill via the Skill tool (name: `implementation-plan`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
-Output: `docs/current/implementation_plan_v<N>.md` created; `docs/current/test_plan_v<N>.md` created; `docs/current/summary_v<N>.md` updated.
+Output: `docs/current/implementation_plan_v<N>.md` created; `docs/current/test_plan_v<N>.md` created; both preserve the approved Rule Applicability decisions and evidence; `docs/current/summary_v<N>.md` updated.
 Gate: Run `bash harness/scripts/check-stage-artifacts.sh feature-delivery implementation-plan` — must exit 0. **STOP — present plan to user. Do not proceed until user explicitly approves.**
 
 ---

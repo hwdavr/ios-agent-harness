@@ -67,6 +67,13 @@ grep -rn "fatalError.*TODO\|#warning.*stub\|// dummy\|// placeholder\|// stub" N
 ```
 Must return zero matches.
 
+### 9. Rule Applicability Harness Contract
+```bash
+bash harness/scripts/tests/rule-applicability-contract-test.sh
+```
+Verifies the requirements-to-review contract itself. This is required when harness
+workflow, rule, skill, template, or gate sources change.
+
 ---
 
 ## Done When
@@ -74,3 +81,4 @@ Must return zero matches.
 - SwiftLint passes
 - All custom rule check scripts exit 0
 - No dummy code found
+- Rule Applicability contract test passes when harness guidance changed

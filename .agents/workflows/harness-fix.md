@@ -63,7 +63,8 @@ When **any** gate check fails during this pipeline (verification commands, check
         2. `$FEATURE_DIR/evaluator-rubric.md` — overall score, category scores, verdict, and Required Follow-Up.
         3. `$FEATURE_DIR/code_review_{feature_id}.md` — every `REVISION REQUIRED` / `FAIL` item.
         4. `$FEATURE_DIR/test_review_{feature_id}.md` — every coverage gap, missing assertion, or failing scenario.
-        5. `$FEATURE_DIR/session-handoff.md` and `$FEATURE_DIR/progress.md` — prior context.
+        5. `$FEATURE_DIR/spec.md` — the approved Rule Applicability matrix; add an explicit fix item for any reconciliation row marked `REVISION REQUIRED`.
+        6. `$FEATURE_DIR/session-handoff.md` and `$FEATURE_DIR/progress.md` — prior context.
     3. Build a consolidated, deduplicated fix list. Each item must trace to a specific report section (and line). Initialize (or append to) `$FEATURE_DIR/summary_{feature_id}.md` a **Fix Pass** section listing every fix item with status `pending`.
 *   **Objective**: A single source of truth for every review finding that must be resolved.
 
@@ -98,7 +99,8 @@ When **any** gate check fails during this pipeline (verification commands, check
     3. Attach objective evidence (command + exit status + fix attempts) to each Test ID's `evidence` field in `$FEATURE_DIR/feature_list.json`. All slices must remain `passing`.
     4. Run `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` when visual verification is required.
     5. Reconcile the in-report statuses with re-verification: any finding whose verification command still fails must read `Unresolved ⚠️` in the report (not `Fixed ✅`).
-    6. Mark Fix-Stage 4 ✅ in `$FEATURE_DIR/summary_{feature_id}.md` detailing test counts, coverage percentages, and visual evidence.
+    6. Reconcile all Rule Applicability rows again. A rule newly triggered by a fix must be recorded in the specification and both review reports before the feature can proceed.
+    7. Mark Fix-Stage 4 ✅ in `$FEATURE_DIR/summary_{feature_id}.md` detailing test counts, coverage percentages, and visual evidence.
 *   **Objective**: All acceptance-test commands and quality gates pass with evidence attached; report statuses are consistent with re-verification results.
 
 ### Fix-Stage 5 — Finalize & Exit

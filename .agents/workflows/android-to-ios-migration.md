@@ -32,7 +32,8 @@ If Android screen code, SwiftUI views, or visible interactions are affected, als
 Load:
 - The Android source for the feature: ViewModels, domain repositories, repository implementations, DAOs/contracts, UI models, screen layouts, callbacks, navigation wiring, loading/refresh behavior, and action-sheet/menu behavior
 - The frozen shared contracts (`sharedContracts/openapi.yaml`, `sharedContracts/local-storage-contract.md`)
-- `.agents/rules/ios-architecture.md` and `.agents/rules/testing-strategy.md`
+- The L1 architecture, implementation, and testing rules; the L2 rule-applicability
+  template and conditional rule documents
 
 Create the dated workspace `docs/product/<YYYY-MM-DD>-<feature-short-name>/` with:
 - `android_logic_map.md` — one row per Android class/method/behavior: Android source path (cite file + line), iOS equivalent, parity decision (exact port / platform adaptation / deferred), and any data-layer or contract gap found. Include UI states, gestures, controls, presentation styles, accessibility semantics, and responsive bounds when applicable.
@@ -44,7 +45,7 @@ Gate: `bash harness/scripts/check-stage-artifacts.sh android-to-ios-migration an
 
 ### Stage 2 — Clarification & Specification ⛔ STOP
 1. **Ask the user every material open question** with `ask_questions` — scope (full parity vs read-only), repository wiring, fixture policy, navigation/handoff behavior, data-layer gaps found in Stage 1, artifact supersession, UI-test fixture strategy. Do not guess.
-2. Write `spec.md` in the dated workspace using `harness/templates/spec-template.md` (ad-hoc) adapted to the workspace layout. Include: functional requirements with stable IDs (FR-xxx), acceptance criteria, Android-parity edge cases, explicit assumptions, and a fully answered open-questions table.
+2. Write `spec.md` in the dated workspace using `harness/templates/spec-template.md` (ad-hoc) adapted to the workspace layout. Include: functional requirements with stable IDs (FR-xxx), acceptance criteria, Android-parity edge cases, explicit assumptions, a fully answered open-questions table, and the complete Rule Applicability matrix. Android behavior may be the parity authority, but it does not override an iOS rule without a documented user-approved exception.
 3. Produce `design.md` only when the migration changes visible UI; otherwise state "logic-only, no design artifact" in the summary.
 
 Gate: no open questions remain; `bash harness/scripts/check-stage-artifacts.sh android-to-ios-migration specification <dated-workspace>` exits 0.
@@ -59,6 +60,7 @@ The plan must:
 - Include the data-layer gaps found in Stage 1 (e.g., repository methods missing Android semantics) with explicit fixes.
 - Define the iOS public API surface the migrated tests will target.
 - Order the work as: tests first (RED), then implementation (GREEN).
+- Preserve all Rule Applicability decisions and map every required row to migration evidence or a test.
 
 Gate: `bash harness/scripts/check-stage-artifacts.sh android-to-ios-migration implementation-plan <dated-workspace>` exits 0.
 **STOP — present the plan. Do not write tests or production code until the user explicitly approves the plan.**

@@ -103,6 +103,13 @@ bash harness/scripts/check-keyboard-mockup-contract.sh "$FEATURE_DIR"
 ```
 **Must pass during harness planning.** A design with text input must describe the keyboard-visible state and reference distinct non-empty base and keyboard-visible mockup assets.
 
+### 14. Rule Applicability Harness Contract (when harness guidance changes)
+```bash
+bash harness/scripts/tests/rule-applicability-contract-test.sh
+```
+**Must pass** when changing `AGENTS.md`, workflows, skills, templates, or artifact gates
+that govern requirements, planning, implementation, testing, or review.
+
 ---
 
 ## Conditional Checks

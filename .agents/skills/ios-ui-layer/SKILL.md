@@ -17,18 +17,25 @@ Implement the UI Layer: ViewModels, UI models, mappers, and SwiftUI Views.
 - `rules/localization-rules.md`
 - `rules/analytics-rules.md`
 - `rules/observability.md`
+- `harness/templates/rule-applicability-template.md`
 - `docs/product/design_system.md`
 
 ---
 
 ## Execute
 
+Before editing, read the active specification's Rule Applicability matrix. Implement
+only the rows marked `Required`; preserve explicit non-applicable/exception rationales
+in the plan and raise a specification update if the UI work introduces a new trigger.
+
 ### 1. ViewModel
 1. Mark as `@Observable` — expose single UI state struct per screen
 2. Handle: loading, content, empty, error, retry, permission
 3. Emit events via closures — not persistent state
 4. Call use cases only — no direct repository/data source access
-5. Fire analytics from ViewModel, log per `rules/observability.md`
+5. When ANL is `Required`, fire approved analytics from the ViewModel. When OBS is
+   `Required`, add only the approved `os.Logger` diagnostics; neither is mandatory
+   when its trigger is absent.
 
 ### 2. UI model + mapper
 1. Map Domain → UI structs if formatting is needed
@@ -43,8 +50,8 @@ Implement the UI Layer: ViewModels, UI models, mappers, and SwiftUI Views.
 6. Conform to `design_system.md`
 
 ### 4. Navigation + Strings
-1. Update navigation destinations with enum routes
-2. Add strings to `Localizable.xcstrings`
+1. When NAV is `Required`, update navigation destinations with enum routes.
+2. When L10N is `Required`, add strings to `Localizable.xcstrings`.
 
 ---
 
@@ -54,4 +61,5 @@ Implement the UI Layer: ViewModels, UI models, mappers, and SwiftUI Views.
 - No hardcoded strings or colors
 - All interactive elements have `accessibilityIdentifier`
 - UI matches design system
+- Required Rule Applicability rows have the planned UI evidence; conditional telemetry was not added without a trigger
 - Build passes

@@ -35,7 +35,7 @@ When **any** gate check fails during the pipeline (verification commands, checkl
 ### Stage 1 — Orient
 Before making any changes or planning code, gather complete session and git context. Select the next task to implement.
 *   **Action**: **INVOKE** the `feature-orient` skill via the Skill tool (name: `feature-orient`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
-*   **Objective**: Run `bash harness/scripts/check-feature-lifecycle.sh`, select the approved `docs/product/` workspace from the Harness Feature Tracker by status, reconstruct the prior session, establish the per-slice source of truth (`$FEATURE_DIR/summary_{feature_id}.md`), and select one task from `$FEATURE_DIR/feature_list.json`. If the slice affects UI, read `docs/product/design_system.md`, the approved feature `design.md`, and its mockups before implementation.
+*   **Objective**: Run `bash harness/scripts/check-feature-lifecycle.sh`, select the approved `docs/product/` workspace from the Harness Feature Tracker by status, reconstruct the prior session, establish the per-slice source of truth (`$FEATURE_DIR/summary_{feature_id}.md`), record the approved Rule Applicability decisions from `$FEATURE_DIR/spec.md`, and select one task from `$FEATURE_DIR/feature_list.json`. If the slice affects UI, read `docs/product/design_system.md`, the approved feature `design.md`, and its mockups before implementation.
 
 ### Stage 2 — Setup
 Verify target simulator runtime environment readiness.
@@ -75,7 +75,7 @@ Verify the correctness of the implemented behavior visually and logically.
 ### Stage 6 — Code Quality Fix
 Run all static check suites, lint rules, and custom compliance rules, and resolve all violations.
 *   **Action**: **INVOKE** the `code-quality-fix` skill via the Skill tool (name: `code-quality-fix`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
-*   **Objective**: Diagnose and resolve all formatting, quality, localization, and architectural style guidelines issues, logging check success in `$FEATURE_DIR/summary_{feature_id}.md`.
+*   **Objective**: Diagnose and resolve all formatting, quality, localization, and architectural style guidelines issues, reconcile any newly discovered rule trigger with the approved matrix, and log check success in `$FEATURE_DIR/summary_{feature_id}.md`.
 
 ### Stage 7 — Finalize & Exit
 Verify all acceptance criteria, update project state, commit, and prepare for handoff.

@@ -26,6 +26,7 @@ Work in small, vertically-sliced increments: implement one layer, verify the bui
 - `rules/localization-rules.md`
 - `rules/observability.md`
 - `rules/implementation-rules.md`
+- `harness/templates/rule-applicability-template.md`
 
 **Adhoc workflows** (`feature-delivery`, `bug-fixing`):
 - `docs/current/implementation_plan_v<N>.md` — implementation plan approved by user
@@ -43,6 +44,14 @@ Work in small, vertically-sliced increments: implement one layer, verify the bui
 ---
 
 ## Execute
+
+### Before Layer Work — Apply the Approved Rule Contract
+
+Read the active specification's complete Rule Applicability matrix before editing.
+Implement and verify every `Required` row; retain the rationale for each `Not
+applicable` or approved exception. Revisit the matrix and the specification if a new
+trigger appears during implementation. Analytics and observability are conditional:
+never add events or logs only to turn their decision into `Required`.
 
 ### Layer 1 — Data Layer
 
@@ -109,7 +118,9 @@ If local storage is affected:
 3. Emit one-off events (navigation, toast, alert) via closures — not as persistent state
 4. Call use cases only — **never call repositories or data sources directly**
 5. Do not import URLSession or data-layer classes
-6. Add structured logs at state transitions and error boundaries — follow `rules/observability.md`
+6. When OBS is `Required`, add structured logs at the approved state transitions and
+   error boundaries — follow `rules/observability.md`; otherwise do not add diagnostic
+   noise merely for this checklist.
 
 #### 3.2 UI model and mapper
 1. Create or update UI model structs if the domain model needs formatting for display
@@ -126,9 +137,10 @@ If local storage is affected:
 7. **Visual-verification owner**: if this slice owns `requires_visual_verification: true` in `feature_list.json`, implement its visual capture per the sprint contract's visual-verification gate
 
 #### 3.4 Navigation, Analytics & String resources
-1. Update navigation destinations if new routes are added — use enum-based route types
-2. Fire analytics events from the ViewModel — not from SwiftUI Views
-3. Add all new user-visible text to `Localizable.xcstrings`
+1. When NAV is `Required`, update navigation destinations using enum-based route types.
+2. When ANL is `Required`, fire the approved analytics events from the ViewModel — not
+   from SwiftUI Views. When it is not required, retain `analytics: none` in the plan.
+3. When L10N is `Required`, add all new user-visible text to `Localizable.xcstrings`.
 
 ---
 
@@ -154,7 +166,9 @@ Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active w
 - [ ] All interactive elements have `.accessibilityIdentifier(...)` with a stable name
 - [ ] UI conforms to `docs/product/design_system.md` plus explicit approved feature exceptions
 - [ ] UIState covers loading, content, empty, and error states
-- [ ] Log statements use `os.Logger`, correct level, and no PII (see `rules/observability.md`)
+- [ ] Rule Applicability decisions are implemented or retained with their approved rationale
+- [ ] When OBS is `Required`, log statements use `os.Logger`, the bundle subsystem, a correct level, and no PII (see `rules/observability.md`)
+- [ ] When ANL is `Required`, analytics events are fired from the ViewModel and have no prohibited data
 - [ ] No dummy code in production sources — no `fatalError("TODO")`, `#warning("stub")`, stub return values, no-op handlers, or dummy comments (see `rules/implementation-rules.md`)
 - [ ] Build passes: `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build`
 

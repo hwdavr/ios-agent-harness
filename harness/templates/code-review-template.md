@@ -1,392 +1,123 @@
-# Review Template
+# Code Review — <Feature ID or vN>
 
-Use this template when producing the review summary in the relevant stage.
-
----
-
-## Review Summary
-
-**Feature / Bug**: `<brief description>`  
-**Reviewer**: Agent  
-**Date**: `<date>`
-
----
+Use this template for feature-review and harness-evaluation code-review reports.
 
 ## Review Scope and Evidence Provenance
 
 | Item | Value |
 |---|---|
+| Feature / slice | |
 | Current commit | |
 | Merge base / prior reviewed commit | |
-| Baselines reviewed | `spec`, `sprint contract`, plan, test review |
+| Requirement baseline | `spec_v<N>.md` / `$FEATURE_DIR/spec.md` |
+| Plan baseline | `implementation_plan_v<N>.md`, `test_plan_v<N>.md` / sprint contract |
 | Changed production files reviewed | |
-| Changed tests reviewed | |
-| Independently executed checks | |
-| Recorded / up-to-date / skipped checks | |
+| Changed test files reviewed | |
 
 ## Requirement-to-Production Traceability
-
-List every FR, AC, and documented edge case from the active specification and sprint contract.
 
 | Source ID | Required behavior | Production entry point | Completion / cleanup path | Test evidence | Result |
 |---|---|---|---|---|---|
 | FR-001 | | | | | PASS / REVISION REQUIRED / N/A |
 
+## Rule Applicability Reconciliation
+
+Copy the approved decisions from the specification. Independently inspect the diff for
+each trigger; `Not applicable` is valid only when the trigger is absent. A missing row,
+unsupported decision, or exception without direct user approval is **REVISION
+REQUIRED**. Do not require analytics events or logs when their trigger is absent.
+
+| Rule ID | Approved decision / rationale | Diff trigger found? | Code or static-check evidence | Result |
+|---|---|---|---|---|
+| ARCH | | Yes / No | | PASS / REVISION REQUIRED |
+| IMPL | | Yes / No | | PASS / REVISION REQUIRED |
+| TEST | | Yes / No | | PASS / REVISION REQUIRED |
+| SUI | | Yes / No | | PASS / REVISION REQUIRED / N/A |
+| L10N | | Yes / No | | PASS / REVISION REQUIRED / N/A |
+| NAV | | Yes / No | | PASS / REVISION REQUIRED / N/A |
+| API | | Yes / No | | PASS / REVISION REQUIRED / N/A |
+| OBS | | Yes / No | | PASS / REVISION REQUIRED / N/A |
+| ANL | | Yes / No | | PASS / REVISION REQUIRED / N/A |
+
+## Rule Detail Findings
+
+### Architecture, Implementation, and Testing
+
+- [ ] Layer boundaries hold: Views do not call repositories; ViewModels do not call
+  URLSession or data-layer implementations; DTOs remain in the data layer.
+- [ ] Every changed function, branch, and callback performs the required behavior; no
+  placeholder return, `fatalError("TODO")`, no-op handler, or dummy comment exists.
+- [ ] The test layer selected by the plan provides sufficient evidence for the changed
+  behavior.
+
+### SwiftUI and Localization *(when SUI or L10N is Required)*
+
+- [ ] SwiftUI views are rendering/event surfaces; business logic is outside the view.
+- [ ] Stateless content/stateful screen boundaries, semantic colors, and stable
+  `accessibilityIdentifier`s follow the rule.
+- [ ] User-visible text uses `LocalizedStringKey` or `String(localized:)`; required
+  keys are in `NotesTakingAppiOS/Localizable.xcstrings`.
+
+### Navigation and API Contracts *(when NAV or API is Required)*
+
+- [ ] Typed route/back-stack behavior, destination ownership, and cleanup match the
+  approved navigation design.
+- [ ] OpenAPI, DTO, mapper, error, and integration-test changes agree with the approved
+  API contract.
+
+### Observability and Analytics *(when OBS or ANL is Required)*
+
+- [ ] Every added log uses `os.Logger`, a bundle-identifier subsystem, appropriate
+  level, and no PII or sensitive user-generated content.
+- [ ] Analytics is emitted from a ViewModel and contains only approved event data.
+
 ## State Completion and Reachability Audit
 
-| Changed state, callback, job, or listener | Set / entry point | Production completion or cleanup call site | Test-only substitute found? | Result |
+| Changed state, callback, task, or observer | Entry point | Completion / cleanup call site | Test-only substitute found? | Result |
 |---|---|---|---|---|
 | | | | Yes / No | PASS / REVISION REQUIRED |
 
-Required: flag completion paths called only from tests, stale transition flags, ignored callbacks, placeholder/no-op branches, and final-state rendering that lacks a real production trigger.
+Flag completion paths called only from tests, stale transition flags, ignored callbacks,
+placeholder/no-op branches, and final-state rendering without a real production trigger.
 
----
+## Build and Static-Check Evidence
 
-## Build & Test Results
+| Check | Exit code | Provenance | Result / failure scope |
+|---|---:|---|---|
+| `xcodebuild ... build` | | Independently executed / Recorded / Not run | PASS / FAIL |
+| `xcodebuild ... test` | | Independently executed / Recorded / Not run | PASS / FAIL |
+| `swiftlint` | | Independently executed / Recorded / Not run | PASS / FAIL |
+| `check-architecture-rules.sh` | | Independently executed / Recorded / Not run | PASS / FAIL |
+| `check-swiftui-rules.sh` | | Independently executed / Recorded / Not run | PASS / FAIL / N/A |
+| `check-localization-rules.sh` | | Independently executed / Recorded / Not run | PASS / FAIL / N/A |
+| `check-navigation-rules.sh` | | Independently executed / Recorded / Not run | PASS / FAIL / N/A |
+| Suppression audit | | Independently executed / Recorded / Not run | PASS / FAIL |
 
-| Check | Exit code | Timestamp / commit | Provenance | Result | Failure detail / scope |
-|-------|---:|---|---|---|---|
-| `xcodebuild build` | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL | |
-| `xcodebuild test` | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL | |
-| `koverLog` overall | | | Independently executed / Recorded / Up-to-date / Not run | ✅ X% ≥ 80% / ❌ | |
-| `koverLog` new classes | | | Independently executed / Recorded / Up-to-date / Not run | ✅ X% ≥ 90% / ❌ | |
-| `xcodebuild test (UI Tests)` | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL / ⏭ SKIPPED | |
-| `swiftlintCheck` | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL | |
-| `swiftlint` | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL | |
-| `lintDebug` | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL | |
-| `check-swiftui-rules.sh` or `check-swiftui-rules.cmd` | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL / ⏭ SKIPPED | |
-| `check-localization-rules.sh` or `check-localization-rules.cmd` | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL | |
-| `check-architecture-rules.sh` or `check-architecture-rules.cmd` | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL | |
-| Suppression audit | | | Independently executed / Recorded / Up-to-date / Not run | ✅ PASS / ❌ FAIL | Confirm no new suppressions, ignores, baselines, or rule exclusions were added to make checks pass. |
+Never label recorded, skipped, or unavailable evidence as a fresh pass. A required
+non-zero check is a non-approved result even when its failure is pre-existing; record
+the baseline scope clearly.
 
-Any non-zero required gate makes the verdict non-approved, even when the source is pre-existing. Record the source and scope above.
+## UI Verification *(when SUI is Required)*
 
----
+- [ ] Design-system and approved feature-design comparison completed.
+- [ ] XCUITest evidence covers the approved interactive and navigation outcomes.
+- [ ] Visual evidence/anchors are present when the sprint contract requires them.
+- [ ] Remaining differences: <none or list>.
 
-## SwiftUI Rules Enforcement
+## Security and Privacy
 
-> Skip this section entirely if the change contains no SwiftUI (`*.swift` UI) file modifications.
+- [ ] No secrets or tokens are hardcoded.
+- [ ] No PII, sensitive user-generated content, credentials, or backend payloads are
+  logged or sent in analytics without explicit product/privacy approval.
+- [ ] External data is validated at the correct boundary.
 
-For each rule, record how it was checked for **this change** and its outcome.
+## Findings
 
-**Status key**
+| Severity | Rule / source | File:line | Finding | Required resolution |
+|---|---|---|---|---|
+| Critical / Required / Suggested | | | | |
 
-| Symbol | Meaning |
-|--------|---------|
-| ✅ | Checked — no violations found |
-| ❌ | Checked — violation(s) found (list below) |
-| 👁️ **Human** | Not checked by script or AI — requires human review before merge |
-| ⏭ | Not applicable to this change |
+## Verdict
 
-### Section 1 — SwiftUI View Responsibilities
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 1.1 Receives `UiState` + callbacks as params | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 1.2 Only renders state — no derived computation | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 1.3 Never calls ViewModel directly | 🤖 Check 4 + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 1.4 No use case / repository calls | 🤖 Check 5 + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 1.5 No business logic / data transformation | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 1.6 No hardcoded strings — uses `LocalizedStringKey` | 🤖 `check-localization-rules.sh` / `.cmd` | ✅ / ❌ | |
-| 1.7 No hardcoded colors — uses `LocalAppColors` | 🤖 Check 2 | ✅ / ❌ | |
-
-### Section 2 — Stateless / Stateful Pattern
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 2.1 Screen split into `*Screen` + `*Content` pair | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 2.2 Only `*Screen` calls `ViewModel()` / `collectAsStateWithLifecycle()` | 🤖 Check 4 + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 2.3 UI tests target `*Content`, not `*Screen` | 🧠 Evaluator | ✅ / ❌ / ⏭ | |
-
-### Section 3 — Test Tags
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 3.1 All interactive elements have `accessibilityIdentifier` | 🤖 Check 3 + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 3.2 Key content containers have `accessibilityIdentifier` | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 3.3 `accessibilityIdentifier` names are descriptive and stable | 🤖 Check 6 + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 4 — String Resources
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 4.1 All user-visible text uses `LocalizedStringKey` | 🤖 `check-localization-rules.sh` / `.cmd` | ✅ / ❌ | |
-| 4.2 Resource keys follow `<screen>_<element>_<type>` naming | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 5 — Colors
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 5.1 No `Color(0x...)` outside `AppColors.swift` | 🤖 Check 2a | ✅ / ❌ | |
-| 5.2 No named `Color.*` outside `AppColors.swift` | 🤖 Check 2b | ✅ / ❌ | |
-| 5.3 Colors accessed via `LocalAppColors.current.<token>` | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 5.4 Color tokens named by semantic purpose | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 5.5 New color added to both Light **and** Dark theme | 🤖 Script + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 6 — Component Extraction
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 6.1 Reused UI extracted to `components/` | 👁️ Human + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 6.2 Complex / stateful components extracted | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 6.3 One visual responsibility per component | 👁️ Human + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 7 — State Hoisting
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 7.1 State hoisted to the lowest common ancestor | 👁️ Human + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 7.2 State not hoisted higher than necessary | 👁️ Human + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 7.3 No `remember {}` inside `*Content` composables | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 8 — Performance
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 8.1 `LazyColumn` instead of `Column` + `forEach` | 🤖 Check 7 | ✅ / ❌ | |
-| 8.2 Stable parameter types to avoid recompositions | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 8.3 `key()` used in lazy lists with stable IDs | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 8.4 Lambdas passed as parameters, not created inline | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### SwiftUI Rule Violations Detail
-
-> List each violation found above. Delete this section if there are none.
-
-- **Rule X.Y** — `<file>:<line>`: `<description>`
-
----
-
-## Localization Rules Enforcement
-
-> Skip this section entirely if the change adds no user-visible text and no Swift UI file is modified.
-
-For each rule, record how it was checked for **this change** and its outcome.
-
-**Status key**
-
-| Symbol | Meaning |
-|--------|---------|
-| ✅ | Checked — no violations found |
-| ❌ | Checked — violation(s) found (list below) |
-| 👁️ **Human** | Not checked by script or AI — requires human review before merge |
-| ⏭ | Not applicable to this change |
-
-### Section 1 — String Resources Are Mandatory
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 1.1 `Text()` uses `LocalizedStringKey` — no raw string literals | 🤖 Check 1 | ✅ / ❌ | |
-| 1.2 SwiftUI View params (`label=`, `placeholder=`, etc.) use `LocalizedStringKey` | 🤖 Check 2 | ✅ / ❌ | |
-| 1.3 Local UI label variables not assigned raw strings | 🤖 Check 3 | ✅ / ❌ | |
-
-### Section 2 — Where to Define Strings
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 2.1 All strings defined in `strings.xml` | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 3 — Naming Convention
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 3.1 Resource keys follow `<screen>_<component>_<type>` pattern | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 4 — Plural Strings
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 4.1 Count-dependent text uses `<plurals>` — not conditional string concatenation | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 4.2 Plurals accessed via `pluralStringResource()` | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 5 — Dynamic Content
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 5.1 Strings with runtime values use format arguments in `strings.xml` | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 5.2 Format arguments passed via `stringResource(R.string.key, arg)` | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 6 — Content Descriptions
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 6.1 Non-text interactive elements have `contentDescription = stringResource(...)` | 🤖 Check 4 + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 6.2 `contentDescription` never `null` on interactive icons | 🤖 Check 4 | ✅ / ❌ | |
-
-### Localization Rule Violations Detail
-
-> List each violation found above. Delete this section if there are none.
-
-- **Rule X.Y** — `<file>:<line>`: `<description>`
-
----
-
-## Architecture Rules Enforcement
-
-> Skip this section entirely if the change contains no Swift source file modifications.
-
-For each rule, record how it was checked for **this change** and its outcome.
-
-**Status key**
-
-| Symbol | Meaning |
-|--------|---------|
-| ✅ | Checked — no violations found |
-| ❌ | Checked — violation(s) found (list below) |
-| 👁️ **Human** | Not checked by script or AI — requires human review before merge |
-| ⏭ | Not applicable to this change |
-
-### Section 1 — UI Layer
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 1.1 No repository calls from UI | 🤖 §1a + 🧠 Evaluator | ✅ / ❌ / ⏭ | |
-| 1.2 No business rules in UI | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 1.3 No API response parsing in UI | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 1.4 No DTO → domain mapping in UI | 🤖 §1b + 🧠 Evaluator | ✅ / ❌ / ⏭ | |
-| 1.5 No direct data source / DAO access from UI | 🤖 §1c §1d | ✅ / ❌ / ⏭ | |
-| 1.6 No data-layer imports in UI | 🤖 §1a | ✅ / ❌ / ⏭ | |
-
-### Section 2 — Presentation Layer (ViewModel)
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 2.1 Single `UiState` `StateFlow` per screen | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 2.2 Coordinates use cases — not repositories | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 2.3 Domain → UI mapping in Presentation only | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 2.4 Loading / success / error states all handled | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 2.5 One-off events via `Channel` / `SharedFlow` | 🤖 §5b + 🧠 Evaluator | ✅ / ❌ / ⏭ | |
-| 2.6 No direct URLSession / DAO calls in ViewModel | 🤖 §2a §2b §2c | ✅ / ❌ / ⏭ | |
-| 2.8 No heavy business logic in ViewModel | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 2.9 No data-layer implementation imports in ViewModel | 🤖 §2d | ✅ / ❌ / ⏭ | |
-
-### Section 3 — Domain Layer
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 3.1 No Android framework imports in domain | 🤖 §3a §7a | ✅ / ❌ / ⏭ | |
-| 3.2 No UI imports in domain | 🤖 §3e | ✅ / ❌ / ⏭ | |
-| 3.3 No URLSession imports in domain | 🤖 §3b | ✅ / ❌ / ⏭ | |
-| 3.4 No SwiftData imports in domain | 🤖 §3c | ✅ / ❌ / ⏭ | |
-| 3.5 No data-layer imports in domain | 🤖 §3d | ✅ / ❌ / ⏭ | |
-
-### Section 4 — Data Layer
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 4.1 DTOs not exposed outside data layer | 🤖 §4a | ✅ / ❌ / ⏭ | |
-| 4.2 No `UiState` logic in data layer | 🤖 §4b | ✅ / ❌ / ⏭ | |
-| 4.3 No navigation decisions in data layer | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 5 — State Management
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 5.1 Single consolidated `UiState` per screen | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 5.3 No scattered boolean flags | 🤖 §5a + 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 5.4 One-off events via `Channel` / `SharedFlow` | 🤖 §5b + 🧠 Evaluator | ✅ / ❌ / ⏭ | |
-
-### Section 6 — Mapping Rules
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 6.1 DTO → Domain mapping in data layer only | 🤖 §6b + 🧠 Evaluator | ✅ / ❌ / ⏭ | |
-| 6.2 Domain → UI mapping in presentation only | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 6.3 No DTO → UI direct shortcut | 🤖 §6a | ✅ / ❌ / ⏭ | |
-| 6.4 No API response objects passed to SwiftUI | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Section 7 — Dependency Injection
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 7.1 protocol-based DI used for all DI | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 7.2 RepositoryImpl annotated `@Singleton` | 🤖 §7b | ✅ / ❌ / ⏭ | |
-| 7.3 ViewModel-scoped deps use `@ViewModelScoped` | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-| 7.4 No `Context` injected into domain/data | 🤖 §7a | ✅ / ❌ / ⏭ | |
-
-### Section 8 — Forbidden Patterns
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 8.1 No fully-qualified class names inline | 🤖 §8a | ✅ / ❌ | |
-| 8.2 ViewModel does not call URLSession directly | 🤖 §8b + 🧠 Evaluator | ✅ / ❌ / ⏭ | |
-| 8.3 No business rules inside SwiftUI View / Fragment | 🤖 §8c + 🧠 Evaluator | ✅ / ❌ / ⏭ | |
-| 8.4 Every new ViewModel has a test file | 🤖 §8d | ✅ / ❌ | |
-| 8.5 AI-generated code reviewed before merge | 👁️ Human | 👁️ Human | |
-
-### Section 9 — Package Structure
-
-| Rule | How Checked | Status | Violations |
-|------|-------------|--------|------------|
-| 9.1 ViewModel files in `viewmodel/` folder | 🤖 §9a | ✅ / ❌ / ⏭ | |
-| 9.2 UseCase files in `usecase/` folder | 🤖 §9b | ✅ / ❌ / ⏭ | |
-| 9.3 RepositoryImpl in `data/repository/` | 🤖 §9c | ✅ / ❌ / ⏭ | |
-| 9.4 DTO→Domain mappers not in `domain/` | 🤖 §9d | ✅ / ❌ / ⏭ | |
-| 9.5 Domain→UI mappers in `ui/` layer | 🧠 Evaluator | ✅ / ❌ / 👁️ Human | |
-
-### Architecture Rule Violations Detail
-
-> List each violation found above. Delete this section if there are none.
-
-- **Rule X.Y** — `<file>:<line>`: `<description>`
-
----
-
-## Layer Violations
-
-- [ ] None found
-- Violations found:
-  - `<file>`: `<description of violation>`
-
----
-
-## Unrelated Changes
-
-- [ ] None found
-- Found:
-  - `<file>`: `<description>`
-
----
-
-## UI Verification
-
-- [ ] Skipped (no UI changes)
-- [ ] Texts verified against design via `adb uiautomator dump`
-- [ ] Screenshot captured and compared
-- [ ] Design-critical reference anchors have bounds-based runtime proof tied to visual `accessibilityIdentifier`s
-- [ ] Differences remaining: `<list or "none">`
-
----
-
-## Security
-
-- [ ] No secrets or tokens hardcoded
-- [ ] No user-generated text, transcript, image content, identifier, or other sensitive content logged
-- [ ] Sensitive data not stored unencrypted
-- Concerns: `<list or "none">`
-
----
-
-## Release Risk
-
-**Level**: low / medium / high  
-**Reason**: `<explanation>`
-
-- Backward compatible: yes / no
-- Feature flag required: yes / no
-- Force update required: yes / no
-- Backend deployment dependency: yes / no
-
----
-
-## Remaining Risks
-
-1. `<risk>`
-2. `<risk>`
-
----
-
-## Recommendation
-
-- ✅ Ready to merge
-- ⚠️ Merge with noted risks
-- ❌ Do not merge — `<blocking issue>`
+- **APPROVED** — all required reconciliation rows and checks pass.
+- **REVISION REQUIRED** — list the owner and next stage for every blocking finding.

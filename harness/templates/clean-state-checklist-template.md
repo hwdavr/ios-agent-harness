@@ -1,67 +1,61 @@
 # Clean State Checklist
 
-Run this checklist before committing and at the end of each session to ensure codebase health, architectural integrity, and seamless handoff.
+Run this before committing and at the end of a feature session. Record unavailable
+runtime checks as blocked evidence, never as a pass.
 
----
+## 1. Rule Applicability Contract
 
-## 🛠️ 1. Build & Compilation
-*   [ ] **Compile Check**: Run `xcodebuild test xcodebuild build` locally to ensure the project compiles cleanly with zero compilation errors.
-*   [ ] **Warning Check**: Verify that there are zero compiler warnings in active development modules.
-*   [ ] **Dependency Safety**: Ensure no duplicate dependencies or class conflicts exist in the build configurations.
-*   [ ] **Ktlint Verification**: Run `xcodebuild test swiftlintCheck` and verify that all source code complies with styling standards with zero style violations.
-*   [ ] **Static Analysis**: Run `xcodebuild test swiftlint` static analysis and ensure that zero rule violations remain unresolved.
-*   [ ] **Suppression Audit**: Verify that no new `@Suppress`, `@SuppressLint`, `tools:ignore`, swiftlint/swiftlint disable comment, baseline, or broader rule exclusion was added to make checks pass. Any genuine false positive must be approved by the user and documented.
+- [ ] The approved specification has all nine rows: ARCH, IMPL, TEST, SUI, L10N, NAV,
+  API, OBS, and ANL.
+- [ ] Each decision is `Required`, `Not applicable — <reason>`, or an explicitly
+  user-approved exception.
+- [ ] Plans and review reports preserve the decisions, rationale, and evidence.
+- [ ] Analytics and observability were assessed without adding events/logs merely to
+  satisfy the matrix.
 
----
+## 2. Build, Static Analysis, and Suppressions
 
-## 📐 2. Architecture & Standards
-*   [ ] **Layer Boundaries**: Verify strict layered architecture boundaries: Data layer must not leak DTOs or DB entities to Domain or UI layers.
-*   [ ] **Domain Isolation**: Ensure the Domain layer contains pure Swift business logic with no Android framework imports.
-*   [ ] **State Hoisting**: Confirm all ViewModel state management uses unidirectional data flow (UDF) with stateless UI SwiftUI Views.
-*   [ ] **Secret Scanner**: Ensure no secrets (API keys, credentials, tokens) are hardcoded in source code; use `local.properties` and `BuildConfig`.
-*   [ ] **API Alignments**: Cross-reference and verify all API model structures against OpenAPI spec definitions in `sharedContracts/openapi.yaml`.
+- [ ] `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build` passes when the simulator is available.
+- [ ] `swiftlint` and applicable harness rule checks are recorded with exit codes.
+- [ ] No new `swiftlint:disable`, broad exclusion, baseline, `@preconcurrency import`,
+  or inline debug workaround hides a violation without documented user approval.
 
----
+## 3. Architecture and Implementation
 
-## 💻 3. Runtime & Stability
-*   [ ] **Data Persistence**: Verify database interactions (SwiftData) survive app restarts without crash or schema corruption.
-*   [ ] **Resource Management**: Verify proper lifecycle handling (e.g. no memory leaks or active listeners lingering in inactive states).
-*   [ ] **Navigation Integrity**: Confirm navigation backstack behaves gracefully, handling configuration changes and deep link entries without crashing.
-*   [ ] **Secure Sandbox**: Verify that the application starts up within performance benchmarks and secure sandbox preferences.
-*   [ ] **Dispatcher discipline**: Ensure all async operations are launched on the correct dispatchers (e.g. `Dispatchers.IO` for IO-bound work).
+- [ ] Data, Domain, ViewModel, and SwiftUI boundaries are preserved; DTOs do not leak
+  out of the data layer.
+- [ ] Domain code has no SwiftUI/UIKit, SwiftData, URLSession, or data-layer imports.
+- [ ] Every changed function, branch, and callback implements the approved behavior;
+  no placeholders, stubs, dummy returns, or no-op handlers remain.
+- [ ] Secrets are absent from source and configuration follows the `.xcconfig` / build
+  configuration policy.
 
----
+## 4. UI, Navigation, and Localization *(when required)*
 
-## 🧪 4. Testing & Quality
-*   [ ] **Test Run**: Run `xcodebuild test xcodebuild test` and confirm all unit and integration tests exit GREEN.
-*   [ ] **Global Coverage**: Verify that overall project line coverage meets the minimum threshold of **80%** (via `koverLog`).
-*   [ ] **Feature Coverage**: Verify that new ViewModel and domain Use Cases hit the minimum target of **90%** coverage.
-*   [ ] **Visual Reference Anchors**: When visual verification is required, run `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"`; each visual Test ID must have a non-empty screenshot and reference-anchor proof tied to a visual bounds `accessibilityIdentifier` and a runtime assertion.
-*   [ ] **Visual Flow Test Capture**: When visual verification is required, confirm that every `TC-US-*-VIS-*` screenshot was captured by a dedicated `*VisualFlowTest.swift` test using in-test `takeScreenshot()` during `instrumented test.waitForIdle()` — not by post-test CLI screencaps (`&& pm screenshot`). Verify `feature_list.json` verification and evidence entries reference the `*VisualFlowTest` class and use `xcrun simctl pull` to retrieve screenshots.
-*   [ ] **Platform Capability Matrix**: When the feature is platform-bound (`platform_validation.required: true`), verify `platform-capability-matrix.md` declares minimum/target/API-boundary behavior and the `fail_loudly` unsupported-environment policy. Otherwise verify `feature_list.json` declares `required: false` with an explicit `reason` (no matrix artifact is generated).
-*   [ ] **Real Platform Boundary**: For platform-bound behavior, the slice that owns the declared real instrumented test must run it; fake/iOS simulator-only tests are supplemental and missing environments must fail or be marked `Blocked`/`Revise`. Non-owning slices must run `check-platform-evidence.sh --evaluate --slice "$FEATURE_ID"`; the no-slice evaluation remains required before final feature evaluation.
-*   [ ] **Mock Data Discipline**: Ensure no inline mock data is used; utilize shared JSON scenarios loaded from `sharedContracts/test-scenarios/`.
-*   [ ] **TDD Cleanup**: Verify that any temporary `@Ignore` or `@Disabled` annotations added during the TDD bug-reproduction phase are completely removed.
+- [ ] SwiftUI views contain rendering and event forwarding, not business logic.
+- [ ] UI states, keyboard-visible behavior, semantic colors, and accessibility
+  identifiers follow the approved design and SwiftUI rules.
+- [ ] User-visible text and icon labels use localization keys in `Localizable.xcstrings`.
+- [ ] Typed navigation, route arguments, back-stack behavior, and cleanup match the
+  approved navigation contract.
 
----
+## 5. Tests and Runtime Evidence
 
-## 📊 5. Observability & Logging
-*   [ ] **Invocation Audits**: Ensure every IPC channel and background service invocation is logged.
-*   [ ] **Standardized Logs**: Verify all logs utilize structured formats (JSON log payloads) with clear severity levels (VERBOSE to ASSERT).
-*   [ ] **Context Payloads**: Ensure service tags and contextual payloads (documentId, sizeBytes, execution durations) are attached to relevant events.
-*   [ ] **Warn on Hard Reset**: Confirm that database resetting or hard failures log a warning (`WARN` or `ERROR`) level event.
+- [ ] `xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16'` passes, or the environment block is recorded.
+- [ ] Test IDs cover the required Rule Applicability rows and all acceptance criteria.
+- [ ] Changed API endpoints have shared-scenario integration tests; bug fixes have a
+  red-then-green reproduction test.
+- [ ] UI/visual evidence is captured by XCUITest when the sprint contract requires it.
 
----
+## 6. Observability, Analytics, and Privacy *(when required)*
 
-## 🧹 6. Cleanliness & State Reset
-*   [ ] **Reset Execution**: Verify that clean state reset clears all databases, local caches, and preferences cleanly.
-*   [ ] **Idempotence**: Ensure that database resetting is idempotent—running it multiple times in a row leaves the system in a consistent empty state.
-*   [ ] **Artifact Cleanup**: Confirm that no stale or orphan artifacts remain in intermediate directories (e.g. run a cleanup script if available).
+- [ ] Added logs use `os.Logger`, `Bundle.main.bundleIdentifier` subsystem, appropriate
+  level, and no PII, secrets, or user-generated sensitive content.
+- [ ] Added analytics is emitted from ViewModels with approved event names/data only.
 
----
+## 7. Documentation and Handoff
 
-## 📝 7. Documentation & Handoff
-*   [ ] **Progress Audit**: Update progress logs and task checklists in the changes audit directory.
-*   [ ] **Session Handoff**: Create or update the `session-handoff.md` file detailing modifications and next steps.
-*   [ ] **ADRs & Pitfalls**: Confirm that all new features and public API changes are accompanied by ADRs or knowledge updates.
-*   [ ] **Harness Lifecycle**: For complex features, run `bash harness/scripts/check-feature-lifecycle.sh`; verify the stable product workspace, status, completion evidence, and active-feature count are consistent.
+- [ ] Summary and review reports cite the requirement, plan, test, and command evidence.
+- [ ] Complex features have a valid lifecycle state, tracker update, and required
+  workspace evidence.
+- [ ] New reusable decisions or pitfalls are captured where future work needs them.
