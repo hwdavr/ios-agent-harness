@@ -21,13 +21,16 @@ xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -desti
 
 ### 3. Coverage
 ```bash
-xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -enableCodeCoverage YES
+xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath Build -enableCodeCoverage YES
 xcrun xccov view --report Build/Logs/Test/*.xcresult
+bash harness/scripts/check-coverage.sh "$(find Build/Logs/Test -maxdepth 1 -type d -name '*.xcresult' -print -quit)" --exclude-target SwiftMath
 ```
 **Must pass threshold:**
 - Overall project: ≥ 80% line coverage
 - New ViewModel classes: ≥ 90%
 - New domain use case classes: ≥ 90%
+
+The checker computes weighted line coverage from `xccov` JSON. `SwiftMath` is an explicit third-party target exclusion; add per-file thresholds with `--min-file <path>=<percent>`.
 
 ### 4. SwiftLint (static analysis + formatting)
 ```bash

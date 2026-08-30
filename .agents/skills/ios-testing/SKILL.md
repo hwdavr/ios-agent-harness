@@ -87,8 +87,9 @@ Rules:
 ### 5. Run and record results
 ```bash
 xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16'
-xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -enableCodeCoverage YES
+xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath Build -enableCodeCoverage YES
 xcrun xccov view --report Build/Logs/Test/*.xcresult
+bash harness/scripts/check-coverage.sh "$(find Build/Logs/Test -maxdepth 1 -type d -name '*.xcresult' -print -quit)" --exclude-target SwiftMath
 ```
 
 Record every result number in the output report below. Do not summarize — copy actual pass/fail counts and coverage percentages verbatim from the tool output.
@@ -108,7 +109,7 @@ Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active w
 
 **This stage is complete when all of the following are true — all must be mechanically verifiable:**
 - [ ] `xcodebuild test` — exit code 0
-- [ ] Overall coverage ≥ 80%, new classes ≥ 90% (via `xccov`)
+- [ ] Coverage gate passes: overall project-owned coverage ≥ 80%, new classes ≥ 90% (via `harness/scripts/check-coverage.sh` and `--min-file` thresholds)
 - [ ] Total test count `> 0` (not `0/0` — this is a gate failure)
 - [ ] At least one integration test per new or changed API endpoint
 - [ ] Shared JSON scenarios used — no inline mock response data in test files

@@ -64,7 +64,7 @@ Build out the selected feature across the necessary layers.
 Verify the correctness of the implemented behavior visually and logically.
 *   **Action**:
     1. **INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism. Implement every `Acceptance Test Cases` row in the selected user story. The primary acceptance test must exercise the production entry point; an isolated helper or use-case test cannot substitute for user-visible or cross-layer behavior. Verify through the actual UI/API and meet code coverage targets (overall project **≥ 80%**, ViewModel & Use Case **≥ 90%**).
-    2. If all required tests and coverage checks succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Test** stage status as completed (✅), detailing coverage percentages and passed test counts. If any required check fails, record Test as `⚠️ Blocked` with the command and raw output and stop.
+    2. If all required tests and the mechanical coverage gate (`bash harness/scripts/check-coverage.sh ... --exclude-target SwiftMath`, plus `--min-file <path>=90` for each new ViewModel or domain use case) succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Test** stage status as completed (✅), detailing coverage percentages and passed test counts. If any required check fails, record Test as `⚠️ Blocked` with the command and raw output and stop.
 *   **Objective**: All local tests pass cleanly, coverage targets are fully met, and verification evidence is documented in the summary.
 
 ### Stage 6 — Code Quality Fix
