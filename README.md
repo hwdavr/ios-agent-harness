@@ -95,6 +95,7 @@ The harness includes validation scripts located in `harness/scripts/`:
 | `check-localization-rules.sh` | Detects hardcoded strings in UI views |
 | `check-feature-lifecycle.sh` | Validates feature tracking state and artifact integrity |
 | `check-visual-evidence-contract.sh` | Enforces visual screenshot verification artifacts |
+| `check-evaluation-fix-contract.sh` | Enforces deterministic evaluator scoring, evidence, and fix-stage routing |
 | `check-test-assertions-quality.sh` | Ensures tests do not use shallow/envelope-only assertions |
 | `check-rules-matrix-contract.sh` | Validates enforcement-matrix rows, summaries, and scripted owners |
 
@@ -104,6 +105,7 @@ bash harness/scripts/check-architecture-rules.sh
 bash harness/scripts/check-swiftui-rules.sh
 bash harness/scripts/check-localization-rules.sh
 bash harness/scripts/check-rules-matrix-contract.sh
+bash harness/scripts/check-evaluation-fix-contract.sh <feature-dir> --evaluation
 ```
 
 ---

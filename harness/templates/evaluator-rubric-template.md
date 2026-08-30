@@ -13,7 +13,13 @@ Use this rubric after implementation and before final acceptance.
 | Code & Test Review | Do the code quality checks (SwiftLint, custom rules) and comprehensive test reviews pass? |  |  |
 | Rule Applicability | Does every approved rule decision have diff-trigger reconciliation and evidence in both review reports? |  |  |
 
-### Overall: 5.0 / 5
+### Overall: <arithmetic mean of the eight category scores, rounded to one decimal> / 5
+
+The eight category scores are the machine-checkable source of the overall score. Use
+numeric values from 0 through 5, calculate their arithmetic mean, and round to one
+decimal place; do not choose an independent narrative score. A perfect `5.0 / 5`
+requires every category and every hard-gate item to pass. A sub-perfect score must
+route the tracker to `To be fixed` and cannot use an `Accept` verdict.
 
 ### Visual Verification Hard Gate *(when `requires_visual_verification == true`)*
 
@@ -54,3 +60,16 @@ If any required answer is `No`, the evaluator MUST use `Revise`.
 - Missing evidence:
 - Required fixes:
 - Next review trigger:
+
+## Evidence Contract
+
+Before recording a passing evaluation, run:
+
+```bash
+bash harness/scripts/check-evaluation-fix-contract.sh "$FEATURE_DIR" --evaluation
+```
+
+The contract requires every acceptance Test ID declared by the sprint contract to
+have successful evidence, rejects successful evidence whose result says it was
+blocked, skipped, stalled, terminated, or failed, and verifies that referenced
+result bundles still exist. Recorded prose is not a substitute for this check.

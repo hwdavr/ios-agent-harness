@@ -121,6 +121,15 @@ bash harness/scripts/tests/rules-matrix-contract-test.sh
 owner changes. The catalog is the source of truth for every matrix row, summary count,
 and scripted checker owner; stale summaries and unknown owners are hard failures.
 
+### 16. Evaluation/Fix Lifecycle Contract
+```bash
+bash harness/scripts/tests/review-lifecycle-contract-test.sh
+```
+**Must pass** whenever the evaluator/fix workflows, review templates, or their
+artifact validators change. It rejects free-form score/routing mismatches,
+contradictory successful evidence, and fix passes that advance beyond a blocked
+stage or leave review findings without in-report resolution status.
+
 ---
 
 ## Conditional Checks

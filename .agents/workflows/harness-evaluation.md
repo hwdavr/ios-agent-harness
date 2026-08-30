@@ -91,6 +91,7 @@ After presenting the evaluation results, update the Harness Feature Tracker in `
 *   **If the overall score is less than `5.0 / 5` (not perfect)** → transition the feature status from `To be reviewed` → `To be fixed`. This routes the feature to the **harness-fix workflow** (`.agents/workflows/harness-fix.md`): the Generator resolves every finding in `$FEATURE_DIR/code_review_{feature_id}.md` and `$FEATURE_DIR/test_review_{feature_id}.md`, updates the per-finding status inside those reports, and then transitions to `To be human reviewed`.
 *   Update the date to today and add the evaluation verdict (`Accept` / `Revise` / `Block`) and overall score to the notes column.
 *   Run `bash harness/scripts/check-feature-lifecycle.sh` after the tracker update. Do not claim completion if it fails.
+*   Run `bash harness/scripts/check-evaluation-fix-contract.sh "$FEATURE_DIR" --evaluation`. This is a hard gate: it verifies that the eight category scores round to the declared arithmetic mean, failed hard-gate items cannot produce a perfect evaluation, every acceptance Test ID has successful evidence without contradictory failure state, and the tracker status matches the score-based route. A report or tracker transition that fails this contract is not an evaluation pass.
 
 ---
 

@@ -105,6 +105,7 @@ A finding is not considered resolved until its in-report status line exists and 
         *   Update the date to today and append to the notes column: "Fix pass applied; re-verification evidence attached; <N>/<M> findings fixed."
         *   Update the `*Document last updated*` date.
         *   Run `bash harness/scripts/check-feature-lifecycle.sh` after the tracker update. Do not claim completion if it fails.
+        *   Run `bash harness/scripts/check-evaluation-fix-contract.sh "$FEATURE_DIR" --fix`. This hard gate rejects blocked or incomplete Fix-Stage rows, unresolved or stale review verdicts, missing in-report statuses, contradictory successful evidence, and acceptance Test IDs without successful evidence. Do not transition to `To be human reviewed` unless it exits `0`.
     4. Commit the source, test, report-status, and documentation changes:
         ```bash
         git commit -m "fix(<area>): resolve evaluator findings from code_review and test_review"
