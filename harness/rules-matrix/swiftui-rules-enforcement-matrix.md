@@ -113,13 +113,12 @@ A rule can carry more than one badge when layered enforcement is needed.
 
 | Category | Count | Rules |
 |---|---|---|
-| 🤖 Scripted only | 4 | 1.7, 5.1, 5.2, 8.1 |
-| 🧠 Evaluator only | 12 | 1.2, 1.5, 2.1, 2.3, 3.2, 4.2, 5.3, 5.4, 6.2, 7.3, 8.2, 8.3 |
-| 👁️ Human only | 0 | — |
-| 🤖 + 🧠 Scripted + Evaluator | 6 | 1.3, 1.4, 2.2, 3.1, 3.3, 8.4 |
-| 👁️ + 🧠 Human + Evaluator | 7 | 5.5, 6.1, 6.3, 7.1, 7.2, 9.1, 9.2 |
-| 🤖 Scripted (via localization script) | 2 | 1.6, 4.1 |
-| **Total rules** | **31** | |
+| 🤖 Scripted only | 6 | 1.6, 1.7, 4.1, 5.1, 5.2, 8.1 |
+| 🧠 Evaluator only | 14 | 1.1, 1.2, 1.5, 2.1, 2.3, 3.2, 4.2, 5.3, 5.4, 6.2, 7.3, 8.2, 8.3, 8.4 |
+| 👁️ Human + 🧠 Evaluator | 4 | 6.1, 6.3, 7.1, 7.2 |
+| 🤖 Scripted + 🧠 Evaluator | 6 | 1.3, 1.4, 2.2, 3.1, 3.3, 5.5 |
+| 🧠 Evaluator + 👁️ Human | 2 | 9.1, 9.2 |
+| **Total rules** | **32** | |
 
 > [!NOTE]
 > No rule is **Human-only**. Every rule can be at least partially enforced by AI review. Rules marked 👁️ Human still benefit from human design review as a final sanity check — the AI coverage alone is not considered sufficient confidence.
@@ -135,10 +134,32 @@ The [`check-swiftui-rules.sh`](../scripts/check-swiftui-rules.sh) script current
 | **Check 1** — `Color(0x...)` outside `AppColors.swift` | 1.7 · 5.1 |
 | **Check 2** — Named `Color.*` constants outside `AppColors.swift` | 1.7 · 5.2 |
 | **Check 3** — Files with interactive elements but no `accessibilityIdentifier` | 3.1 |
-| **Check 4** — `ViewModel()` / `viewModel()` in `*Content` composables | 1.3 · 2.2 |
-| **Check 5** — `Repository`/`UseCase`/`DataSource` call inside `@SwiftUI View` | 1.4 |
-| **Check 6** — String interpolation in `accessibilityIdentifier` values | 3.3 |
-| **Check 7** — `Column { ... .forEach {` pattern | 8.1 |
+| **Check 4** — `ViewModel()` / `viewModel()` in `*Content` Views | 1.3 · 2.2 |
+| **Check 5** — `Repository`/`UseCase`/`DataSource` call inside `View` | 1.4 |
+| **Check 6** — Registry-backed dynamic `accessibilityIdentifier` expressions | 3.3 |
+| **Check 7** — `VStack { ... ForEach {` pattern | 8.1 |
+
+### Documented Dynamic Accessibility Identifiers
+
+Dynamic identifiers must use immutable domain IDs, fixed catalog keys, or an immutable
+screen prefix. The registry is source-scoped so a new dynamic expression must be added
+to the approved catalog and this documentation before it can pass the SwiftUI checker.
+
+| Source | Approved template |
+|---|---|
+| `EditorCodeBlockView.swift` | `editor_code_*_{id}` |
+| `MermaidBlockCard.swift` | `editor_mermaid_*_{id}` |
+| `ChartBlockCard.swift`, `ChartDataTable.swift`, `ChartPlotView.swift`, `ChartSheets.swift` | `editor_chart_*_{id}` |
+| `EditorBlockComponents.swift`, `EditorScreen+Content.swift` | `editor_*_{id}` |
+| `EditorChartBlockContainer.swift` | `editor_deferred_block_{id}` |
+| `EditorTableBlockView.swift` | `editor_table_*_{id}` |
+| `EmojiPickerSheet.swift` | `emoji_category_{id}`, `emoji_item_{id}` |
+| `NoteLinkPickerScreen.swift` | `editor_note_picker_row_{id}` |
+| `HomeTabView.swift` | `home_note_{id}` |
+| `FoldersTabView+Content.swift` | `folders_*_{id}` |
+| `MainSearchHeader.swift` | `{screen}_search_{element}` |
+| `MoveToView.swift` | `move_to_folder_{id}` |
+| `SettingsTabView.swift` | `settings_{id}_row` |
 
 > [!NOTE]
 > String-resource checks (rules 1.6 · 4.1) are now owned by [`check-localization-rules.sh`](../scripts/check-localization-rules.sh). See the [Localization Rules Enforcement Matrix](localization-rules-enforcement-matrix.md) for details.

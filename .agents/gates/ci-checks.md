@@ -113,6 +113,14 @@ bash harness/scripts/tests/rule-applicability-contract-test.sh
 **Must pass** when changing `AGENTS.md`, workflows, skills, templates, or artifact gates
 that govern requirements, planning, implementation, testing, or review.
 
+### 15. Rules-Matrix Contract
+```bash
+bash harness/scripts/tests/rules-matrix-contract-test.sh
+```
+**Must pass** whenever a rules-enforcement matrix, its catalog, or a scripted rule
+owner changes. The catalog is the source of truth for every matrix row, summary count,
+and scripted checker owner; stale summaries and unknown owners are hard failures.
+
 ---
 
 ## Conditional Checks
