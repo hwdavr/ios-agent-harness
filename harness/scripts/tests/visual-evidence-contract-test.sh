@@ -19,7 +19,7 @@ write_valid_fixture() {
     '' \
     '| Test ID | Covers AC | Test layer | Test file and method | Setup and action | Required assertions | Exact command |' \
     '|---|---|---|---|---|---|---|' \
-    '| TC-US-3-VIS-001 | AC-US-3-03 | Visual verification | NotesTakingAppiOSUITests/java/example/EmojiPickerVisualFlowTest.swift#emojiPickerContentLightTheme | fixture | screenshot saved at visual_evidence/emoji_picker_content.png | env  ./xcodebuild xcodebuild test |' \
+    '| TC-US-3-VIS-001 | AC-US-3-03 | Visual verification | NotesTakingAppiOSUITests/EmojiPickerVisualFlowTests.swift#emojiPickerContentLightTheme | fixture | screenshot saved at visual_evidence/emoji_picker_content.png | env  ./xcodebuild xcodebuild test -only-testing:NotesTakingAppiOSUITests/EmojiPickerVisualFlowTests/emojiPickerContentLightTheme |' \
     > "$feature_dir/sprint-contract.md"
   printf '%s\n' \
     '{' \
@@ -28,7 +28,7 @@ write_valid_fixture() {
     '    "requires_visual_verification": true,' \
     '    "acceptance_test_ids": ["TC-US-3-VIS-001"],' \
     '    "verification": [' \
-    '      "env  ./xcodebuild xcodebuild test -Pandroid.testInstrumentationRunnerArguments.class=example.EmojiPickerVisualFlowTest#emojiPickerContentLightTheme"' \
+    '      "env  ./xcodebuild xcodebuild test -only-testing:NotesTakingAppiOSUITests/EmojiPickerVisualFlowTests/emojiPickerContentLightTheme -PtestInstrumentationRunnerArguments.class=EmojiPickerVisualFlowTests#emojiPickerContentLightTheme"' \
     '    ],' \
     '    "evidence": [{"test_id": "TC-US-3-VIS-001", "exit_status": 0, "executed_command": "env  ./xcodebuild xcodebuild test"}]' \
     '  }]' \
@@ -65,6 +65,29 @@ expect_failure() {
 valid="$fixture_root/valid"
 write_valid_fixture "$valid"
 (cd "$REPO_ROOT" && bash "$VALIDATOR" "$valid")
+
+functional_visual_class="$fixture_root/functional-visual-class"
+write_valid_fixture "$functional_visual_class"
+sed 's/EmojiPickerVisualFlowTests/FormattingToolbarUITests/g' \
+  "$functional_visual_class/sprint-contract.md" > "$functional_visual_class/sprint-contract.tmp"
+mv "$functional_visual_class/sprint-contract.tmp" "$functional_visual_class/sprint-contract.md"
+expect_failure "functional test classes cannot produce visual evidence" \
+  bash "$VALIDATOR" "$functional_visual_class"
+
+class_scoped_visual_command="$fixture_root/class-scoped-visual-command"
+write_valid_fixture "$class_scoped_visual_command"
+jq '.features[0].verification = ["env  ./xcodebuild xcodebuild test -only-testing:NotesTakingAppiOSTests/EmojiPickerVisualFlowTests -PtestInstrumentationRunnerArguments.class=EmojiPickerVisualFlowTests#emojiPickerContentLightTheme"]' \
+  "$class_scoped_visual_command/feature_list.json" > "$class_scoped_visual_command/feature_list.tmp"
+mv "$class_scoped_visual_command/feature_list.tmp" "$class_scoped_visual_command/feature_list.json"
+expect_failure "method-scoped -only-testing selector" \
+  bash "$VALIDATOR" "$class_scoped_visual_command"
+
+duplicate_screenshot="$fixture_root/duplicate-screenshot"
+write_valid_fixture "$duplicate_screenshot"
+grep -F '| TC-US-3-VIS-001 |' "$duplicate_screenshot/sprint-contract.md" \
+  >> "$duplicate_screenshot/sprint-contract.md"
+expect_failure "is used by more than one visual row" \
+  bash "$VALIDATOR" "$duplicate_screenshot"
 
 missing_anchor_report="$fixture_root/missing-anchor-report"
 write_valid_fixture "$missing_anchor_report"
@@ -106,7 +129,7 @@ expect_failure "likely a blank or transparent capture" \
 
 missing_contract_row="$fixture_root/missing-contract-row"
 write_valid_fixture "$missing_contract_row"
-jq '.features[0].verification += ["env  ./xcodebuild xcodebuild test -Pandroid.testInstrumentationRunnerArguments.class=example.EmojiPickerVisualFlowTest#emojiPickerExpandsToAvailableHeightWhenKeyboardIsVisible"]' \
+jq '.features[0].verification += ["env  ./xcodebuild xcodebuild test -only-testing:NotesTakingAppiOSUITests/EmojiPickerVisualFlowTests/emojiPickerExpandsToAvailableHeightWhenKeyboardIsVisible -PtestInstrumentationRunnerArguments.class=EmojiPickerVisualFlowTests#emojiPickerExpandsToAvailableHeightWhenKeyboardIsVisible"]' \
   "$missing_contract_row/feature_list.json" > "$missing_contract_row/feature_list.tmp"
 mv "$missing_contract_row/feature_list.tmp" "$missing_contract_row/feature_list.json"
 expect_failure "is not named by a US-3 visual row" bash "$VALIDATOR" "$missing_contract_row"

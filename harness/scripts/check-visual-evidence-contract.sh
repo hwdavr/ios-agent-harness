@@ -38,6 +38,18 @@ CONTRACT_ROWS=$(grep -E "^\|[[:space:]]*TC-${VISUAL_OWNER}-VIS-[^|[:space:]]+[[:
 CONTRACT_IDS=$(printf '%s\n' "$CONTRACT_ROWS" | sed -n 's/^|[[:space:]]*\(TC-[^|[:space:]]*-VIS-[^|[:space:]]*\)[[:space:]]*|.*/\1/p')
 [ -n "$CONTRACT_IDS" ] || fail "visual rows for $VISUAL_OWNER have no parseable Test IDs"
 
+VISUAL_DETAIL_ROWS=$(printf '%s\n' "$CONTRACT_ROWS" | grep -E 'VisualFlowTests?(\.swift)?#[A-Za-z0-9_]+' || true)
+[ -n "$VISUAL_DETAIL_ROWS" ] \
+  || fail "visual rows must include a dedicated *VisualFlowTests.swift test method; functional test classes cannot produce visual evidence"
+
+while IFS= read -r contract_row; do
+  [ -n "$contract_row" ] || continue
+  printf '%s\n' "$contract_row" | grep -Eq 'VisualFlowTests?(\.swift)?#[A-Za-z0-9_]+' \
+    || fail "visual rows must name a dedicated *VisualFlowTests.swift test method; functional test classes cannot produce visual evidence"
+done <<EOF
+$VISUAL_DETAIL_ROWS
+EOF
+
 FEATURE_IDS=$(jq -r --arg owner "$VISUAL_OWNER" '
   .features[]
   | select(.id == $owner)
@@ -77,6 +89,8 @@ VISUAL_COMMANDS=$(jq -r --arg owner "$VISUAL_OWNER" '
 VISUAL_METHODS=""
 while IFS= read -r command; do
   [ -n "$command" ] || continue
+  printf '%s\n' "$command" | grep -Eq -- '-only-testing:[^[:space:]\"]*/[^[:space:]\"]*VisualFlowTests?/[A-Za-z0-9_]+' \
+    || fail "visual verification commands must use a method-scoped -only-testing selector for a dedicated *VisualFlowTests class"
   method=$(printf '%s\n' "$command" | sed -n 's/.*#\([^[:space:]\"]*\).*/\1/p')
   [ -n "$method" ] || continue
   VISUAL_METHODS="$VISUAL_METHODS
@@ -110,6 +124,20 @@ if [ "$MODE" = "--evaluate" ]; then
   esac
   [ -s "$FEATURE_DIR/$REFERENCE_ASSET" ] \
     || fail "$ANCHOR_REPORT references missing or empty design asset $REFERENCE_ASSET"
+
+  SEEN_SCREENSHOT_PATHS=""
+  while IFS= read -r contract_row; do
+    [ -n "$contract_row" ] || continue
+    screenshot_path=$(printf '%s\n' "$contract_row" | grep -oE 'visual_evidence/[[:alnum:]_./-]+\.png' | head -n 1 || true)
+    [ -n "$screenshot_path" ] || continue
+    printf '%s\n' "$SEEN_SCREENSHOT_PATHS" | grep -Fxq "$screenshot_path" \
+      && fail "visual screenshot path $screenshot_path is used by more than one visual row" \
+      || true
+    SEEN_SCREENSHOT_PATHS="$SEEN_SCREENSHOT_PATHS
+$screenshot_path"
+  done <<EOF
+$CONTRACT_ROWS
+EOF
 
   for test_id in $CONTRACT_IDS; do
     CONTRACT_ROW=$(printf '%s\n' "$CONTRACT_ROWS" | grep -E "^\\|[[:space:]]*$test_id[[:space:]]*\\|" || true)
