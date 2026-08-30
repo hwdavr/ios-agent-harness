@@ -41,6 +41,12 @@ is_valid_key() {
     [[ "$key" =~ ^[a-z][a-z0-9]*(_[a-z0-9]+){2,}$ ]]
 }
 
+is_generated_catalog_key() {
+    # Xcode can extract an empty key and printf-style format keys from source
+    # expressions. They are catalog entries, not user-authored resource names.
+    [[ -z "$1" || "$1" == %* ]]
+}
+
 catalog_has_key() {
     local key="$1"
     local key_base="${key%% *}"
@@ -122,6 +128,9 @@ scan_catalog() {
 
     CATALOG_VALID=true
     while IFS= read -r key; do
+        if is_generated_catalog_key "$key"; then
+            continue
+        fi
         if ! is_valid_key "$key"; then
             report_violation "$CATALOG" "catalog key must follow <screen>_<component>_<type>: \"$key\""
         fi
