@@ -10,6 +10,10 @@ Options:
   --exclude-target <name>       Explicitly exclude a target, repeatable.
   --min-overall <percent>       Minimum weighted line coverage (default: 80).
   --min-file <path>=<percent>   Minimum coverage for one file, repeatable.
+
+Coverage from XCTest bundles is excluded automatically. The overall threshold
+measures product targets only; use a separate UI-test run when validating which
+application lines are exercised by UI tests.
 EOF
   exit 2
 }
@@ -89,7 +93,12 @@ xcrun xccov view --report --json "$RESULT_BUNDLE" > "$coverage_json" \
 jq -e 'type == "object" and (.targets | type == "array")' "$coverage_json" >/dev/null \
   || fail "xccov report has no target coverage data"
 
+test_targets_json=$(jq -c '[.targets[] | select((.name // "") | endswith(".xctest")) | .name]' "$coverage_json")
 excluded_json='[]'
+if [ "$(jq 'length' <<< "$test_targets_json")" -gt 0 ]; then
+  test_target_label=$(jq -r 'join(",")' <<< "$test_targets_json")
+  echo "Coverage test targets excluded by default: $test_target_label"
+fi
 if [ "${#EXCLUDED_TARGETS[@]}" -gt 0 ]; then
   excluded_json=$(printf '%s\n' "${EXCLUDED_TARGETS[@]}" | jq -R -s 'split("\n") | map(select(length > 0))')
   for excluded_target in "${EXCLUDED_TARGETS[@]}"; do
@@ -97,6 +106,9 @@ if [ "${#EXCLUDED_TARGETS[@]}" -gt 0 ]; then
     [ "$target_count" -eq 1 ] || fail "excluded target was not found exactly once: $excluded_target"
   done
 fi
+
+excluded_json=$(jq -cn --argjson explicit "$excluded_json" --argjson test_targets "$test_targets_json" \
+  '$explicit + $test_targets | unique')
 
 included_target_count=$(jq --argjson excluded "$excluded_json" '
   [.targets[] | select((.name as $name | ($excluded | index($name)) == null))] | length
@@ -138,8 +150,10 @@ if [ "${#MIN_FILES[@]}" -gt 0 ]; then
   for file_spec in "${MIN_FILES[@]}"; do
     file_path="${file_spec%=*}"
     file_threshold="${file_spec##*=}"
-    matching_files=$(jq --arg file_path "$file_path" '
-      [.targets[].files[]?
+    matching_files=$(jq --arg file_path "$file_path" --argjson excluded "$excluded_json" '
+      [.targets[]
+       | select((.name as $name | ($excluded | index($name)) == null))
+       | .files[]?
        | select((.path // "") == $file_path
          or ((.path // "") | endswith("/" + $file_path))
          or (.name // "") == $file_path)]
@@ -149,8 +163,10 @@ if [ "${#MIN_FILES[@]}" -gt 0 ]; then
       || fail "expected exactly one coverage file matching '$file_path', found $matching_files"
 
     read -r file_covered file_executable <<EOF
-$(jq -r --arg file_path "$file_path" '
-    [.targets[].files[]?
+$(jq -r --arg file_path "$file_path" --argjson excluded "$excluded_json" '
+    [.targets[]
+     | select((.name as $name | ($excluded | index($name)) == null))
+     | .files[]?
      | select((.path // "") == $file_path
        or ((.path // "") | endswith("/" + $file_path))
        or (.name // "") == $file_path)]

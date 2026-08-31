@@ -14,10 +14,10 @@ fixture_json='{
   "targets": [
     {
       "name": "NotesTakingAppiOS.app",
-      "lineCoverage": 0.85,
+      "lineCoverage": 0.70,
       "files": [
         {"name": "NewViewModel.swift", "path": "/project/NotesTakingApp/ViewModels/NewViewModel.swift", "coveredLines": 9, "executableLines": 10},
-        {"name": "AppSupport.swift", "path": "/project/NotesTakingApp/AppSupport.swift", "coveredLines": 8, "executableLines": 10}
+        {"name": "AppSupport.swift", "path": "/project/NotesTakingApp/AppSupport.swift", "coveredLines": 5, "executableLines": 10}
       ]
     },
     {
@@ -60,16 +60,16 @@ expect_failure() {
 
 PATH="$fake_bin:$PATH" COVERAGE_FIXTURE_JSON="$fixture_json" \
   bash "$CHECKER" "$result_bundle" --exclude-target SwiftMath \
-  --min-file NewViewModel.swift=90
+  --min-overall 70 --min-file NewViewModel.swift=90
 
-expect_failure "overall project-owned line coverage 20.77% is below" \
-  bash "$CHECKER" "$result_bundle"
+expect_failure "overall project-owned line coverage 70.00% is below" \
+  bash "$CHECKER" "$result_bundle" --exclude-target SwiftMath
 
 expect_failure "excluded target was not found exactly once: MissingTarget" \
   bash "$CHECKER" "$result_bundle" --exclude-target MissingTarget
 
 expect_failure "file NewViewModel.swift coverage 90.00% is below" \
   bash "$CHECKER" "$result_bundle" --exclude-target SwiftMath \
-  --min-file NewViewModel.swift=95
+  --min-overall 70 --min-file NewViewModel.swift=95
 
 echo "PASS: coverage checker enforces weighted thresholds, explicit exclusions, and per-file thresholds."
