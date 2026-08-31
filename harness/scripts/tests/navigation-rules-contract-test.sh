@@ -64,12 +64,11 @@ production_output=$(bash "$CHECKER" 2>&1)
 production_status=$?
 set -e
 
-if [[ $production_status -eq 0 ]]; then
+if [[ $production_status -ne 0 ]]; then
     echo "$production_output"
-    fail "production source unexpectedly passed despite known navigation violations"
+    fail "compliant production navigation source failed"
 fi
 
-assert_contains "$production_output" "MainTabView.swift"
-assert_contains "$production_output" "navigation violation(s) found"
+assert_contains "$production_output" "All navigation rules passed"
 
 echo "GREEN: navigation checker contract passed for invalid, valid, and production scans."

@@ -80,7 +80,7 @@ expect_failure "swiftui scripted rule 1.7 names missing or unknown owner" \
 
 dynamic_source="$fixture_root/dynamic-source"
 mkdir -p "$dynamic_source"
-printf '%s\n' 'struct UnregisteredView: View { var body: some View { Text("fixture").accessibilityIdentifier("fixture_\\(unstableValue)") } }' \
+printf '%s\n' 'struct UnregisteredView: View { var body: some View { Text("fixture").accessibilityIdentifier("fixture_\(unstableValue)") } }' \
   > "$dynamic_source/UnregisteredIdentifier.swift"
 expect_failure "dynamic accessibilityIdentifier is not an approved documented immutable identifier" \
   bash "$SWIFTUI_CHECKER" --all "$dynamic_source"

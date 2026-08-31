@@ -130,6 +130,15 @@ artifact validators change. It rejects free-form score/routing mismatches,
 contradictory successful evidence, and fix passes that advance beyond a blocked
 stage or leave review findings without in-report resolution status.
 
+### 17. AST Rule-Checker Contract
+```bash
+bash harness/scripts/tests/ast-rule-checker-contract-test.sh
+```
+**Must pass** whenever one of the Swift-source rule checkers, the harness AST
+package, or its fixtures changes. This resolves the pinned SwiftSyntax package,
+runs visitor unit tests, and verifies valid, invalid, multiline, and
+comment/string false-positive fixtures through the public shell wrappers.
+
 ---
 
 ## Conditional Checks
