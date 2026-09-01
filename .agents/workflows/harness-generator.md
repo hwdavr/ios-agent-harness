@@ -23,7 +23,7 @@ Every required stage gate is a hard stop. A gate may advance only after its comm
 
 ## 🔄 Stage Execution Pipeline
 
-> **Routing**: If the active feature's tracker status is `To be fixed`, **stop here** — this workflow does not apply. Instead, follow the **[harness-fix workflow](harness-fix.md)** in full. It runs the Fix Mode Pipeline (resolve every `code_review` / `test_review` finding and update the per-finding status inside those reports, then transition to `To be human reviewed`). Stages 1–8 below apply only when implementing a new slice (status `In Progress` / `Awaiting implementation approval`).
+> **Routing**: If the active feature's tracker status is `To be fixed`, **stop here** — this workflow does not apply. Instead, follow the **[harness-fix workflow](harness-fix.md)** in full. It runs the Fix Mode Pipeline (resolve every `code_review` / `test_review` finding and update the per-finding status inside those reports, then transition to `To be human reviewed`). Stages 1–9 below apply only when implementing a new slice (status `In Progress` / `Awaiting implementation approval`).
 
 ### Stage 1 — Orient
 Before making any changes or planning code, gather complete session and git context. Select the next task to implement.
@@ -53,28 +53,36 @@ Ensure that the existing codebase compiles and all tests pass before making any 
 *   **Objective**: Confirm the repository is in a perfectly stable, compilable, and green state. If the baseline is broken, stop and fix existing regressions first! Register status in `$FEATURE_DIR/summary_{feature_id}.md`.
 *   **Gate**: Both commands must exit `0`. If either command fails, mark Verify Baseline `⚠️ Blocked`, record the command and raw failure output, and stop the pipeline. Do not begin implementation.
 
-### Stage 4 — Implement
-Build out the selected feature across the necessary layers.
+### Stage 4 — Test First
+Write the selected slice's tests and shared scenarios before application implementation.
+*   **Action**:
+    1. **INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism. Implement every selected `Acceptance Test Cases` row, including its named method and shared JSON scenario.
+    2. Run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --test "$FEATURE_ID"`. It must confirm every selected Test ID names a real Swift test method, a suite-scoped `-only-testing` command, and each declared shared JSON scenario from that method.
+    3. Run each newly written selector and record its expected red output in `$FEATURE_DIR/summary_{feature_id}.md`. The failure must identify unimplemented behavior, such as a missing production API or unmet assertion; fixture, test-source syntax, or unavailable-environment failures block the pipeline. A test that passes before implementation must be strengthened.
+*   **Objective**: The approved acceptance contract is executable before implementation, with no untracked scenario or method gap.
+
+### Stage 5 — Implement
+Build out the selected feature across the necessary layers until the Stage 4 tests turn green.
 *   **Action**:
     1. **INVOKE** the `ios-implementation` skill via the Skill tool (name: `ios-implementation`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
     2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Implement** stage status to completed (✅) with list of created/modified files.
-*   **Objective**: All layers successfully implemented, `xcodebuild build` compiles cleanly, UI changes conform to `docs/product/design_system.md` plus approved feature exceptions, and progress is logged in the summary.
+*   **Objective**: All layers successfully implemented, the test-first selectors compile, `xcodebuild build` compiles cleanly, UI changes conform to `docs/product/design_system.md` plus approved feature exceptions, and progress is logged in the summary.
 
-### Stage 5 — Test
-Verify the correctness of the implemented behavior visually and logically.
+### Stage 6 — Verify Tests
+Verify the implemented behavior and record green evidence.
 *   **Action**:
-    1. **INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism. Implement every `Acceptance Test Cases` row in the selected user story. The primary acceptance test must exercise the production entry point; an isolated helper or use-case test cannot substitute for user-visible or cross-layer behavior. Verify through the actual UI/API and meet code coverage targets (overall project **≥ 80%**, ViewModel & Use Case **≥ 90%**).
-    2. Run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --test "$FEATURE_ID"`. It must confirm that every acceptance Test ID for the selected slice names a real Swift test method, a suite-scoped `-only-testing` command, and each declared shared JSON scenario from that method. If it fails, record Test as `⚠️ Blocked` and stop.
-    3. If all required tests, the traceability gate, and the mechanical coverage gate (`bash harness/scripts/check-coverage.sh ... --exclude-target SwiftMath`, plus `--min-file <path>=90` for each new ViewModel or domain use case) succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Test** stage status as completed (✅), detailing coverage percentages and passed test counts. If any required check fails, record Test as `⚠️ Blocked` with the command and raw output and stop.
+    1. **INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`) for its post-implementation verification pass. The primary acceptance test must exercise the production entry point; an isolated helper or use-case test cannot substitute for user-visible or cross-layer behavior. Verify through the actual UI/API and meet code coverage targets (overall project **≥ 80%**, ViewModel & Use Case **≥ 90%**).
+    2. Run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --test "$FEATURE_ID"` again. If it fails, record Verify Tests as `⚠️ Blocked` and stop.
+    3. If all required tests, the traceability gate, and the mechanical coverage gate (`bash harness/scripts/check-coverage.sh ... --exclude-target SwiftMath`, plus `--min-file <path>=90` for each new ViewModel or domain use case) succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Verify Tests** stage status as completed (✅), detailing coverage percentages and passed test counts. If any required check fails, record Verify Tests as `⚠️ Blocked` with the command and raw output and stop.
 *   **Objective**: All local tests pass cleanly, coverage targets are fully met, and verification evidence is documented in the summary.
 
-### Stage 6 — Code Quality Fix
+### Stage 7 — Code Quality Fix
 Run all static check suites, lint rules, and custom compliance rules, and resolve all violations.
 *   **Action**: **INVOKE** the `code-quality-fix` skill via the Skill tool (name: `code-quality-fix`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 *   **Objective**: Diagnose and resolve all formatting, quality, localization, and architectural style guidelines issues, reconcile any newly discovered rule trigger with the approved matrix, and log check success in `$FEATURE_DIR/summary_{feature_id}.md`.
 *   **Gate**: All required quality checks must exit `0`. If any check fails, record the failing command and raw output, mark this stage `⚠️ Blocked`, and stop the pipeline.
 
-### Stage 7 — Finalize & Exit
+### Stage 8 — Finalize & Exit
 Verify all acceptance criteria, update project state, commit, and prepare for handoff.
 
 > [!IMPORTANT]
@@ -110,7 +118,7 @@ Verify all acceptance criteria, update project state, commit, and prepare for ha
     8. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Finalize & Exit** stage status to completed (✅), transition the selected slice summary to Complete, and document key outcomes, open items, and handoff decisions.
 *   **Objective**: Ensure all state updates are backed by mechanical, verifiable evidence. Leave the repository in a completely green, stable, and self-documenting state that a fresh session can immediately pick up and resume.
 
-### Stage 8 — Install App To Simulator
+### Stage 9 — Install App To Simulator
 Install the completed debug build to the simulator as the final generator step.
 
 *   **Action**:

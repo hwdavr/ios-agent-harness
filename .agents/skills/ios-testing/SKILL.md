@@ -6,7 +6,7 @@ description: Implements unit, integration, and UI tests according to the test pl
 # Skill — iOS Testing
 
 ## Purpose
-Write all tests for the change and mechanically verify they pass.
+Write all tests for the change and mechanically verify them after implementation.
 This stage **generates** — it does not evaluate quality. That is the Test Review stage's job.
 
 The article principle: write the failing test *before* touching the application code for bug fixes and new behavior.
@@ -34,6 +34,19 @@ The article principle: write the failing test *before* touching the application 
 ---
 
 ## Execute
+
+### Test-First Authoring (before application implementation)
+
+When the active workflow places this skill before `ios-implementation`, write every
+planned test and shared JSON scenario first. Run each new test through its exact
+selector and record its expected red result: the failure must demonstrate the
+unimplemented requirement, such as a missing production API or unmet assertion, not
+a fixture, test-source syntax, or environment problem. A new test
+that already passes must be strengthened until it proves the intended behavior.
+
+Do not treat a red test-first run as a passing verification result and do not record
+coverage at this point. Return to the workflow so `ios-implementation` can make the
+declared test methods green.
 
 ### 1. Execute Planned Tests
 For ad-hoc workflows, read the approved `docs/current/test_plan_v<N>.md` and Rule
@@ -84,7 +97,7 @@ Rules:
 - Do not use `sleep()` — use `waitForExistence` or expectations
 - One main business scenario per test
 
-### 5. Run and record results
+### 5. Verification pass (after implementation)
 ```bash
 xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16'
 xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath Build -enableCodeCoverage YES
@@ -94,7 +107,8 @@ bash harness/scripts/check-coverage.sh "$(find Build/Logs/Test -maxdepth 1 -type
 
 Record every result number in the output report below. Do not summarize — copy actual pass/fail counts and coverage percentages verbatim from the tool output.
 
-For the harness workflow, after writing tests and before marking Testing complete, run:
+For the harness workflow, after writing tests and before leaving the test-first stage,
+run:
 ```bash
 bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --test "$FEATURE_ID"
 ```
@@ -107,13 +121,21 @@ The gate requires every selected acceptance Test ID to name a real test method a
 New or updated test files.
 New or updated shared JSON scenarios in `sharedContracts/test-scenarios/`.
 
-Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active workflow): mark the Testing stage complete with test count and coverage.
+During test-first authoring, update the active summary with the declared methods,
+shared scenarios, exact selectors, and expected red output. During the post-
+implementation verification pass, record actual green test counts and coverage.
 
 ---
 
 ## Done When
 
-**This stage is complete when all of the following are true — all must be mechanically verifiable:**
+**Test-first authoring is complete when all of the following are true:**
+- [ ] Every planned test method and shared JSON scenario exists
+- [ ] Every new test has been run through its exact selector and its red result is recorded
+- [ ] Each red result identifies the missing behavior rather than a broken fixture or unavailable environment
+- [ ] Harness workflow: acceptance-test traceability gate passes for the selected slice
+
+**Post-implementation verification is complete when all of the following are true — all must be mechanically verifiable:**
 - [ ] `xcodebuild test` — exit code 0
 - [ ] Coverage gate passes: overall project-owned coverage ≥ 80%, new classes ≥ 90% (via `harness/scripts/check-coverage.sh` and `--min-file` thresholds)
 - [ ] Total test count `> 0` (not `0/0` — this is a gate failure)
@@ -126,9 +148,9 @@ Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active w
 **APPROVED →** Return to the active workflow file and proceed to the next stage defined there.
 
 **REVISION REQUIRED →**
-- If `total_tests == 0` → return to the Testing stage, add missing tests
-- If coverage < 80% → return to the Testing stage, add missing unit tests
-- If test failures exist → fix the failing tests (which may require fixing application code)
+- If `total_tests == 0` → return to Test First, add missing tests
+- If coverage < 80% → return to Verification, add missing unit tests
+- If test failures exist → return to Implementation to fix the application root cause, then Verification
 - If a compilation error was introduced → return to the stage that caused it
 
 **Iteration cap:** 2 rounds of test revision. If still failing, surface the specific failure to the user.

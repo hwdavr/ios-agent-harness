@@ -21,7 +21,7 @@ Do not jump directly into coding.
 **Every stage's skill must be invoked via the Skill tool — reading the SKILL.md manually is not a substitute.**
 **Memory of prior approval does not bypass stages. Source of truth is on-disk artifacts in `docs/current/`. If an artifact is missing, re-run the stage via its skill.**
 
-Pipeline: Requirement, Impact & Design → Plan → [User Approval] → Implementation → Testing → Code Quality Fix → Product Document Update → Install App To Simulator
+Pipeline: Requirement, Impact & Design → Plan → [User Approval] → Test First → Implementation → Verification → Code Quality Fix → Product Document Update → Install App To Simulator
 
 ---
 
@@ -48,15 +48,21 @@ Gate: Run `bash harness/scripts/check-stage-artifacts.sh feature-delivery implem
 
 ---
 
-### Stage 3 — Implementation (Data + Domain + UI)
+### Stage 3 — Test First
+**INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
+
+Output: Unit, integration, UI tests, and any shared JSON scenarios are created or updated before application source changes. `docs/current/summary_v<N>.md` records each exact selector and its expected red result.
+Gate: every new or changed test runs and fails only because the planned behavior is not implemented (for example, a missing production API or unmet assertion). A fixture, test-source syntax, or environment failure is blocked; a test that already passes must be strengthened before implementation begins.
+
+### Stage 4 — Implementation (Data + Domain + UI)
 **INVOKE** the `ios-implementation` skill via the Skill tool (name: `ios-implementation`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
 Output: All source files across Data, Domain, and UI layers created or modified; `docs/current/summary_v<N>.md` updated with Implementation stage marked complete.
-Gate: `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build` passes, all layer rules are satisfied, and UI changes conform to `docs/product/design_system.md` plus any explicit approved exception in `docs/current/design.md`.
+Gate: the test-first selectors now compile and pass, `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build` passes, all layer rules are satisfied, and UI changes conform to `docs/product/design_system.md` plus any explicit approved exception in `docs/current/design.md`.
 
 ---
 
-### Stage 4 — Testing
+### Stage 5 — Verification
 **INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
 Output: Unit tests, integration tests, and shared JSON scenarios created or updated; `docs/current/summary_v<N>.md` updated with test count and coverage.
@@ -64,7 +70,7 @@ Gate: tests pass, coverage targets met.
 
 ---
 
-### Stage 5 — Code Quality Fix
+### Stage 6 — Code Quality Fix
 **INVOKE** the `code-quality-fix` skill via the Skill tool (name: `code-quality-fix`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
 Output: All violations resolved; `docs/current/summary_v<N>.md` updated with code quality results.
@@ -72,7 +78,7 @@ Gate: `swiftlint` and all custom check scripts exit with code 0.
 
 ---
 
-### Stage 6 — Product Document Update
+### Stage 7 — Product Document Update
 Update `docs/product/product.md` to reflect the newly shipped feature.
 
 **Actions**:
@@ -85,7 +91,7 @@ Gate: the file is saved and the feature no longer appears as Planned or Next for
 
 ---
 
-### Stage 7 — Install App To Simulator
+### Stage 8 — Install App To Simulator
 Install the completed debug build to the simulator as the final delivery step.
 
 **Actions**:
@@ -106,7 +112,8 @@ Gate: install command exits with code 0. If no simulator is booted, mark this st
 |---------|-----------|
 | Requirement ambiguity or Plan rejection | Requirement, Impact & Design Analysis |
 | Compilation error | Implementation (Data + Domain + UI) |
-| Test failure or Coverage gap | Testing (fix implementation if needed, then re-test) |
+| Test-first fixture or environment failure | Test First |
+| Test failure or Coverage gap | Implementation (fix root cause), then Verification |
 | Quality check violation | Code Quality Fix (fix root cause, re-run checks) |
 | Install failure or missing simulator | Install App To Simulator |
 
