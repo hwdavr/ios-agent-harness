@@ -194,6 +194,7 @@ case "$WORKFLOW/$STAGE" in
         exit 1
       fi
     fi
+    bash "$SCRIPT_DIR/check-acceptance-test-traceability.sh" "$DOCS_DIR" --planning
     if ! jq -e '
       .features | type == "array" and
       all(

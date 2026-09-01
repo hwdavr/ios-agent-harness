@@ -41,16 +41,16 @@ write_tracker() {
 write_feature() {
   local result_text="${1:-1 test passed}"
   local status="${2:-passing}"
-  mkdir -p "$FIXTURE_ROOT/docs/product/2026-08-29-fixture"
+  mkdir -p "$FIXTURE_ROOT/docs/product/2026-08-29-fixture" "$FIXTURE_ROOT/NotesTakingAppiOSTests"
   cat > "$FIXTURE_ROOT/docs/product/2026-08-29-fixture/feature_list.json" <<JSON
 {
   "features": [{
     "id": "US-1",
     "status": "$status",
-    "acceptance_test_ids": ["AC-US-1-01"],
+    "acceptance_test_ids": ["TC-US-1-01"],
     "evidence": [{
       "test_id": "TC-US-1-01",
-      "executed_command": "xcodebuild test -only-testing:FixtureTests",
+      "executed_command": "xcodebuild test -only-testing:NotesTakingAppiOSTests/FixtureTests",
       "exit_status": 0,
       "result": "$result_text"
     }]
@@ -60,10 +60,17 @@ JSON
   printf '%s\n' \
     '# Sprint Contract' \
     '' \
-    '| Acceptance ID | Story | Test ID |' \
-    '|---|---|---|' \
-    '| AC-US-1-01 | US-1 | TC-US-1-01 |' \
+    '| Test ID | Covers AC | Test layer | Test file and method | Shared scenario(s) | Setup and action | Required assertions | Exact command |' \
+    '|---|---|---|---|---|---|---|---|' \
+    '| TC-US-1-01 | AC-US-1-01 | Swift Testing unit | `NotesTakingAppiOSTests/FixtureTests.swift#primaryAcceptance` | N/A — no API | Run fixture behavior. | Fixture expectation passes. | `xcodebuild test -only-testing:NotesTakingAppiOSTests/FixtureTests` |' \
     > "$FIXTURE_ROOT/docs/product/2026-08-29-fixture/sprint-contract.md"
+  cat > "$FIXTURE_ROOT/NotesTakingAppiOSTests/FixtureTests.swift" <<'EOF'
+import Testing
+
+@Test func primaryAcceptance() {
+  #expect(true)
+}
+EOF
   printf '%s\n' '# Evaluator Rubric' > "$FIXTURE_ROOT/docs/product/2026-08-29-fixture/evaluator-rubric.md"
   printf '%s\n' '# Code Review' > "$FIXTURE_ROOT/docs/product/2026-08-29-fixture/code_review_fixture.md"
   printf '%s\n' '# Test Review' > "$FIXTURE_ROOT/docs/product/2026-08-29-fixture/test_review_fixture.md"

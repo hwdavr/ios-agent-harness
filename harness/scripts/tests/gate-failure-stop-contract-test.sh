@@ -24,5 +24,9 @@ rg -Fq 'stop the pipeline. Do not advance' "$WORKFLOW_DIR/harness-generator.md" 
   fail_test "generator workflow does not stop after failed setup"
 rg -Fq 'keep the feature non-passing and stop the pipeline' "$WORKFLOW_DIR/harness-fix.md" ||
   fail_test "fix workflow does not stop after failed verification"
+rg -Fq 'check-acceptance-test-traceability.sh' "$WORKFLOW_DIR/harness-generator.md" ||
+  fail_test "generator workflow does not require acceptance-test traceability"
+rg -Fq 'check-acceptance-test-traceability.sh' "$WORKFLOW_DIR/harness-evaluation.md" ||
+  fail_test "evaluation workflow does not require acceptance-test traceability"
 
 echo "PASS: failed generator and fix gates stop the pipeline."

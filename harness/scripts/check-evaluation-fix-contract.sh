@@ -5,6 +5,7 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="${HARNESS_PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 FEATURE_DIR="${1:-}"
 MODE="${2:---evaluation}"
@@ -88,15 +89,14 @@ validate_acceptance_evidence() {
   local feature_id ac tc
   while IFS=$'\t' read -r feature_id ac; do
     [ -n "$feature_id" ] || continue
-    if printf '%s' "$ac" | grep -Eq '^TC-[A-Za-z0-9-]+-VIS-[A-Za-z0-9-]+$'; then
+    if printf '%s' "$ac" | grep -Eq '^TC-[A-Za-z0-9-]+$'; then
       tc="$ac"
     else
-      # The first acceptance matrix stores AC in column 2 and Test ID in
-      # column 4 because each Markdown row starts and ends with a pipe.
-      # Aggregate evidence is not a substitute for that row.
+      # The acceptance matrix stores Test ID in column 2 and Covers AC in
+      # column 3. Aggregate evidence is not a substitute for that row.
       tc=$(awk -F'|' -v wanted="$ac" '
-        { left=$2; right=$4; gsub(/^[[:space:]]+|[[:space:]]+$/, "", left); gsub(/^[[:space:]]+|[[:space:]]+$/, "", right) }
-        left == wanted && right ~ /^TC-[A-Za-z0-9-]+$/ { print right; exit }
+        { test_id=$2; covered_ac=$3; gsub(/^[[:space:]]+|[[:space:]]+$/, "", test_id); gsub(/^[[:space:]]+|[[:space:]]+$/, "", covered_ac) }
+        covered_ac == wanted && test_id ~ /^TC-[A-Za-z0-9-]+$/ { print test_id; exit }
       ' "$CONTRACT")
     fi
     [ -n "$tc" ] || fail "$feature_id acceptance ID $ac has no Test ID in sprint-contract.md"
@@ -250,6 +250,7 @@ validate_fix_stage_summary() {
 all_slices_passing
 validate_evidence
 validate_acceptance_evidence
+HARNESS_PROJECT_ROOT="$PROJECT_ROOT" bash "$SCRIPT_DIR/check-acceptance-test-traceability.sh" "$DOCS_DIR" --evaluate
 
 if [ "$MODE" = "--evaluation" ]; then
   validate_review_score

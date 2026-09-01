@@ -29,6 +29,7 @@ When a feature is submitted for review, execute these steps in order:
 - Read `$FEATURE_DIR/sprint-contract.md` to see the agreed **Acceptance Criteria**, **Scope**, and **Exclusions**.
 - Read `$FEATURE_DIR/spec.md` to obtain the complete approved Rule Applicability matrix; independently compare every row with the submitted diff. A missing row, unsupported `Not applicable` outcome, or unapproved exception is a review failure.
 - Read `$FEATURE_DIR/feature_list.json` to verify the target feature definition and its current status.
+- Run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate`; a missing declared test method, scenario reference, suite-scoped command, or matching successful evidence is a review failure.
 - When `feature_list.json` declares a visual-verification owner, validate visual traceability with `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"`; a visual method without a sprint-contract row, successful evidence, non-empty screenshot, or reference-anchor proof is a review failure.
 - If the change affects UI, read `docs/product/design_system.md`, `$FEATURE_DIR/design.md`, and its visual assets. Treat unexplained deviations from the global design system as review findings.
 
@@ -91,7 +92,7 @@ After presenting the evaluation results, update the Harness Feature Tracker in `
 *   **If the overall score is less than `5.0 / 5` (not perfect)** → transition the feature status from `To be reviewed` → `To be fixed`. This routes the feature to the **harness-fix workflow** (`.agents/workflows/harness-fix.md`): the Generator resolves every finding in `$FEATURE_DIR/code_review_{feature_id}.md` and `$FEATURE_DIR/test_review_{feature_id}.md`, updates the per-finding status inside those reports, and then transitions to `To be human reviewed`.
 *   Update the date to today and add the evaluation verdict (`Accept` / `Revise` / `Block`) and overall score to the notes column.
 *   Run `bash harness/scripts/check-feature-lifecycle.sh` after the tracker update. Do not claim completion if it fails.
-*   Run `bash harness/scripts/check-evaluation-fix-contract.sh "$FEATURE_DIR" --evaluation`. This is a hard gate: it verifies that the eight category scores round to the declared arithmetic mean, failed hard-gate items cannot produce a perfect evaluation, every acceptance Test ID has successful evidence without contradictory failure state, and the tracker status matches the score-based route. A report or tracker transition that fails this contract is not an evaluation pass.
+*   Run `bash harness/scripts/check-evaluation-fix-contract.sh "$FEATURE_DIR" --evaluation`. This is a hard gate: it verifies that the eight category scores round to the declared arithmetic mean, every acceptance Test ID maps to a real declared test method and matching scenario evidence, failed hard-gate items cannot produce a perfect evaluation, every acceptance Test ID has successful evidence without contradictory failure state, and the tracker status matches the score-based route. A report or tracker transition that fails this contract is not an evaluation pass.
 
 ---
 

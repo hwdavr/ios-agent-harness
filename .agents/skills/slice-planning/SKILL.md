@@ -48,7 +48,7 @@ Decompose the high-level requirement into a detailed scope, acceptance criteria,
 
 The Spec Coverage Matrix is mandatory. It must include the source requirement ID, concise requirement text, primary user-story ID, acceptance-test ID, and handling. A requirement may map to multiple secondary tests, but it must have exactly one primary owner. Preserve the source requirement ID verbatim so the planning gate can verify coverage.
 
-For every acceptance criterion, define a uniquely identified acceptance test case in the contract. Each row must name the test layer, proposed test file and method, fixture/action, observable assertions, and exact Gradle command. The test must invoke the production entry point for the user story; an isolated helper/use-case test cannot be the sole proof of an end-to-end or user-visible criterion.
+For every acceptance criterion, define a uniquely identified acceptance test case in the contract. Each row must name the test layer, proposed test file and method, shared JSON scenario(s) or `N/A — no API`, fixture/action, observable assertions, and exact suite-scoped `xcodebuild test -only-testing:` command. The test must invoke the production entry point for the user story; an isolated helper/use-case test cannot be the sole proof of an end-to-end or user-visible criterion.
 
 Do not let one AC bundle multiple named outcomes — split a multi-outcome AC so each outcome has its own test. A fallback, error, boundary, or compatibility path promised by an FR needs its own AC and test, not a secondary assertion inside the happy-path test.
 
@@ -151,6 +151,7 @@ The user must confirm:
 - [ ] Verification steps are concrete, machine-executable shell commands (returning binary PASS/FAIL)
 - [ ] The sprint-contract is compiled with explicit acceptance criteria and a corresponding verification plan
 - [ ] Every AC has exactly one primary acceptance test case with an ID, test layer, test target, setup/action, observable assertions, and exact command
+- [ ] Every acceptance Test ID is listed by its owning slice and names one future Swift test method; API rows declare their shared JSON scenario path, while no-API rows explicitly say `N/A — no API`
 - [ ] Every named outcome in each FR (happy path, fallback, error, boundary, compatibility, graceful fallback) has its own AC and test — no FR is covered by a happy-path test alone when it promises more
 - [ ] Every cross-layer or user-visible AC has an integration or instrumented acceptance test that exercises the production entry point
 - [ ] Every sprint contract user story maps to exactly one feature list item (1:1, no orphans on either side)

@@ -27,6 +27,8 @@ trigger where applicable. Independently flag a test gap when the diff triggers a
 marked `Not applicable`, or when an exception lacks its cited user approval. Do not
 invent analytics or logging tests for a correctly non-applicable row.
 
+For a harness feature, run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate` before recording a passing review. The report must retain the acceptance Test ID beside the test file and method; a missing method, shared-scenario reference, or suite-scoped evidence command is `REVISION REQUIRED`.
+
 ### Coverage Review
 - [ ] Overall project ≥ 80% line coverage (`xccov`)
 - [ ] New ViewModel classes ≥ 90%

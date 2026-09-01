@@ -90,10 +90,11 @@ A finding is not considered resolved until its in-report status line exists and 
     1. Re-run, **one by one**, every verification command listed in `$FEATURE_DIR/sprint-contract.md` Acceptance Test Cases. If any command fails, record its command, exit status, and raw output; keep the feature non-passing and stop the pipeline.
     2. Re-run the global quality gates: `swiftlint`, and `xcodebuild test` with coverage (overall ≥ 80%; ≥ 90% for ViewModel & Use Case).
     3. Attach objective evidence (command + exit status) to each Test ID's `evidence` field in `$FEATURE_DIR/feature_list.json` only after the command succeeds. If any command fails, do not mark its evidence passing; keep the feature non-passing and stop.
-    4. Run `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` when visual verification is required.
-    5. Reconcile the in-report statuses with re-verification: any finding whose verification command still fails must read `Unresolved ⚠️` in the report (not `Fixed ✅`).
-    6. Reconcile all Rule Applicability rows again. A rule newly triggered by a fix must be recorded in the specification and both review reports before the feature can proceed.
-    7. Mark Fix-Stage 4 ✅ in `$FEATURE_DIR/summary_{feature_id}.md` detailing test counts, coverage percentages, and visual evidence.
+    4. Run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate`; it must prove every acceptance Test ID still maps to a real test method, declared scenario, suite-scoped command, and successful evidence.
+    5. Run `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` when visual verification is required.
+    6. Reconcile the in-report statuses with re-verification: any finding whose verification command still fails must read `Unresolved ⚠️` in the report (not `Fixed ✅`).
+    7. Reconcile all Rule Applicability rows again. A rule newly triggered by a fix must be recorded in the specification and both review reports before the feature can proceed.
+    8. Mark Fix-Stage 4 ✅ in `$FEATURE_DIR/summary_{feature_id}.md` detailing test counts, coverage percentages, and visual evidence.
 *   **Objective**: All acceptance-test commands and quality gates pass with evidence attached; report statuses are consistent with re-verification results.
 
 ### Fix-Stage 5 — Finalize & Exit

@@ -94,6 +94,12 @@ bash harness/scripts/check-coverage.sh "$(find Build/Logs/Test -maxdepth 1 -type
 
 Record every result number in the output report below. Do not summarize — copy actual pass/fail counts and coverage percentages verbatim from the tool output.
 
+For the harness workflow, after writing tests and before marking Testing complete, run:
+```bash
+bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --test "$FEATURE_ID"
+```
+The gate requires every selected acceptance Test ID to name a real test method and suite-scoped command. A shared scenario declared by that Test ID must be referenced from the named method.
+
 ---
 
 ## Output
@@ -115,6 +121,7 @@ Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active w
 - [ ] Shared JSON scenarios used — no inline mock response data in test files
 - [ ] UI tests pass (if added)
 - [ ] Every required Rule Applicability row has the planned verification evidence
+- [ ] Harness workflow: acceptance-test traceability gate passes for the selected slice
 
 **APPROVED →** Return to the active workflow file and proceed to the next stage defined there.
 
