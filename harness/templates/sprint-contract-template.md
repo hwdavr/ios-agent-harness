@@ -33,6 +33,38 @@ When the feature is platform-bound, link the workspace artifact `platform-capabi
 
 Platform-bound features MUST declare at least one real instrumented boundary test. A fake adapter, fake recognizer, iOS simulator-only intent test, or manually emitted callback is supplemental evidence and cannot satisfy the platform gate by itself. The test must exercise the shipped Android boundary and record a successful `xcodebuild test (UI Tests)` result in `feature_list.json` evidence.
 
+## Rule Applicability Contract *(required)*
+
+Copy the approved nine-row matrix from the requirement artifact. The decision must be `Required`, `Not applicable — <feature-specific reason>`, or `Exception — approved by <user/date>`. Every `Required` row must map to implementation and verification evidence before a slice can pass.
+
+| Rule ID | Rule document | Decision | Slice evidence |
+|---|---|---|---|
+| ARCH | `ios-architecture.md` | <decision> | |
+| IMPL | `implementation-rules.md` | <decision> | |
+| TEST | `testing-strategy.md` | <decision> | |
+| SUI | `swiftui-rules.md` | <decision> | |
+| L10N | `localization-rules.md` | <decision> | |
+| NAV | `navigation-rules.md` | <decision> | |
+| API | `api-contract-rules.md` | <decision> | |
+| OBS | `observability.md` | <decision> | |
+| ANL | `analytics-rules.md` | <decision> | |
+
+---
+
+## Generated Context Index *(execution aid — no new authority)*
+
+At the start of each complex-feature slice, run:
+
+```bash
+bash harness/scripts/print-context-index.sh --feature-dir "$FEATURE_DIR" --slice "$FEATURE_ID"
+```
+
+The output is derived from this approved contract and `feature_list.json`. It reports
+the selected slice, source hashes, rule IDs that are `Required` or exceptions, and
+execution flags. It is a disposable lookup for selecting context, never an approval
+artifact. Do not copy its contents, this matrix, or acceptance criteria into the slice
+summary; cite these authoritative source paths and hashes instead.
+
 ---
 
 ## Spec Coverage Matrix *(required)*

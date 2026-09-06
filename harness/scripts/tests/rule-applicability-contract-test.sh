@@ -54,6 +54,8 @@ for required_file in \
     "$PROJECT_ROOT/.agents/skills/ios-code-review/SKILL.md" \
     "$PROJECT_ROOT/.agents/skills/ios-test-review/SKILL.md" \
     "$PROJECT_ROOT/.agents/skills/code-review-and-quality/SKILL.md" \
+    "$PROJECT_ROOT/harness/scripts/print-context-index.sh" \
+    "$PROJECT_ROOT/harness/scripts/tests/context-index-contract-test.sh" \
     "$PROJECT_ROOT/.agents/workflows/create-ui-and-verify.md" \
     "$PROJECT_ROOT/.agents/workflows/harness-generator.md" \
     "$PROJECT_ROOT/.agents/workflows/harness-fix.md" \
@@ -81,12 +83,17 @@ assert_contains "$PROJECT_ROOT/.agents/skills/ios-ui-layer/SKILL.md" "neither is
 assert_contains "$PROJECT_ROOT/.agents/skills/android-to-ios-ui-migration/SKILL.md" "Cover every mapped analytics trigger"
 assert_contains "$PROJECT_ROOT/.agents/skills/android-to-ios-ui-migration/SKILL.md" "SwiftUI handoff must explicitly verify"
 assert_contains "$PROJECT_ROOT/.agents/skills/ios-testing/SKILL.md" "Every required Rule Applicability row"
-assert_contains "$PROJECT_ROOT/.agents/skills/feature-orient/SKILL.md" "complete Rule Applicability matrix"
+assert_contains "$PROJECT_ROOT/.agents/skills/feature-orient/SKILL.md" "print-context-index.sh"
 assert_contains "$PROJECT_ROOT/.agents/skills/code-quality-fix/SKILL.md" "Rule Applicability matrix"
 assert_contains "$PROJECT_ROOT/.agents/skills/ios-code-quality-checks/SKILL.md" "Rule Applicability Harness Contract"
 assert_contains "$PROJECT_ROOT/.agents/skills/ios-code-review/SKILL.md" "Rule Applicability Reconciliation"
 assert_contains "$PROJECT_ROOT/.agents/skills/ios-test-review/SKILL.md" "Rule Applicability Test Reconciliation"
 assert_contains "$PROJECT_ROOT/.agents/skills/code-review-and-quality/SKILL.md" "Reconcile the Approved Rule Contract"
+assert_contains "$PROJECT_ROOT/.agents/skills/ios-implementation/SKILL.md" "only triggered context"
+assert_contains "$PROJECT_ROOT/harness/templates/sprint-contract-template.md" "Generated Context Index"
+assert_contains "$PROJECT_ROOT/harness/templates/summary-template.md" "Context Provenance"
+assert_contains "$PROJECT_ROOT/harness/templates/summary-template.md" "Product Document Update"
+assert_contains "$PROJECT_ROOT/harness/templates/summary-template.md" "Ad-hoc Bug Fix"
 assert_contains "$PROJECT_ROOT/.agents/workflows/create-ui-and-verify.md" "approved Rule Applicability matrix"
 assert_contains "$PROJECT_ROOT/.agents/workflows/harness-generator.md" "approved Rule Applicability decisions"
 assert_contains "$PROJECT_ROOT/.agents/workflows/harness-fix.md" "Reconcile all Rule Applicability rows again"
@@ -97,6 +104,7 @@ assert_contains "$PROJECT_ROOT/harness/templates/test-review-template.md" "Rule 
 assert_contains "$PROJECT_ROOT/AGENTS.md" "implementation-rules.md"
 assert_contains "$PROJECT_ROOT/AGENTS.md" "rule-applicability-template.md"
 assert_contains "$PROJECT_ROOT/AGENTS.md" "feature-specific evidence"
+assert_contains "$PROJECT_ROOT/AGENTS.md" "print-context-index.sh"
 for conditional_rule in swiftui-rules.md localization-rules.md navigation-rules.md api-contract-rules.md observability.md analytics-rules.md; do
     assert_contains "$PROJECT_ROOT/AGENTS.md" "$conditional_rule"
 done

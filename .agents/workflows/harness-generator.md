@@ -11,6 +11,10 @@ Use this workflow when you are acting as the **Generator** (Implementer) agent. 
 
 This workflow starts only after the user approves `feature_list.json` and `sprint-contract.md` in one dated `docs/product/<YYYY-MM-DD>-<feature-short-name>/` workspace created by `harness-planning`. That approval authorizes implementation of the selected slice. Do not generate or request approval for a duplicate implementation plan in this workflow; the active feature description, sprint acceptance criteria, design, and verification commands are the implementation plan of record.
 
+Before implementation begins, preserve the approved Rule Applicability decisions from
+the feature specification in the slice evidence and carry each Required row into its
+implementation and verification records.
+
 ---
 
 ## Gate Semantics
@@ -28,7 +32,7 @@ Every required stage gate is a hard stop. A gate may advance only after its comm
 ### Stage 1 — Orient
 Before making any changes or planning code, gather complete session and git context. Select the next task to implement.
 *   **Action**: **INVOKE** the `feature-orient` skill via the Skill tool (name: `feature-orient`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
-*   **Objective**: Run `bash harness/scripts/check-feature-lifecycle.sh`, select the approved `docs/product/` workspace from the Harness Feature Tracker by status, reconstruct the prior session, establish the per-slice source of truth (`$FEATURE_DIR/summary_{feature_id}.md`), record the approved Rule Applicability decisions from `$FEATURE_DIR/spec.md`, and select one task from `$FEATURE_DIR/feature_list.json`. If the slice affects UI, read `docs/product/design_system.md`, the approved feature `design.md`, and its mockups before implementation.
+*   **Objective**: Run `bash harness/scripts/check-feature-lifecycle.sh`, select the approved `docs/product/` workspace from the Harness Feature Tracker by status, run `bash harness/scripts/print-context-index.sh --feature-dir "$FEATURE_DIR" --slice "$FEATURE_ID"`, and establish the sprint contract plus `feature_list.json` as the only requirement/execution authorities. The slice summary records their paths and hashes as Context Provenance; it does not duplicate scope, acceptance criteria, or the Rule Applicability matrix. Read and validate `$FEATURE_DIR/platform-capability-matrix.md` when the feature is platform-bound (`platform_validation.required: true`). If the index reports `affects_ui: true`, read `docs/product/design_system.md`, the approved feature `design.md`, and its mockups before implementation.
 
 ### Stage 2 — Setup
 Verify target simulator runtime environment readiness.
@@ -58,7 +62,7 @@ Build out the selected feature across the necessary layers.
 *   **Action**:
     1. **INVOKE** the `ios-implementation` skill via the Skill tool (name: `ios-implementation`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
     2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Implement** stage status to completed (✅) with list of created/modified files.
-*   **Objective**: All layers successfully implemented, `xcodebuild build` compiles cleanly, UI changes conform to `docs/product/design_system.md` plus approved feature exceptions, and progress is logged in the summary.
+*   **Objective**: Only the layers and conditional rules selected by the approved slice are implemented, `xcodebuild build` compiles cleanly, UI changes conform to `docs/product/design_system.md` plus approved feature exceptions, and progress is logged in the summary.
 
 ### Stage 5 — Test
 Verify the correctness of the implemented behavior visually and logically.
@@ -83,8 +87,8 @@ Verify all acceptance criteria, update project state, commit, and prepare for ha
 >
 > **Gate Check Policy**:
 > 1. **Identify Gate Criteria**: Read the selected user story in `$FEATURE_DIR/sprint-contract.md`. Every `Acceptance Test Cases` command is a mandatory gate. The active feature's `"verification"` field must reference the same Test IDs and commands.
-> 2. **Execute Each Command**: Run every verification command (e.g., `xcodebuild test` or specific test command). Process them **one by one**.
-> 3. **On Failure**: If any verification command fails (exit code `non-zero`), record the command, exit status, and raw failure output; keep the feature `in_progress` or mark it `blocked`, and stop the pipeline. Do not continue to another verification command or stage.
+> 2. **Validate fresh evidence**: Reuse the successful Test-stage command evidence when the production sources, build/test configuration, declared verification command, and runtime target are unchanged. Re-run only the affected command when one of those inputs changed; do not repeat a green acceptance suite solely to copy its output into a later stage.
+> 3. **On Failure — bounded diagnosis and retry**: If any verification command fails (exit code `non-zero`), keep the stage non-passing and diagnose, fix, and re-run that specific command up to three times. If it remains non-zero, record the gate as `⚠️ Blocked` or non-passing and stop before the next verification item.
 > 4. **Validate & Attach Evidence**:
 >    *   The status can **ONLY** transition to `passing` if **every** acceptance-test command eventually executes successfully (exit code `0`) — either on the first run or after resolution.
 >    *   You **MUST** attach objective evidence for every Test ID, including the command, exit status, fix attempts (if any), and final result, inside the `"evidence"` field of the active feature object.
@@ -107,7 +111,7 @@ Verify all acceptance criteria, update project state, commit, and prepare for ha
         ```bash
         git commit -m "feat(<area>): <short description of implemented feature>"
         ```
-    7. Review the **[`clean-state-checklist-template.md`](../../harness/templates/clean-state-checklist-template.md)** — architecture & standards (§2), observability (§5), and cleanliness (§6) items are code-review checks. Build, test, and quality checks (§1, §3, §4) are already covered by the verification gate above — reference that evidence, do not re-run commands. If any review item fails, record it and stop the pipeline.
+    7. Review the **[`clean-state-checklist-template.md`](../../harness/templates/clean-state-checklist-template.md)** — architecture & standards (§2), observability (§5), and cleanliness (§6) items are code-review checks. Reference the fresh Test and Code Quality evidence for build/test/lint checks unless a relevant input changed after that stage; do not re-run an unchanged green verification command solely for Clean Exit. If any item fails, keep clean exit non-passing and diagnose, fix, and re-run that item up to three times. After processing all items, all checks **SHOULD** pass; any remaining `⚠️ unresolved` items must be documented in the session handoff and keep the pipeline stopped.
     8. Create or update **`$FEATURE_DIR/session-handoff.md`** by strictly following **[`session-handoff-template.md`](../../harness/templates/session-handoff-template.md)**. Detail what is working, what changed, unverified paths, risks, unresolved gate items, and next steps.
     9. **Never move the feature directory.** Its `docs/product/` path is stable; only tracker and per-slice statuses change.
     10. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Finalize & Exit** stage status to completed (✅), transition the selected slice summary to Complete, and document key outcomes, open items, and handoff decisions.

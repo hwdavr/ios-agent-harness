@@ -15,21 +15,21 @@ The article principle: write the failing test *before* touching the application 
 
 ## Load
 
-**Always load:**
-- `skills/ios-unit-test/SKILL.md`
-- `skills/ios-ui-test/SKILL.md`
-- `skills/shared-json-scenarios/SKILL.md`
+**At a new session, load L1:**
 - `rules/testing-strategy.md`
-- `harness/templates/rule-applicability-template.md`
+
+**Then load only the selected test-layer guidance:**
+- `skills/ios-unit-test/SKILL.md` for unit or integration coverage
+- `skills/ios-ui-test/SKILL.md` for UI, navigation, visual, or platform-bound coverage
+- `skills/shared-json-scenarios/SKILL.md` only when an API endpoint or shared fixture is in scope
 
 **Adhoc workflows** (`feature-delivery`, `bug-fixing`):
 - `docs/current/test_plan_v<N>.md` — test cases, layers, and coverage targets approved by user
 - `docs/current/spec_v<N>.md` — approved Rule Applicability decisions and triggers
 
 **Harness workflow** (`harness-generator`):
-- `$FEATURE_DIR/sprint-contract.md` — verification plan mapped to each acceptance criterion
-- `$FEATURE_DIR/spec.md` — approved Rule Applicability decisions and triggers
-- `$FEATURE_DIR/summary_{feature_id}.md` — active feature context and stage progress
+- Run `bash harness/scripts/print-context-index.sh --feature-dir "$FEATURE_DIR" --slice "$FEATURE_ID"`.
+- Read only the selected acceptance-test rows and matching `feature_list.json` entry. Read the summary only for prior evidence, blockers, and handoff decisions.
 
 ---
 
@@ -92,7 +92,7 @@ xcrun xccov view --report Build/Logs/Test/*.xcresult
 bash harness/scripts/check-coverage.sh "$(find Build/Logs/Test -maxdepth 1 -type d -name '*.xcresult' -print -quit)" --exclude-target SwiftMath
 ```
 
-Record every result number in the output report below. Do not summarize — copy actual pass/fail counts and coverage percentages verbatim from the tool output.
+Record the exact command, exit code, test count, and coverage percentage in the stage evidence. Keep verbose tool output in a referenced log or generated report; do not copy it into the summary.
 
 For the harness workflow, after writing tests and before marking Testing complete, run:
 ```bash
@@ -117,8 +117,8 @@ Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active w
 - [ ] `xcodebuild test` — exit code 0
 - [ ] Coverage gate passes: overall project-owned coverage ≥ 80%, new classes ≥ 90% (via `harness/scripts/check-coverage.sh` and `--min-file` thresholds)
 - [ ] Total test count `> 0` (not `0/0` — this is a gate failure)
-- [ ] At least one integration test per new or changed API endpoint
-- [ ] Shared JSON scenarios used — no inline mock response data in test files
+- [ ] At least one integration test per new or changed API endpoint (when API is in scope)
+- [ ] Shared JSON scenarios used — no inline mock response data in test files (when API is in scope)
 - [ ] UI tests pass (if added)
 - [ ] Every required Rule Applicability row has the planned verification evidence
 - [ ] Harness workflow: acceptance-test traceability gate passes for the selected slice

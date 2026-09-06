@@ -13,12 +13,11 @@ Run all static check suites, lint rules, and custom compliance rules. Resolve an
 
 ## Load
 
-- `skills/ios-code-quality-checks/SKILL.md`
-- `skills/karpathy-guidelines/SKILL.md`
-- `rules/ios-architecture.md`
-- `rules/implementation-rules.md`
-- `rules/testing-strategy.md`
-- `harness/templates/rule-applicability-template.md`
+Load `skills/ios-code-quality-checks/SKILL.md`, `skills/karpathy-guidelines/SKILL.md`,
+and L1 once per session. Read the approved Rule Applicability matrix from the active
+specification or generated complex-slice context index, then load a conditional rule
+only when its decision is `Required` or an approved exception. Do not re-read the
+matrix from a summary file.
 
 ---
 
@@ -29,15 +28,16 @@ Read the active specification's Rule Applicability matrix first. Run the baselin
 below and the checks needed for every `Required` row; retain explicit non-applicable
 and exception rationales. Do not add analytics or logs merely to change a decision.
 
-Execute the following set of checks to verify complete quality baseline correctness:
+Execute the following baseline checks:
 ```bash
 xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build
 swiftlint
-bash harness/scripts/check-swiftui-rules.sh
-bash harness/scripts/check-localization-rules.sh
 bash harness/scripts/check-architecture-rules.sh
-bash harness/scripts/check-navigation-rules.sh
 ```
+
+Run `check-swiftui-rules.sh`, `check-localization-rules.sh`, and
+`check-navigation-rules.sh` only when SUI, L10N, and NAV respectively are `Required`
+or excepted. Record non-applicable decisions with the canonical artifact reference.
 
 ### 2. Auto-Fix Formatting Issues
 To resolve SwiftLint-correctable formatting issues automatically, run:
@@ -67,9 +67,9 @@ Clean git status with all formatting and structural violations fixed.
 
 **This stage is complete when all of the following are true — all must be mechanically verifiable:**
 - [ ] `swiftlint` — exit code 0
-- [ ] `bash harness/scripts/check-swiftui-rules.sh` — exit code 0 when SUI is required
-- [ ] `bash harness/scripts/check-localization-rules.sh` — exit code 0 when L10N is required
-- [ ] `bash harness/scripts/check-navigation-rules.sh` — exit code 0 when NAV is required
+- [ ] `bash harness/scripts/check-swiftui-rules.sh` — exit code 0 when SUI is required or excepted
+- [ ] `bash harness/scripts/check-localization-rules.sh` — exit code 0 when L10N is required or excepted
+- [ ] `bash harness/scripts/check-navigation-rules.sh` — exit code 0 when NAV is required or excepted
 - [ ] `bash harness/scripts/check-architecture-rules.sh` — exit code 0
 - [ ] Every Rule Applicability decision has required check/review evidence or its approved rationale
 - [ ] `summary_{feature_id}.md` (or `summary_v<N>.md`) updated and marked complete
