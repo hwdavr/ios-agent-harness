@@ -65,7 +65,8 @@ Verify the correctness of the implemented behavior visually and logically.
 *   **Action**:
     1. **INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism. Implement every `Acceptance Test Cases` row in the selected user story. The primary acceptance test must exercise the production entry point; an isolated helper or use-case test cannot substitute for user-visible or cross-layer behavior. Verify through the actual UI/API and meet code coverage targets (overall project **≥ 80%**, ViewModel & Use Case **≥ 90%**).
     2. Run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --test "$FEATURE_ID"`. It must confirm that every acceptance Test ID for the selected slice names a real Swift test method, a suite-scoped `-only-testing` command, and each declared shared JSON scenario from that method. If it fails, record Test as `⚠️ Blocked` and stop.
-    3. If all required tests, the traceability gate, and the mechanical coverage gate (`bash harness/scripts/check-coverage.sh ... --exclude-target SwiftMath`, plus `--min-file <path>=90` for each new ViewModel or domain use case) succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Test** stage status as completed (✅), detailing coverage percentages and passed test counts. If any required check fails, record Test as `⚠️ Blocked` with the command and raw output and stop.
+    3. Run `bash harness/scripts/check-journey-registry.sh --run-all` to verify that the current implementation does not regress any existing critical journey. A failure blocks the pipeline.
+    4. If all required tests, the traceability gate, and the mechanical coverage gate (`bash harness/scripts/check-coverage.sh ... --exclude-target SwiftMath`, plus `--min-file <path>=90` for each new ViewModel or domain use case) succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Test** stage status as completed (✅), detailing coverage percentages and passed test counts. If any required check fails, record Test as `⚠️ Blocked` with the command and raw output and stop.
 *   **Objective**: All local tests pass cleanly, coverage targets are fully met, and verification evidence is documented in the summary.
 
 ### Stage 6 — Code Quality Fix
@@ -91,8 +92,8 @@ Verify all acceptance criteria, update project state, commit, and prepare for ha
 >    *   A visual-verification owner cannot transition to `passing` unless `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` exits `0`. This requires a non-empty screenshot and a `visual_evidence/reference-anchor-verification.md` row for every visual Test ID; the row must connect the approved reference to a visual bounds `accessibilityIdentifier`, a runtime assertion, and a concrete measured relationship. The validator also requires each visual row and command to target a dedicated `*VisualFlowTests.swift` method with method-scoped `-only-testing`, so functional tests cannot overwrite visual evidence.
 
 *   **Action**:
-    1. Execute the verification gate (see Gate Check Policy above). Attach evidence to `feature_list.json`, then run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate "$FEATURE_ID". A slice cannot transition to `passing` unless the recorded evidence command is scoped to every declared acceptance test suite.
-    2. Once verification passes and evidence is attached, update `$FEATURE_DIR/feature_list.json` and `$FEATURE_DIR/progress.md`.
+    1. Execute the verification gate (see Gate Check Policy above). Attach evidence to `feature_list.json`, then run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate "$FEATURE_ID"`. A slice cannot transition to `passing` unless the recorded evidence command is scoped to every declared acceptance test suite.
+    2. Once verification passes and evidence is attached, update `$FEATURE_DIR/feature_list.json`.
     3. Update `docs/product/product.md` directly:
         *   Update the **Product Portfolio Summary** to reflect the delivered slice.
         *   Add the feature to **Current Product Capabilities** with its delivered behavior and notable implementation notes.
@@ -100,14 +101,16 @@ Verify all acceptance criteria, update project state, commit, and prepare for ha
         *   Update the `*Document last updated*` date at the bottom of the file.
         *   If every feature in `$FEATURE_DIR/feature_list.json` is now `passing`, update the Harness Feature Tracker status to `To be reviewed` in place and update its date/notes (do not move or rename the workspace). **NEVER transition directly to `To be human reviewed`** — only the Evaluator agent (via `harness-evaluation`) is authorized to make that transition after scoring. Otherwise, keep the Harness Feature Tracker `In Progress` while slices remain.
         *   Run `bash harness/scripts/check-feature-lifecycle.sh` after the tracker update. Do not claim completion or commit if it fails.
-    4. Commit only the **source code, test changes, and product documentation** for the implemented feature:
+    4. If the shipped slice has `production_journey.required: true`, register the journey in `docs/product/journey-registry.yaml` using the sprint-contract values. Run `bash harness/scripts/check-journey-registry.sh --validate` to confirm the entry is well-formed.
+    5. Populate the `## Observability & Execution Metrics` section directly in `$FEATURE_DIR/summary_{feature_id}.md` (following [`harness/templates/summary-template.md`](../../harness/templates/summary-template.md), recording model name, duration, files modified, commands executed, retries, and the embedded `json:metrics` block). Run `bash harness/scripts/check-harness-metrics.sh --validate "$FEATURE_DIR/summary_{feature_id}.md"` to verify metrics integrity.
+    6. Commit only the **source code, test changes, and product documentation** for the implemented feature:
         ```bash
         git commit -m "feat(<area>): <short description of implemented feature>"
         ```
-    5. Review the **[`clean-state-checklist-template.md`](../../harness/templates/clean-state-checklist-template.md)** — architecture & standards (§2), observability (§5), and cleanliness (§6) items are code-review checks. Build, test, and quality checks (§1, §3, §4) are already covered by the verification gate above — reference that evidence, do not re-run commands. If any review item fails, record it and stop the pipeline.
-    6. Create or update **`$FEATURE_DIR/session-handoff.md`** by strictly following **[`session-handoff-template.md`](../../harness/templates/session-handoff-template.md)**. Detail what is working, what changed, unverified paths, risks, unresolved gate items, and next steps.
-    7. **Never move the feature directory.** Its `docs/product/` path is stable; only tracker and per-slice statuses change.
-    8. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Finalize & Exit** stage status to completed (✅), transition the selected slice summary to Complete, and document key outcomes, open items, and handoff decisions.
+    7. Review the **[`clean-state-checklist-template.md`](../../harness/templates/clean-state-checklist-template.md)** — architecture & standards (§2), observability (§5), and cleanliness (§6) items are code-review checks. Build, test, and quality checks (§1, §3, §4) are already covered by the verification gate above — reference that evidence, do not re-run commands. If any review item fails, record it and stop the pipeline.
+    8. Create or update **`$FEATURE_DIR/session-handoff.md`** by strictly following **[`session-handoff-template.md`](../../harness/templates/session-handoff-template.md)**. Detail what is working, what changed, unverified paths, risks, unresolved gate items, and next steps.
+    9. **Never move the feature directory.** Its `docs/product/` path is stable; only tracker and per-slice statuses change.
+    10. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Finalize & Exit** stage status to completed (✅), transition the selected slice summary to Complete, and document key outcomes, open items, and handoff decisions.
 *   **Objective**: Ensure all state updates are backed by mechanical, verifiable evidence. Leave the repository in a completely green, stable, and self-documenting state that a fresh session can immediately pick up and resume.
 
 ### Stage 8 — Install App To Simulator
