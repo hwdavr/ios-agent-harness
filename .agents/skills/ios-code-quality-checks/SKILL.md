@@ -61,6 +61,20 @@ bash harness/scripts/check-test-assertions-quality.sh
 ```
 Ensures no envelope-only assertions.
 
+### 7a. Full Source Rules Bundle
+```bash
+bash harness/scripts/check-full-source-rules.sh
+```
+The full-source bundle passes `--all` to the architecture, SwiftUI, and
+localization AST checkers, scans test roots for assertion quality, runs
+navigation checks, and aggregates every checker result. A non-zero result is a
+hard failure, including for pre-existing violations.
+
+On Windows (using PowerShell or Command Prompt), run the native script launcher:
+```powershell
+harness\scripts\check-full-source-rules.cmd
+```
+
 ### 8. No Dummy Code
 ```bash
 grep -rn "fatalError.*TODO\|#warning.*stub\|// dummy\|// placeholder\|// stub" NotesTakingAppiOS/ sharedContracts/

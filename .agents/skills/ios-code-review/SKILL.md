@@ -26,7 +26,29 @@ Conduct structured code review of iOS changes: architecture, correctness, SwiftU
 
 ## Execute
 
-### Rule Applicability Reconciliation
+### 1. Build and Static Quality Checks
+
+Run all checks and record results. The repository-wide source-rule bundle is
+mandatory even when the reviewed diff is small:
+```bash
+xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build
+swiftlint
+bash harness/scripts/check-full-source-rules.sh
+```
+
+`check-full-source-rules.sh` passes `--all` to the architecture, SwiftUI, and
+localization AST checkers, scans test roots for assertion quality, and runs
+navigation checks, then runs the AI/WebView security evaluator and its contract
+test. It executes every checker and aggregates failures; record its complete
+output and treat any non-zero result as a review failure, including
+pre-existing findings.
+
+On Windows (using PowerShell or Command Prompt), run the native script launcher:
+```powershell
+harness\scripts\check-full-source-rules.cmd
+```
+
+### 2. Rule Applicability Reconciliation
 
 1. Read the approved matrix from the active specification and implementation plan.
 2. Inspect the diff independently for a trigger for each of ARCH, IMPL, TEST, SUI,

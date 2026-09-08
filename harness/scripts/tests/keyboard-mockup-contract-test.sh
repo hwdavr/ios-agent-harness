@@ -36,6 +36,16 @@ write_design() {
   fi
 }
 
+write_valid_spec() {
+  local target="$1"
+  printf '%s\n' '# Spec' '' '## Screen States' '' '## Rule Applicability' '' \
+    '| Rule ID | Rule document | Default | Decision for this change | Trigger / rationale | Planned evidence |' \
+    '|---|---|---|---|---|---|' > "$target"
+  for rule_id in ARCH IMPL TEST SUI L10N NAV API OBS ANL; do
+    printf '| %s | rule.md | Always | Required | contract test | shell evidence |\n' "$rule_id" >> "$target"
+  done
+}
+
 expect_failure() {
   local expected="$1"
   local feature_dir="$2"
@@ -72,7 +82,7 @@ write_design "$valid" '- Keyboard-visible mockup: `design/mockup_picker_keyboard
 
 stage_valid="$fixture_root/stage-valid"
 write_design "$stage_valid" '- Keyboard-visible mockup: `design/mockup_picker_keyboard.png`' 'Keyboard-visible state: the sheet stays open and the search results remain visible while typing.'
-printf '%s\n' '# Spec' '' '## Screen States' > "$stage_valid/spec.md"
+write_valid_spec "$stage_valid/spec.md"
 printf '%s\n' 'Project design system: `docs/product/design_system.md`' >> "$stage_valid/design.md"
 (cd "$REPO_ROOT" && bash "$STAGE_GATE" harness-planning feature-specification "$stage_valid")
 
@@ -106,7 +116,7 @@ expect_failure "requires a distinct keyboard-visible mockup asset" "$missing_key
 
 stage_missing_keyboard_asset="$fixture_root/stage-missing-keyboard-asset"
 write_design "$stage_missing_keyboard_asset" '' 'Keyboard-visible state: the search results remain visible while typing.'
-printf '%s\n' '# Spec' '' '## Screen States' > "$stage_missing_keyboard_asset/spec.md"
+write_valid_spec "$stage_missing_keyboard_asset/spec.md"
 printf '%s\n' 'Project design system: `docs/product/design_system.md`' >> "$stage_missing_keyboard_asset/design.md"
 expect_stage_failure "requires a distinct keyboard-visible mockup asset" "$stage_missing_keyboard_asset"
 

@@ -47,6 +47,15 @@ When a feature is submitted for review, execute these steps in order:
 ### Stage 3: Code Review
 **INVOKE** the `ios-code-review` skill via the Skill tool (name: `ios-code-review`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism. Perform static analysis and identify logic/architectural flaws. Do not stop after this stage — proceed immediately to Stage 4.
 
+The skill MUST run the repository-wide source-rule bundle:
+
+    bash harness/scripts/check-full-source-rules.sh
+
+This command forces `--all` scans for architecture, SwiftUI, and localization,
+checks all test sources for assertion quality, and runs navigation checks. It runs
+every checker and aggregates failures; record its complete output and treat any
+non-zero result as a review failure, including pre-existing findings.
+
 **Output**:
 - Code review report: `$FEATURE_DIR/code_review_{feature_id}.md`
 - The report includes the Rule Applicability Reconciliation table.

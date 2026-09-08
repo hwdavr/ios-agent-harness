@@ -35,10 +35,10 @@ Checklist for reviewing any code change before it is considered complete.
 - [ ] Platform capability matrix exists and covers minimum, target, and important API boundaries
 - [ ] Unsupported runtime/device/model/locale/permission conditions fail loudly; no skipped environment is recorded as pass
 - [ ] Platform-bound behavior has a real instrumented boundary test; fake recognizers and run-only intent tests are supplemental only
-- [ ] `koverLog` coverage ≥ 80% overall, ≥ 90% for new classes
-- [ ] All tests pass: `./gradlew xcodebuild test`
-- [ ] Declared offline assets (`file:///android_asset/`) exist on disk — run `bash harness/scripts/check-declared-assets.sh`
-- [ ] Rendering/generation tests assert semantic content (node labels, shapes, connectors), not just envelope tags (`<svg>`, `<html>`) — run `bash harness/scripts/check-test-assertions-quality.sh`
+- [ ] Code coverage ≥ 80% overall, ≥ 90% for new classes
+- [ ] All tests pass: `xcodebuild test`
+- [ ] Full-source rules bundle passes — run `bash harness/scripts/check-full-source-rules.sh` (or `harness\scripts\check-full-source-rules.cmd` on Windows); this includes the AI/WebView security evaluator and contract test
+- [ ] Rendering/generation tests assert semantic content (node labels, shapes, connectors), not just envelope tags (`<svg>`, `<html>`) — confirm the test-assertion result from the full-source bundle or run `bash harness/scripts/check-test-assertions-quality.sh` for diagnosis
 
 ## Test Code Quality
 

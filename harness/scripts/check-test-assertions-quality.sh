@@ -2,7 +2,7 @@
 # Validates that test files asserting rendered output (SVG, HTML, text
 # generation) contain semantic content assertions, not just envelope tags.
 #
-# Usage: bash harness/scripts/check-test-assertions-quality.sh [test-directory]
+# Usage: bash harness/scripts/check-test-assertions-quality.sh [--project-root <path>] [test-directory]
 #
 # Scans Swift test files that assert SVG/HTML output for envelope-only
 # patterns (e.g. contains("<svg"), contains("</svg>")). If a test file
@@ -14,14 +14,49 @@
 
 set -e
 
-TEST_DIR="${1:-NotesTakingAppiOSTests}"
+PROJECT_ROOT=""
+TEST_DIR=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --project-root)
+      PROJECT_ROOT="$2"
+      shift 2
+      ;;
+    -*)
+      shift
+      ;;
+    *)
+      TEST_DIR="$1"
+      shift
+      ;;
+  esac
+done
+
+if [ -z "$TEST_DIR" ]; then
+  if [ -n "$PROJECT_ROOT" ]; then
+    TEST_DIR="$PROJECT_ROOT/NotesTakingAppiOSTests"
+  else
+    TEST_DIR="NotesTakingAppiOSTests"
+  fi
+fi
 
 fail() {
   echo "FAIL: $1" >&2
   exit 1
 }
 
-[ -d "$TEST_DIR" ] || fail "test directory $TEST_DIR does not exist"
+if [ ! -d "$TEST_DIR" ]; then
+  if [ -n "$PROJECT_ROOT" ]; then
+    if [ -d "$PROJECT_ROOT" ]; then
+      TEST_DIR="$PROJECT_ROOT"
+    else
+      fail "project root $PROJECT_ROOT does not exist"
+    fi
+  else
+    fail "test directory $TEST_DIR does not exist"
+  fi
+fi
 
 VIOLATIONS_FILE="${TMPDIR:-/tmp}/.test-assertions-violations.$$"
 rm -f "$VIOLATIONS_FILE"

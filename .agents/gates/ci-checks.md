@@ -70,6 +70,28 @@ bash harness/scripts/check-swiftui-rules.sh
 - ViewModel or repository calls inside stateless `Content` Views
 - Unstable `accessibilityIdentifier` values (string interpolation)
 
+### 7a. Full Source Rules Bundle
+```bash
+bash harness/scripts/check-full-source-rules.sh
+```
+Windows:
+```powershell
+harness\scripts\check-full-source-rules.cmd
+```
+**Must pass.** This is the required repository-wide source-rule gate used by
+generator, evaluation, fix, and CI flows. It passes `--all` to the architecture,
+SwiftUI, and localization AST checkers, scans test roots for assertion quality,
+runs navigation checks, executes every checker after earlier failures, and returns
+non-zero if any checker reports a violation. Individual checker commands are useful
+for diagnosis but cannot replace this bundle as evidence.
+
+The bundle also runs the AI/WebView security evaluator and its negative-case
+contract test. These checks are mandatory in every flow that invokes the
+full-source bundle; no separate workflow invocation is required. The evaluator
+rejects unsafe cleartext, WebView, Mermaid, AI-input logging, and untrusted-output
+sink patterns, while the contract test proves unsafe fixtures fail and reports do
+not leak fixture content.
+
 ### 8. Localization Check
 ```bash
 bash harness/scripts/check-localization-rules.sh
@@ -146,6 +168,21 @@ bash harness/scripts/tests/ast-rule-checker-contract-test.sh
 package, or its fixtures changes. This resolves the pinned SwiftSyntax package,
 runs visitor unit tests, and verifies valid, invalid, multiline, and
 comment/string false-positive fixtures through the public shell wrappers.
+
+### 18a. Full Source Rules Bundle Contract
+```bash
+bash harness/scripts/tests/full-source-rules-contract-test.sh
+```
+**Must pass.** Proves the bundle forces full-source scans, runs every checker even
+when an earlier checker fails, and fails on an untouched source violation.
+
+### 18b. Role-Profile Alignment Contract
+```bash
+bash harness/scripts/tests/role-profile-contract-test.sh
+```
+**Must pass** when role profiles, complex-feature workflows, or named skills change.
+It rejects stale `docs/current` paths, obsolete task-selection instructions, invalid
+template paths, and unavailable evaluator skill names in `.agents/agents/`.
 
 ---
 

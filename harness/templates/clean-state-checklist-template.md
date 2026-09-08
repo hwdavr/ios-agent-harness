@@ -17,6 +17,7 @@ runtime checks as blocked evidence, never as a pass.
 
 - [ ] `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build` passes when the simulator is available.
 - [ ] `swiftlint` and applicable harness rule checks are recorded with exit codes.
+- [ ] Full-source rules bundle passes: run `bash harness/scripts/check-full-source-rules.sh` (or `harness\scripts\check-full-source-rules.cmd` on Windows) and verify architecture, SwiftUI, localization, navigation, and test assertions pass over the complete source tree.
 - [ ] No new `swiftlint:disable`, broad exclusion, baseline, `@preconcurrency import`,
   or inline debug workaround hides a violation without documented user approval.
 

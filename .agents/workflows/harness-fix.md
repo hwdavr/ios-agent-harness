@@ -68,11 +68,14 @@ A finding is not considered resolved until its in-report status line exists and 
         xcrun simctl list devices | grep Booted
         ```
        Confirm simulator availability for runtime testing.
-    2. Run full build and test suites:
+    2. Run the repository-wide source-rule bundle and test suites:
         ```bash
+        bash harness/scripts/check-full-source-rules.sh
         xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build
         xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' test
         ```
+       The bundle always scans the complete production and test source trees and
+       aggregates every checker result. A non-zero result blocks Fix-Stage 2.
     3. If red, mark the baseline `⚠️ Blocked`, record the failing command and raw output, and stop. Do not begin fixing review findings on a broken baseline.
     4. If all setup and baseline commands succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Setup & Verify Baseline** stage status as completed (✅) with notes and the current timestamp. If any fails, record the stage as `⚠️ Blocked` and stop.
 *   **Objective**: Confirm runtime readiness and verify the repository is in a perfectly stable, compilable, and green baseline before applying fixes.
@@ -88,7 +91,7 @@ A finding is not considered resolved until its in-report status line exists and 
 ### Fix-Stage 4 — Re-verify
 *   **Action**:
     1. Re-run, **one by one**, every verification command listed in `$FEATURE_DIR/sprint-contract.md` Acceptance Test Cases. If any command fails, record its command, exit status, and raw output; keep the feature non-passing and stop the pipeline.
-    2. Re-run the global quality gates: `swiftlint`, and `xcodebuild test` with coverage (overall ≥ 80%; ≥ 90% for ViewModel & Use Case).
+    2. Re-run the global quality gates: `swiftlint`, `bash harness/scripts/check-full-source-rules.sh`, and `xcodebuild test` with coverage (overall ≥ 80%; ≥ 90% for ViewModel & Use Case). The full-source bundle is mandatory and must not be replaced by changed-file checker invocations.
     3. Attach objective evidence (command + exit status) to each Test ID's `evidence` field in `$FEATURE_DIR/feature_list.json` only after the command succeeds. If any command fails, do not mark its evidence passing; keep the feature non-passing and stop.
     4. Run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate`; it must prove every acceptance Test ID still maps to a real test method, declared scenario, suite-scoped command, and successful evidence.
     5. Run `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` when visual verification is required.

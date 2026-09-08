@@ -9,22 +9,32 @@ if [[ ! -d "$PROJECT_ROOT/NotesTakingAppiOS" && -d "$PROJECT_ROOT/../NotesTaking
 fi
 
 checker_arguments=()
-if [[ "${1:-}" == "--all" ]]; then
-    checker_arguments+=(--all)
-    shift
-fi
-SOURCE_ROOT="${1:-$PROJECT_ROOT/NotesTakingAppiOS}"
-REGISTRY="${DOCUMENTED_DYNAMIC_ACCESSIBILITY_IDS_REGISTRY:-$PROJECT_ROOT/harness/rules-matrix/documented-dynamic-accessibility-identifiers.json}"
+explicit_source_root=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --project-root)
+            PROJECT_ROOT="$2"
+            shift 2
+            ;;
+        --all)
+            checker_arguments+=(--all)
+            shift
+            ;;
+        -*)
+            shift
+            ;;
+        *)
+            explicit_source_root="$1"
+            shift
+            ;;
+    esac
+done
 
-if [[ "${checker_arguments[*]:-}" == "--all" ]]; then
-    exec "$PROJECT_ROOT/harness/scripts/run-ast-checker.sh" swiftui \
-        --project-root "$PROJECT_ROOT" \
-        --source-root "$SOURCE_ROOT" \
-        --registry "$REGISTRY" \
-        --all
-fi
+SOURCE_ROOT="${explicit_source_root:-${SWIFTUI_SOURCE_ROOT:-$PROJECT_ROOT/NotesTakingAppiOS}}"
+REGISTRY="${DOCUMENTED_DYNAMIC_ACCESSIBILITY_IDS_REGISTRY:-$PROJECT_ROOT/harness/rules-matrix/documented-dynamic-accessibility-identifiers.json}"
 
 exec "$PROJECT_ROOT/harness/scripts/run-ast-checker.sh" swiftui \
     --project-root "$PROJECT_ROOT" \
     --source-root "$SOURCE_ROOT" \
-    --registry "$REGISTRY"
+    --registry "$REGISTRY" \
+    "${checker_arguments[@]}"

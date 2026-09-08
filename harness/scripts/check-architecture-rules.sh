@@ -8,15 +8,26 @@ if [[ ! -d "$PROJECT_ROOT/NotesTakingAppiOS" && -d "$PROJECT_ROOT/../NotesTaking
     PROJECT_ROOT="$(cd "$PROJECT_ROOT/.." && pwd)"
 fi
 
-SOURCE_ROOT="${ARCHITECTURE_SOURCE_ROOT:-$PROJECT_ROOT/NotesTakingAppiOS}"
+checker_arguments=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --project-root)
+            PROJECT_ROOT="$2"
+            shift 2
+            ;;
+        --all)
+            checker_arguments+=(--all)
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
 
-if [[ "${1:-}" == "--all" ]]; then
-    exec "$PROJECT_ROOT/harness/scripts/run-ast-checker.sh" architecture \
-        --project-root "$PROJECT_ROOT" \
-        --source-root "$SOURCE_ROOT" \
-        --all
-fi
+SOURCE_ROOT="${ARCHITECTURE_SOURCE_ROOT:-$PROJECT_ROOT/NotesTakingAppiOS}"
 
 exec "$PROJECT_ROOT/harness/scripts/run-ast-checker.sh" architecture \
     --project-root "$PROJECT_ROOT" \
-    --source-root "$SOURCE_ROOT"
+    --source-root "$SOURCE_ROOT" \
+    "${checker_arguments[@]}"

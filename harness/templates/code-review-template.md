@@ -82,16 +82,17 @@ placeholder/no-op branches, and final-state rendering without a real production 
 
 ## Build and Static-Check Evidence
 
+The source-rule result in this table must come from the full-source bundle. Its
+output supplies the per-rule details below; individual checker invocations are
+diagnostic follow-ups only.
+
 | Check | Exit code | Provenance | Result / failure scope |
 |---|---:|---|---|
 | `xcodebuild ... build` | | Independently executed / Recorded / Not run | PASS / FAIL |
 | `xcodebuild ... test` | | Independently executed / Recorded / Not run | PASS / FAIL |
 | `swiftlint` | | Independently executed / Recorded / Not run | PASS / FAIL |
-| `check-architecture-rules.sh` | | Independently executed / Recorded / Not run | PASS / FAIL |
-| `check-swiftui-rules.sh` | | Independently executed / Recorded / Not run | PASS / FAIL / N/A |
-| `check-localization-rules.sh` | | Independently executed / Recorded / Not run | PASS / FAIL / N/A |
-| `check-navigation-rules.sh` | | Independently executed / Recorded / Not run | PASS / FAIL / N/A |
-| Suppression audit | | Independently executed / Recorded / Not run | PASS / FAIL |
+| `check-full-source-rules.sh` or `check-full-source-rules.cmd` | | Independently executed / Recorded / Not run | PASS / FAIL | Includes architecture, SwiftUI, localization, navigation, and test-assertion checks over the complete source tree. |
+| Suppression audit | | Independently executed / Recorded / Not run | PASS / FAIL | Confirm no new suppressions, ignores, baselines, or rule exclusions were added to make checks pass. |
 
 Never label recorded, skipped, or unavailable evidence as a fresh pass. A required
 non-zero check is a non-approved result even when its failure is pre-existing; record

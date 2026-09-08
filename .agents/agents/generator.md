@@ -8,12 +8,18 @@
 
 ## 🛠️ Required Skills Loadout
 
-To deliver clean, stable implementations, the Generator loads and applies the following core skills from the `.agents/skills/` index:
+The canonical [`harness-generator` workflow](../workflows/harness-generator.md)
+defines the required stage invocations:
 
-*   **`ios-unit-test/`**: Applied during the *Testing* phase to structure ViewModel and domain logic unit tests correctly under Swift Testing.
-*   **`ios-ui-test/`**: Used to build stable SwiftUI gesture/navigation assertions using accessibility identifiers.
-*   **`shared-json-scenarios/`**: Utilized to load mock payloads from `sharedContracts/test-scenarios/` for integration tests, avoiding inlined mock data.
-*   **`karpathy-guidelines/`**: Promotes surgical coding practices—making precise, minimal modifications and immediately verifying logic.
+* **`feature-orient`** — selects the approved tracker-backed workspace and slice.
+* **`ios-implementation`** — implements only the approved slice.
+* **`ios-testing`** — implements and runs the declared acceptance evidence.
+* **`code-quality-fix`** — resolves static and custom-rule violations before state
+  can advance.
+
+Use specialist test skills such as `ios-unit-test`,
+`ios-ui-test`, and `shared-json-scenarios` only when their
+respective triggers apply; they do not replace the required stage skills above.
 
 ---
 
@@ -24,11 +30,11 @@ The Generator must strictly adhere to the project's development rules:
 1.  **Architecture Layer Boundaries**:
     *   **Data Layer**: Contains API calls, SwiftData persistence, DTO mappings, and repository structures. No DTOs may leak outside this layer.
     *   **Domain Layer**: Pure Swift business logic/Use Cases. No SwiftUI/UIKit-specific framework imports.
-    *   **UI Layer**: MVVM ViewModels, UI state mappings, and stateless SwiftUI Views.
+    *   **UI Layer**: MVVM ViewModels, UI state mappings, stateful screen wrappers, and stateless content views.
 2.  **No Business Logic in Views**: SwiftUI components must strictly render provided state and dispatch user interactions.
 3.  **Strict Styling Rules**:
-    *   No hardcoded strings are allowed; always use `LocalizedStringKey`.
-    *   Apply standard theme colors from Asset Catalog or semantic tokens; avoid ad-hoc values.
+    *   No hardcoded strings are allowed; always use `LocalizedStringKey` or `String(localized:)`.
+    *   Apply `docs/product/design_system.md` typography and semantic tokens / `AppTheme`; avoid ad-hoc values.
     *   Every interactive component must have a unique `accessibilityIdentifier` for automation.
 4.  **TDD Bug Resolution**: For bug fixes, the reproduction test must be written first and verify the RED (failing) state before any application code is touched.
 5.  **Coverage Targets**: Ensure that all new ViewModels and domain Use Cases hit a minimum of **90% line coverage** before passing the work.
@@ -38,14 +44,27 @@ The Generator must strictly adhere to the project's development rules:
 ## 📋 Assigned Workflow & Execution Policy
 
 The Generator is responsible for executing the **`/harness-generator`** workflow ([harness-generator.md](../workflows/harness-generator.md)).
-The Generator must continuously loop through the pipeline to pick up and implement tasks:
-1.  **Select Task**: Read `$FEATURE_DIR/feature_list.json` and pick the highest-priority item with status `"not_started"`.
-2.  **Pipeline Stages**: Run through the stages: Orient ➡️ Setup ➡️ Verify Baseline ➡️ Implement ➡️ Test ➡️ Fix ➡️ Finalize & Exit ➡️ Install.
-3.  **Completion Cycle**: Continue picking up tasks and implementing them one-by-one **until all features** in the list are successfully verified and marked `"passing"`.
+
+The workflow—not this profile—is authoritative for task selection and lifecycle
+transitions:
+
+1. **Select the approved slice**: Invoke `feature-orient`, run the lifecycle
+   check, and select only the dated `docs/product/<YYYY-MM-DD>-<feature-short-name>/`
+   workspace identified by the Harness Feature Tracker.
+2. **Run the nine stages in order**: Orient → Setup → Verify Baseline →
+   Implement → Test → Code Quality Fix → Update State → Clean Exit → **Install App To Simulator**.
+   Every required gate is a hard stop.
+3. **Route evaluator findings correctly**: When the tracker says `To be fixed`,
+   stop the generator workflow and follow `harness-fix`; do not invent a local
+   "Fix" stage or change review statuses directly.
 
 ---
 
 ## 🔄 Agent Handshake & Lifecycle Transitions
 
-*   **Generator ➡️ Evaluator**: Once code compiles (`xcodebuild build` passes) and all unit/integration tests are GREEN, the Generator hands over execution to the **Evaluator** by calling the `/feature-review` (or `/harness-evaluation`) workflow.
-*   **Evaluator ➡️ Generator (Fix Loop)**: If the Evaluator identifies compilation errors, test regressions, formatting issues, or architectural violations, the work returns to the Generator with clear feedback for a targeted resolution.
+* **Generator ➡️ Evaluator**: Once every slice has passing evidence and the
+  Harness Feature Tracker reaches `To be reviewed`, hand the dated workspace to
+  the Evaluator through `harness-evaluation`.
+* **Evaluator ➡️ Generator (Fix Loop)**: If evaluation routes the tracker to
+  `To be fixed`, resolve every finding through `harness-fix`, including the
+  in-report fix statuses and re-verification evidence.

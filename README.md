@@ -90,9 +90,11 @@ The harness includes validation scripts located in `harness/scripts/`:
 
 | Script | Purpose |
 |---|---|
+| `check-full-source-rules.sh` | Repository-wide bundle: architecture, SwiftUI, localization, navigation, assertion, and AI security rules |
 | `check-architecture-rules.sh` | Validates layer boundaries, file imports, and DTO isolation |
 | `check-swiftui-rules.sh` | Checks SwiftUI best practices, `accessibilityIdentifier` presence, and statelessness |
 | `check-localization-rules.sh` | Detects hardcoded strings in UI views |
+| `check-ai-security-rules.sh` | Evaluates AI prompt/credential logging, WebView boundary policies, and HTML sinks |
 | `check-feature-lifecycle.sh` | Validates feature tracking state and artifact integrity |
 | `check-visual-evidence-contract.sh` | Enforces visual screenshot verification artifacts |
 | `check-evaluation-fix-contract.sh` | Enforces deterministic evaluator scoring, evidence, and fix-stage routing |
@@ -101,6 +103,7 @@ The harness includes validation scripts located in `harness/scripts/`:
 
 Run any check directly from your project root:
 ```bash
+bash harness/scripts/check-full-source-rules.sh
 bash harness/scripts/check-architecture-rules.sh
 bash harness/scripts/check-swiftui-rules.sh
 bash harness/scripts/check-localization-rules.sh

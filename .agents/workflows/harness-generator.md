@@ -48,14 +48,18 @@ Verify target simulator runtime environment readiness.
 ### Stage 3 — Verify Baseline
 Ensure that the existing codebase compiles and all tests pass before making any changes. The previous session or developer may have introduced bugs or broken tests.
 *   **Action**:
-    1. Run full build and test suites:
+    1. Run the repository-wide source-rule bundle and test suites:
         ```bash
+        bash harness/scripts/check-full-source-rules.sh
         xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build
         xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' test
         ```
-    2. If both commands succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Verify Baseline** stage status as completed (✅) with notes and the current timestamp. If either fails, record Verify Baseline as `⚠️ Blocked` and stop.
+       The source-rule bundle always scans the complete production and test source
+       trees. It runs every checker even when one fails and returns non-zero if any
+       checker reports a violation; record the complete output before stopping.
+    2. If all commands succeed, **update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Verify Baseline** stage status as completed (✅) with notes and the current timestamp. If any fails, record Verify Baseline as `⚠️ Blocked` and stop.
 *   **Objective**: Confirm the repository is in a perfectly stable, compilable, and green state. If the baseline is broken, stop and fix existing regressions first! Register status in `$FEATURE_DIR/summary_{feature_id}.md`.
-*   **Gate**: Both commands must exit `0`. If either command fails, mark Verify Baseline `⚠️ Blocked`, record the command and raw failure output, and stop the pipeline. Do not begin implementation.
+*   **Gate**: All commands must exit `0`. If any command fails, mark Verify Baseline `⚠️ Blocked`, record the command and raw failure output, and stop the pipeline. Do not begin implementation.
 
 ### Stage 4 — Implement
 Build out the selected feature across the necessary layers.
@@ -76,6 +80,7 @@ Verify the correctness of the implemented behavior visually and logically.
 ### Stage 6 — Code Quality Fix
 Run all static check suites, lint rules, and custom compliance rules, and resolve all violations.
 *   **Action**: **INVOKE** the `code-quality-fix` skill via the Skill tool (name: `code-quality-fix`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
+*   **Required gate**: The skill MUST run `bash harness/scripts/check-full-source-rules.sh` after its individual checks. This bundle is the authoritative repository-wide architecture, SwiftUI, localization, navigation, and test-assertion gate; do not substitute a changed-file invocation.
 *   **Objective**: Diagnose and resolve all formatting, quality, localization, and architectural style guidelines issues, reconcile any newly discovered rule trigger with the approved matrix, and log check success in `$FEATURE_DIR/summary_{feature_id}.md`.
 *   **Gate**: All required quality checks must exit `0`. If any check fails, record the failing command and raw output, mark this stage `⚠️ Blocked`, and stop the pipeline.
 
