@@ -1,6 +1,6 @@
 ---
 name: ios-integration-test
-description: Writes integration tests for API endpoints, repository + ViewModel flows, and SwiftData persistence.
+description: Write integration tests for API endpoints, repositories, and SwiftData.
 ---
 
 # Skill — iOS Integration Testing

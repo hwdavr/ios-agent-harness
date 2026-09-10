@@ -61,11 +61,13 @@ for required_file in \
     "$PROJECT_ROOT/.agents/workflows/harness-fix.md" \
     "$PROJECT_ROOT/.agents/gates/ci-checks.md" \
     "$PROJECT_ROOT/harness/templates/code-review-template.md" \
-    "$PROJECT_ROOT/harness/templates/test-review-template.md"; do
+    "$PROJECT_ROOT/harness/templates/test-review-template.md" \
+    "$PROJECT_ROOT/harness/templates/summary-profiles/feature-delivery.md" \
+    "$PROJECT_ROOT/harness/templates/summary-profiles/bug-fixing.md"; do
     assert_exists "$required_file"
 done
 
-for rule_id in ARCH IMPL TEST SUI L10N NAV API OBS ANL; do
+for rule_id in ARCH IMPL TEST SUI L10N NAV API OBS ANL SEC; do
     assert_contains "$TEMPLATE" "| $rule_id |"
 done
 
@@ -92,8 +94,8 @@ assert_contains "$PROJECT_ROOT/.agents/skills/code-review-and-quality/SKILL.md" 
 assert_contains "$PROJECT_ROOT/.agents/skills/ios-implementation/SKILL.md" "only triggered context"
 assert_contains "$PROJECT_ROOT/harness/templates/sprint-contract-template.md" "Generated Context Index"
 assert_contains "$PROJECT_ROOT/harness/templates/summary-template.md" "Context Provenance"
-assert_contains "$PROJECT_ROOT/harness/templates/summary-template.md" "Product Document Update"
-assert_contains "$PROJECT_ROOT/harness/templates/summary-template.md" "Ad-hoc Bug Fix"
+assert_contains "$PROJECT_ROOT/harness/templates/summary-profiles/feature-delivery.md" "Product Document Update"
+assert_contains "$PROJECT_ROOT/harness/templates/summary-profiles/bug-fixing.md" "Ad-hoc Bug Fix"
 assert_contains "$PROJECT_ROOT/.agents/workflows/create-ui-and-verify.md" "approved Rule Applicability matrix"
 assert_contains "$PROJECT_ROOT/.agents/workflows/harness-generator.md" "approved Rule Applicability decisions"
 assert_contains "$PROJECT_ROOT/.agents/workflows/harness-fix.md" "Reconcile all Rule Applicability rows again"
@@ -101,13 +103,9 @@ assert_contains "$PROJECT_ROOT/.agents/gates/ci-checks.md" "Rule Applicability H
 assert_contains "$PROJECT_ROOT/.agents/gates/ci-checks.md" "Acceptance-Test Traceability Contract"
 assert_contains "$PROJECT_ROOT/harness/templates/code-review-template.md" "Rule Applicability Reconciliation"
 assert_contains "$PROJECT_ROOT/harness/templates/test-review-template.md" "Rule Applicability Test Reconciliation"
-assert_contains "$PROJECT_ROOT/AGENTS.md" "implementation-rules.md"
 assert_contains "$PROJECT_ROOT/AGENTS.md" "rule-applicability-template.md"
 assert_contains "$PROJECT_ROOT/AGENTS.md" "feature-specific evidence"
 assert_contains "$PROJECT_ROOT/AGENTS.md" "print-context-index.sh"
-for conditional_rule in swiftui-rules.md localization-rules.md navigation-rules.md api-contract-rules.md observability.md analytics-rules.md; do
-    assert_contains "$PROJECT_ROOT/AGENTS.md" "$conditional_rule"
-done
 cmp -s "$PROJECT_ROOT/AGENTS.md" "$HARNESS_AGENTS" || \
     fail "harness AGENTS.md does not match the repository AGENTS.md"
 assert_not_contains "$PROJECT_ROOT/.agents/skills/feature-specification/SKILL.md" "rules/compose-rules.md"
@@ -132,7 +130,7 @@ create_spec() {
     printf '%s\n' '# Spec' '' '## Rule Applicability' '' \
         '| Rule ID | Rule document | Default | Decision for this change | Trigger / rationale | Planned evidence |' \
         '|---|---|---|---|---|---|' > "$output"
-    for rule_id in ARCH IMPL TEST SUI L10N NAV API OBS ANL; do
+    for rule_id in ARCH IMPL TEST SUI L10N NAV API OBS ANL SEC; do
         if [[ "$rule_id" != "$omit_rule_id" ]]; then
             printf '| %s | rule.md | Always | Required | contract test | shell evidence |\n' "$rule_id" >> "$output"
         fi
@@ -141,7 +139,7 @@ create_spec() {
 
 touch "$VALID_DOCS/summary_v1.md" "$INVALID_DOCS/summary_v1.md"
 create_spec "$VALID_DOCS/spec_v1.md"
-create_spec "$INVALID_DOCS/spec_v1.md" "ANL"
+create_spec "$INVALID_DOCS/spec_v1.md" "SEC"
 
 if ! bash "$STAGE_CHECKER" feature-delivery requirement-analysis "$VALID_DOCS" >/dev/null; then
     fail "complete rule-applicability matrix did not pass the requirement gate"
@@ -155,7 +153,7 @@ set -e
 if [[ $invalid_status -eq 0 ]]; then
     fail "incomplete rule-applicability matrix unexpectedly passed the requirement gate"
 fi
-printf '%s\n' "$invalid_output" | rg -Fq "missing the ANL rule-applicability row" || \
+printf '%s\n' "$invalid_output" | rg -Fq "missing the SEC rule-applicability row" || \
     fail "incomplete matrix did not report the missing rule row"
 
 echo "GREEN: rule-applicability contract passes valid and rejects incomplete requirement artifacts."

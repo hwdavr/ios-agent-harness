@@ -1,6 +1,6 @@
 ---
 name: code-review-and-quality
-description: Conducts multi-axis code review. Use before merging any change. Use when reviewing code written by yourself, another agent, or a human. Use when you need to assess code quality across multiple dimensions before it enters the main branch.
+description: Review code quality, correctness, security, performance, and maintainability before merge.
 ---
 
 # Code Review and Quality
@@ -119,12 +119,23 @@ Every change needs a description that stands alone in version control history.
 
 ### Step 0: Reconcile the Approved Rule Contract (Mandatory)
 
-Before looking at code, read the active specification's Rule Applicability matrix and
-the implementation/test plans. Load the L1 rules and all six conditional L2 rule files:
+Before looking at code, read the active specification's Rule Applicability matrix and the
+implementation/test plans. Load the L1 rules and all conditional rule files:
 `swiftui-rules.md`, `localization-rules.md`, `navigation-rules.md`,
-`api-contract-rules.md`, `observability.md`, and `analytics-rules.md`.
+`api-contract-rules.md`, `observability.md`, and `analytics-rules.md`; load
+`ios-security.md` when the diff touches an iOS security boundary.
 
-For ARCH, IMPL, TEST, SUI, L10N, NAV, API, OBS, and ANL, independently inspect the
+| If the diff touches... | Load this rule file |
+|------------------------|--------------------|
+| Any SwiftUI or UI file | `rules/swiftui-rules.md` |
+| Any user-visible text | `rules/localization-rules.md` |
+| Any layer boundary (ViewModel, Repository, etc.) | `rules/ios-architecture.md` |
+| Any navigation code | `rules/navigation-rules.md` |
+| Any API / data layer | `rules/api-contract-rules.md` |
+| Any analytics event | `rules/analytics-rules.md` |
+| Authentication, Keychain, ATS, WKWebView, AI/model, SDK, or release-security boundary | `rules/ios-security.md` |
+
+For ARCH, IMPL, TEST, SUI, L10N, NAV, API, OBS, ANL, and SEC, independently inspect the
 diff for a trigger and record the approved decision, observed trigger, evidence, and
 result. A missing decision, a triggered rule marked `Not applicable`, or an exception
 without the cited user approval blocks approval. Analytics and observability remain
@@ -278,65 +289,11 @@ Part of code review is dependency review:
 
 **Rule:** Prefer standard library and existing utilities over new dependencies. Every dependency is a liability.
 
-## The Review Checklist
+## Checklist Authority
 
-```markdown
-## Review: [PR/Change title]
+Complete `harness/templates/code-review-template.md`; it owns the detailed checklist,
+Rule Applicability table, and report format. This skill owns only review routing and judgement.
 
-### Context
-- [ ] I understand what this change does and why
-- [ ] I have loaded all in-scope rule files (Step 0 above) before starting
-
-### Correctness
-- [ ] Change matches spec/task requirements
-- [ ] Edge cases handled
-- [ ] Error paths handled
-- [ ] Tests cover the change adequately
-
-### Readability
-- [ ] Names are clear and consistent
-- [ ] Logic is straightforward
-- [ ] No unnecessary complexity
-
-### Architecture
-- [ ] Follows existing patterns
-- [ ] No unnecessary coupling or dependencies
-- [ ] Appropriate abstraction level
-
-### Security
-- [ ] No secrets in code
-- [ ] Input validated at boundaries
-- [ ] No injection vulnerabilities
-- [ ] Auth checks in place
-- [ ] External data sources treated as untrusted
-
-### Performance
-- [ ] No N+1 patterns
-- [ ] No unbounded operations
-- [ ] Pagination on list endpoints
-
-### Rule Applicability
-- [ ] I reconciled all nine approved decisions with the diff: ARCH, IMPL, TEST, SUI,
-  L10N, NAV, API, OBS, and ANL.
-- [ ] Every triggered rule is Required or has a direct user-approved exception.
-- [ ] SwiftUI uses stateless content/stateful screen boundaries, semantic colors, and
-  stable `accessibilityIdentifier`s when UI is in scope.
-- [ ] User-visible strings and icon labels use `LocalizedStringKey` / `String(localized:)`
-  and `Localizable.xcstrings` when localization is in scope.
-- [ ] Navigation, API, observability, and analytics implementation matches its approved
-  decision. Analytics/logging is not required when the rule is correctly non-applicable.
-- [ ] Every changed function, branch, and callback implements its required behavior;
-  no dummy, stub, or no-op production code exists.
-
-### Verification
-- [ ] Tests pass
-- [ ] Build succeeds
-- [ ] Manual verification done (if applicable)
-
-### Verdict
-- [ ] **Approve** — Ready to merge
-- [ ] **Request changes** — Issues must be addressed
-```
 ## See Also
 
 - For detailed security review guidance, see `references/security-checklist.md`

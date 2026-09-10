@@ -1,6 +1,6 @@
 ---
 name: ios-ui-layer
-description: Implements the UI layer (SwiftUI Views, ViewModels, UI models, and navigation).
+description: Implement SwiftUI views, ViewModels, UI models, and navigation flows.
 ---
 
 # Skill — iOS UI Layer

@@ -1,15 +1,17 @@
 ---
 name: ios-testing
-description: Implements unit, integration, and UI tests according to the test plan.
+description: Implement unit, integration, and UI tests according to the test plan.
 ---
 
 # Skill — iOS Testing
 
 ## Purpose
-Write all tests for the change and mechanically verify they pass.
+After implementation, write or complete all approved tests and mechanically verify they pass.
 This stage **generates** — it does not evaluate quality. That is the Test Review stage's job.
 
-The article principle: write the failing test *before* touching the application code for bug fixes and new behavior.
+Bug fixes perform RED reproduction through the `bug-reproduction` skill before implementation;
+this skill performs the later GREEN verification. Feature and enhancement workflows implement
+approved behavior before invoking this skill.
 
 ---
 
@@ -19,9 +21,13 @@ The article principle: write the failing test *before* touching the application 
 - `rules/testing-strategy.md`
 
 **Then load only the selected test-layer guidance:**
+- `rules/testing-practices.md` for test structure, doubles, reliability, and assertion quality
 - `skills/ios-unit-test/SKILL.md` for unit or integration coverage
 - `skills/ios-ui-test/SKILL.md` for UI, navigation, visual, or platform-bound coverage
+- `rules/testing-runtime-evidence.md` only for UI, navigation, visual, platform, or runtime claims
 - `skills/shared-json-scenarios/SKILL.md` only when an API endpoint or shared fixture is in scope
+- `rules/ios-security.md` when the test covers a security boundary; use its
+  required real-runtime boundary evidence and fail loudly when the runtime is unavailable
 
 **Adhoc workflows** (`feature-delivery`, `bug-fixing`):
 - `docs/current/test_plan_v<N>.md` — test cases, layers, and coverage targets approved by user
@@ -39,10 +45,12 @@ The article principle: write the failing test *before* touching the application 
 For ad-hoc workflows, read the approved `docs/current/test_plan_v<N>.md` and Rule
 Applicability matrix in `spec_v<N>.md`. For the harness workflow, read the selected
 user story and its acceptance-test rows in `$FEATURE_DIR/sprint-contract.md`, the
-matching `verification` entry in `$FEATURE_DIR/feature_list.json`, and the matrix in
-`$FEATURE_DIR/spec.md`. Map every `Required` rule to a test, static check, or explicit
-review evidence. Preserve the rationale for non-applicable/exception rows; do not
-invent analytics or logging tests without a trigger.
+matching `verification` and `production_journey` entries in `$FEATURE_DIR/feature_list.json`,
+and the matrix in `$FEATURE_DIR/spec.md`. When `production_journey.required` is `true`,
+implement the named acceptance-test owner as a production-entry journey with the declared
+actions, return boundary, and visible post-return assertion. Map every `Required` rule
+to a test, static check, or explicit review evidence. Preserve the rationale for
+non-applicable/exception rows; do not invent analytics or logging tests without a trigger.
 
 ### 2. Unit tests (`NotesTakingAppiOSTests/`)
 Write unit tests for all new or modified:
@@ -94,11 +102,17 @@ bash harness/scripts/check-coverage.sh "$(find Build/Logs/Test -maxdepth 1 -type
 
 Record the exact command, exit code, test count, and coverage percentage in the stage evidence. Keep verbose tool output in a referenced log or generated report; do not copy it into the summary.
 
-For the harness workflow, after writing tests and before marking Testing complete, run:
+For the harness workflow, after writing tests and before leaving this stage, run the
+acceptance-test traceability checker in evaluation mode:
 ```bash
-bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --test "$FEATURE_ID"
+bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate "$FEATURE_ID"
 ```
-The gate requires every selected acceptance Test ID to name a real test method and suite-scoped command. A shared scenario declared by that Test ID must be referenced from the named method.
+The gate requires every selected acceptance Test ID to name a real test method and
+suite-scoped command. A shared scenario declared by that Test ID must be referenced
+from the named method. For a required production journey, also run
+`bash harness/scripts/check-journey-test-contract.sh` with the planned test file,
+method, and production entry point; the source checker must find the real navigation,
+gestures, return boundary, and visible post-return assertion.
 
 ---
 

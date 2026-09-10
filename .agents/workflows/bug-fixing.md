@@ -1,5 +1,5 @@
 ---
-description: You are a senior iOS developer diagnosing and fixing a bug.
+description: Diagnose and fix an iOS bug with RED reproduction, approved planning, and GREEN verification.
 ---
 
 # Workflow: Bug Fixing

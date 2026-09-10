@@ -1,5 +1,5 @@
 ---
-description: You are a senior iOS developer delivering a new feature end-to-end.
+description: Deliver an iOS feature end-to-end through approved implementation, testing, and quality gates.
 ---
 
 # Workflow: Feature Delivery

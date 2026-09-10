@@ -18,6 +18,30 @@ This repository provides an **Agent Harness** designed to:
 
 ## 🚀 Setting Up the Harness in Your iOS Project
 
+### Initialize the complete harness
+
+After cloning the submodule, run this from the iOS project root:
+
+```bash
+bash .harness/harness/scripts/init-harness.sh
+```
+
+The initializer validates harness lifecycle state and runs the full source-rule checks.
+
+It creates the `.agents` and `harness` root symlinks and copies `AGENTS.md` to the project root if
+it is absent (an existing project-specific version is kept). It then checks the project-owned
+documentation baseline: `docs/product/product.md` and `docs/product/design_system.md`. If either
+is missing, it prints instructions. The design system is not generated automatically; use the
+`ux-design` skill to draft it from product requirements and obtain approval before UI work.
+
+On macOS it also creates `~/Library/LaunchAgents/com.ios.<project-name>.harness-generator.plist`
+from the template, with a project-specific launchd label and log name. The script prints the
+explicit `launchctl load` command; it does not schedule the job automatically.
+
+`docs/product/journey-registry.yaml` is not required for initial setup. It becomes required when a
+feature declares a production journey; the generator then registers it and verification runs
+`bash harness/scripts/check-journey-registry.sh --run-all`.
+
 ### 1. Add as a Git Submodule
 
 From your iOS project root:
@@ -26,23 +50,15 @@ From your iOS project root:
 git submodule add -b main git@github.com:hwdavr/ios-agent-harness.git .harness
 ```
 
-### 2. Create Root Symlinks
+### 2. Create Root Symlinks (handled by the initializer)
 
-Create symlinks at the root of your project pointing into the `.harness` submodule:
+The initializer creates `.agents` and `harness` symlinks automatically. It stops with a clear
+message if either path already exists as a real file or directory.
 
-**macOS / Linux:**
-```bash
-ln -s .harness/.agents .agents
-ln -s .harness/harness harness
-```
+### 3. Copy `AGENTS.md` to Project Root (handled by the initializer)
 
-### 3. Copy `AGENTS.md` to Project Root
-
-Copy or adapt `.harness/AGENTS.md` to your project root so agent tools can discover it immediately:
-
-```bash
-cp .harness/AGENTS.md ./AGENTS.md
-```
+The initializer copies `.harness/AGENTS.md` to the project root on first setup. If the project
+already has an `AGENTS.md`, it preserves that project-specific file.
 
 ---
 
@@ -52,9 +68,9 @@ To prevent LLM performance degradation and context dilution, context is loaded i
 
 | Layer | When to Load | Contents |
 |---|---|---|
-| **L1 — Always Loaded** | Every session start | `AGENTS.md` + `rules/ios-architecture.md` + `rules/testing-strategy.md` |
-| **L2 — Phase-Triggered** | During active workflow stage | The exact skill(s) specified in the active stage's `Load` instruction (e.g. `ios-implementation`, `ui-verification`) |
-| **L3 — On-Demand** | When specifically needed | Specific rules (`swiftui-rules.md`, `api-contract-rules.md`), `docs/knowledge/`, OpenAPI schemas |
+| **L1 — Always Loaded** | Every session start | `AGENTS.md` + `rules/ios-architecture.md` + `rules/implementation-rules.md` + `rules/testing-strategy.md` |
+| **L2 — Phase-Triggered** | Per workflow stage | The active stage skill(s), plus the Rule Applicability template and conditional iOS rules during requirements, planning, and review; load `rules/ios-security.md` for security/AI/WKWebView/network/Info.plist boundaries |
+| **L3 — On-Demand** | When specifically needed | `docs/knowledge/`, `sharedContracts/openapi.yaml`, feature evidence, and rule detail newly triggered by the approved applicability matrix |
 
 > **Rule:** Never preload all rules and skills upfront. Only load what the active stage requires.
 
@@ -110,6 +126,14 @@ bash harness/scripts/check-localization-rules.sh
 bash harness/scripts/check-rules-matrix-contract.sh
 bash harness/scripts/check-evaluation-fix-contract.sh <feature-dir> --evaluation
 ```
+
+The full-source bundle is the required entry point for generator, evaluator, fix,
+and CI quality gates. It forces `--all` scans for the architecture, SwiftUI, and
+localization checkers and still runs the remaining checkers after an earlier failure.
+
+The authoritative conditional iOS security baseline is
+`.agents/rules/ios-security.md`. It governs trust-boundary handling and
+evidence; the full-source bundle provides the mechanical AI/WebView enforcement.
 
 ---
 

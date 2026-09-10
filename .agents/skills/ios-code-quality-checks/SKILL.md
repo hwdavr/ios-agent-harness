@@ -1,6 +1,6 @@
 ---
 name: ios-code-quality-checks
-description: Runs SwiftLint, build validation, and custom harness rule check scripts.
+description: Run SwiftLint, build validation, and repository source rule checks.
 ---
 
 # Skill — iOS Code Quality Checks

@@ -60,9 +60,9 @@ Describe the screen from top to bottom.
 
 ### Component Inventory
 
-| Component | Purpose | Required States | Test Tag |
-|-----------|---------|-----------------|----------|
-| <component> | <purpose> | <default/loading/selected/disabled/error/etc.> | `<tag>` |
+| Component | Purpose | Required States | Accessibility Identifier |
+|-----------|---------|-----------------|--------------------------|
+| <component> | <purpose> | <default/loading/selected/disabled/error/etc.> | `<identifier>` |
 
 ### Reference Anchor Contract
 
@@ -72,7 +72,7 @@ separate visual-bounds tag to the shape.
 
 | Reference relationship | Visual bounds node(s) | Required runtime measurement |
 |------------------------|-----------------------|------------------------------|
-| <for example, pill bottom meets table top border> | `<visual_tag>`, `<anchor_tag>` | `<visualBounds>.bottom == <anchorBounds>.top ± <tolerance>dp` |
+| <for example, pill bottom meets table top border> | `<visual_identifier>`, `<anchor_identifier>` | `<visualBounds>.bottom == <anchorBounds>.top ± <tolerance>pt` |
 
 ### Visual States
 
@@ -102,11 +102,11 @@ separate visual-bounds tag to the shape.
 
 ### Accessibility
 
-- <content descriptions, roles, focus order, dynamic type, contrast, minimum touch target>
+- <accessibility labels, traits, focus order, dynamic type, contrast, minimum 44×44 pt touch target>
 
 ### Responsive And Configuration Behavior
 
-- <portrait/landscape/tablet behavior>
+- <portrait/landscape/iPad behavior>
 - <configuration-change survival expectations>
 
 ### Design Assets
@@ -149,9 +149,9 @@ separate visual-bounds tag to the shape.
 
 ### Component Inventory
 
-| Component | Purpose | Required States | Test Tag |
-|-----------|---------|-----------------|----------|
-| <component> | <purpose> | <default/loading/selected/disabled/error/etc.> | `<tag>` |
+| Component | Purpose | Required States | Accessibility Identifier |
+|-----------|---------|-----------------|--------------------------|
+| <component> | <purpose> | <default/loading/selected/disabled/error/etc.> | `<identifier>` |
 
 ### Reference Anchor Contract
 
@@ -161,7 +161,7 @@ separate visual-bounds tag to the shape.
 
 | Reference relationship | Visual bounds node(s) | Required runtime measurement |
 |------------------------|-----------------------|------------------------------|
-| <for example, pill bottom meets table top border> | `<visual_tag>`, `<anchor_tag>` | `<visualBounds>.bottom == <anchorBounds>.top ± <tolerance>dp` |
+| <for example, pill bottom meets table top border> | `<visual_identifier>`, `<anchor_identifier>` | `<visualBounds>.bottom == <anchorBounds>.top ± <tolerance>pt` |
 
 ### Visual States
 
@@ -186,11 +186,11 @@ separate visual-bounds tag to the shape.
 
 ### Accessibility
 
-- <content descriptions, roles, focus order, dynamic type, contrast, minimum touch target>
+- <accessibility labels, traits, focus order, dynamic type, contrast, minimum 44×44 pt touch target>
 
 ### Responsive And Configuration Behavior
 
-- <portrait/landscape/tablet behavior>
+- <portrait/landscape/iPad behavior>
 
 ### Design Assets
 

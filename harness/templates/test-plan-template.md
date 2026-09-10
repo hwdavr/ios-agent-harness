@@ -8,6 +8,23 @@ Use this template when producing the test plan in the **Implementation Plan** st
 
 > One line description of what is being tested.
 
+## Rule Applicability Test Reconciliation
+
+Copy the approved ten-row matrix and identify the test or explicit feature-specific reason for each decision. Every `Required` row needs a verification entry or a documented blocking failure.
+
+| Rule ID | Rule document | Decision | Test/evidence |
+|---|---|---|---|
+| ARCH | `ios-architecture.md` | <decision> | |
+| IMPL | `implementation-rules.md` | <decision> | |
+| TEST | `testing-strategy.md` | <decision> | |
+| SUI | `swiftui-rules.md` | <decision> | |
+| L10N | `localization-rules.md` | <decision> | |
+| NAV | `navigation-rules.md` | <decision> | |
+| API | `api-contract-rules.md` | <decision> | |
+| OBS | `observability.md` | <decision> | |
+| ANL | `analytics-rules.md` | <decision> | |
+| SEC | `ios-security.md` | <decision> | |
+
 ---
 
 ## Layer Selection
@@ -20,23 +37,23 @@ Use this template when producing the test plan in the **Implementation Plan** st
 
 ---
 
-## Rule-Driven Verification
+## Production Journey Boundary
 
-Copy the approved Rule Applicability decisions. For every `Required` row, name the
-test ID, static check, or review evidence that verifies it. Preserve the concrete
-rationale for `Not applicable` and approved exceptions.
+> **MANDATORY when `NAV` is `Required` for navigation, saved-state, back-stack,
+> destination-recreation, or post-return persistence behavior.** Name the real
+> instrumented journey that enters through the shipped App or NavigationStack,
+> uses UI gestures, crosses the return boundary, and asserts the visible result.
 
-| Rule ID | Approved decision | Test / static-check / review evidence | Notes |
-|---|---|---|---|
-| ARCH | <decision> | <evidence> | |
-| IMPL | <decision> | <evidence> | |
-| TEST | <decision> | <evidence> | |
-| SUI | <decision> | <evidence> | |
-| L10N | <decision> | <evidence> | |
-| NAV | <decision> | <evidence> | |
-| API | <decision> | <evidence> | |
-| OBS | <decision> | <evidence> | |
-| ANL | <decision> | <evidence> | |
+- Test file: `<path under NotesTakingAppiOSUITests/>`
+- Test method: `<named test method>`
+- Production entry point: `<ContentView, App, or navigation container>`
+- User actions: `<real UI gestures and stable accessibilityIdentifiers>`
+- Return boundary: `<back/pop/dismiss selection and resulting return>`
+- Post-return assertion: `<visible result asserted after returning>`
+
+The stage gate invokes `bash harness/scripts/check-journey-test-contract.sh` for the
+declared file and method. Direct ViewModel, internal UI state, and isolated view
+tests remain supplemental and do not satisfy this section.
 
 ---
 

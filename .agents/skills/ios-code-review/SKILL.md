@@ -1,97 +1,117 @@
 ---
 name: ios-code-review
-description: Reviews iOS code for architecture, correctness, SwiftUI patterns, and maintainability.
+description: Review iOS code for architecture, correctness, SwiftUI patterns, and maintainability.
 ---
 
 # Skill — iOS Code Review
 
 ## Purpose
-Conduct structured code review of iOS changes: architecture, correctness, SwiftUI patterns, security, and maintainability.
 
----
+Independently review implementation correctness, architecture, security, maintainability, and
+static quality after Test Review. The canonical report structure and per-rule checklist live in
+`harness/templates/code-review-template.md`; do not reproduce them in this skill.
 
 ## Load
-- `rules/ios-architecture.md`
-- `rules/implementation-rules.md`
-- `rules/testing-strategy.md`
-- `rules/swiftui-rules.md`
-- `rules/navigation-rules.md`
-- `rules/localization-rules.md`
-- `rules/analytics-rules.md`
-- `rules/observability.md`
-- `rules/api-contract-rules.md`
-- `harness/templates/rule-applicability-template.md`
 
----
+- L1 rules already loaded for the session; do not reload them.
+- `skills/code-review-and-quality/SKILL.md` and `skills/ios-code-quality-checks/SKILL.md`.
+- `harness/templates/code-review-template.md` and `gates/review-checklist.md`.
+- The approved Rule Applicability matrix and exact conditional rule paths selected from it.
+- `rules/testing-practices.md`; add `rules/testing-runtime-evidence.md` when a runtime claim is in
+  scope.
+- `rules/ios-security.md` only when the approved scope or diff touches a security boundary.
+- The active diff, merge base/reviewed commit, changed production files, and mapped tests.
+- Ad-hoc baseline: `docs/current/spec_v<N>.md`, `implementation_plan_v<N>.md`,
+  `test_plan_v<N>.md`, and `test_review_v<N>.md`.
+- Complex baseline: `$FEATURE_DIR/spec.md`, optional design, `sprint-contract.md`, selected slice
+  metadata/summary, and `test_review_{feature_id}.md`.
 
 ## Execute
 
-### 1. Build and Static Quality Checks
+### 1. Establish scope and evidence provenance
 
-Run all checks and record results. The repository-wide source-rule bundle is
-mandatory even when the reviewed diff is small:
+Record the current commit, merge base or reviewed baseline, and changed files. Distinguish fresh
+commands from recorded stage evidence, stale results, planned tasks, and skipped checks. A
+pre-existing failure remains a failed global gate; classification does not turn it green.
+
+### 2. Rule Applicability Reconciliation
+
+Reconcile ARCH, IMPL, TEST, SUI, L10N, NAV, API, OBS, ANL, and SEC against the submitted diff. Load and
+apply each Required or excepted rule. If the diff triggers a rule marked Not applicable, load it
+and record a blocking planning defect. An exception without cited user approval is blocking.
+
+For `SEC: Required` or an exception, require the approved trust-boundary and real-runtime evidence;
+unavailable required evidence remains failed or blocked.
+
+### 3. Run mechanical gates
+
 ```bash
 xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build
 swiftlint
 bash harness/scripts/check-full-source-rules.sh
+xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -derivedDataPath Build test -enableCodeCoverage YES
+bash harness/scripts/check-coverage.sh "$(find Build/Logs/Test -maxdepth 1 -type d -name '*.xcresult' -print -quit)" --exclude-target SwiftMath
 ```
 
-`check-full-source-rules.sh` passes `--all` to the architecture, SwiftUI, and
-localization AST checkers, scans test roots for assertion quality, and runs
-navigation checks, then runs the AI/WebView security evaluator and its contract
-test. It executes every checker and aggregates failures; record its complete
-output and treat any non-zero result as a review failure, including
-pre-existing findings.
+The full-source bundle is mandatory and scans all production and test sources. Record command,
+exit code, commit, evidence path, and actionable failure details. Reuse a previous successful
+result only when `bash harness/scripts/check-evidence-receipt.sh ...` accepts all fingerprints.
 
-On Windows (using PowerShell or Command Prompt), run the native script launcher:
-```powershell
-harness\scripts\check-full-source-rules.cmd
-```
+### 4. Trace requirements to production
 
-### 2. Rule Applicability Reconciliation
+Complete the template's Requirement-to-Production and State Completion tables for every FR, AC,
+and edge case. Trace each input through state, Task/async boundary, cleanup, and final observable
+result. Verify completion methods have reachable production call sites; test-only invocation does
+not prove production wiring.
 
-1. Read the approved matrix from the active specification and implementation plan.
-2. Inspect the diff independently for a trigger for each of ARCH, IMPL, TEST, SUI,
-   L10N, NAV, API, OBS, and ANL.
-3. For every rule, record the approved decision, observed trigger, code/static-check
-   evidence, and result in the code-review report.
-4. A missing row, a trigger under `Not applicable`, or an exception without the cited
-   user approval is **Required** severity. Do not require analytics events or logs when
-   the matrix validly marks them not applicable.
+Treat placeholders, no-op handlers, unreachable branches, stale flags, ignored callback results,
+missing cleanup, and unimplemented completion paths as `REVISION REQUIRED`.
 
-### Architecture Review
-- [ ] No View calling repository directly
-- [ ] No ViewModel calling URLSession directly
-- [ ] No DTOs outside data layer
-- [ ] No business logic in SwiftUI Views
-- [ ] No framework imports in domain layer
-- [ ] Use cases are single-responsibility
-- [ ] Mappers are in correct layers
+### 5. Review applicable rules
 
-### SwiftUI Review
-- [ ] Stateless `Content` + stateful `Screen` pattern used
-- [ ] No hardcoded strings — all `LocalizedStringKey`
-- [ ] No hardcoded colors — semantic tokens used
-- [ ] All interactive elements have `accessibilityIdentifier`
-- [ ] View conforms to `design_system.md`
+Use the canonical template rows and enforcement matrices rather than a second checklist here:
 
-### Correctness Review
-- [ ] All UI states covered: loading, content, empty, error, retry
-- [ ] No `fatalError("TODO")`, `#warning("stub")`, or dummy code
-- [ ] Error handling at every async boundary
-- [ ] Enums have `unknown` fallback
-- [ ] Navigation back-stack behavior correct
+- Architecture: dependencies flow inward, domain remains platform-independent, DTOs remain in
+  data, state ownership matches the approved plan, and SwiftData model contexts are correctly scoped.
+- Implementation: every reachable production branch implements the requirement; no placeholder,
+  dummy, suppression, or no-op path is accepted without explicit documented approval.
+- SwiftUI/localization: apply only when UI or user-visible copy is triggered; reconcile scripted,
+  evaluator, and human-owned rows in the report.
+- Navigation/API/observability/analytics: apply only when Required, excepted, or triggered by the
+  diff; otherwise record the approved N/A rationale.
+- Security/release: audit secrets, sensitive/user-generated logging, untrusted inputs, Keychain,
+  ATS, WKWebView boundaries, compatibility, and required runtime proof when triggered.
 
-### Observability and Analytics Review *(when OBS or ANL is Required)*
-- [ ] `os.Logger` with proper subsystem/category
-- [ ] Correct log levels (debug/info/warning/error/fault)
-- [ ] No PII in logs
-- [ ] Analytics fired from ViewModel layer when ANL is Required
+Every loaded rule receives a report result. Any unchecked human-owned row remains visible for
+human review rather than being inferred as passing.
 
----
+### 6. Verify UI/runtime claims conditionally
+
+Run UI verification when the slice says `affects_ui`, or when the diff changes a SwiftUI View despite
+that flag. Record a planning defect for the mismatch and continue verification. When visual
+verification is required, run every declared visual command and validator; require target-state
+proof, non-empty in-test capture, reference-anchor evidence, applicable golden comparison, and
+rendered-node pixels for rich-text appearance claims.
+
+For UI changes without a visual owner, run the mapped automated acceptance tests and name the
+slice that owns final visual verification. Do not capture an unrelated screen.
 
 ## Output
-Code review findings with severity: Critical, Required, or Suggested.
-Each finding references the violated rule file and specific line. Include a complete
-Rule Applicability Reconciliation table with the approved decision, diff trigger,
-evidence, and result for all nine rules.
+
+Fill `harness/templates/code-review-template.md` completely:
+
+- Ad-hoc: `docs/current/code_review_v<N>.md`.
+- Complex: `$FEATURE_DIR/code_review_{feature_id}.md`.
+
+## Done When
+
+- All mandatory mechanical gates exit 0 or the verdict is non-passing.
+- Rule Applicability Reconciliation and every applicable template section are complete.
+- Every FR, AC, edge case, state transition, callback, cleanup, and asynchronous completion path
+  has reachable production evidence.
+- Required UI, visual, platform, and security evidence is source-fed and passes its validator.
+- No non-zero, skipped, unavailable, fake-only, or stale result is labelled passing.
+- The report contains an evidence-based verdict and all human-owned rows remain explicit.
+
+Return to the active workflow only when required rows and gates pass. Route implementation defects
+to Implementation and evidence gaps to Testing.

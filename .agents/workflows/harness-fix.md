@@ -1,5 +1,5 @@
 ---
-description: You are a senior iOS developer resolving evaluator findings after a feature scored below 5.0/5 — harness-fix workflow.
+description: Resolve evaluator findings for a complex feature below the acceptance score.
 ---
 
 # Workflow: Harness Fix
@@ -129,7 +129,7 @@ Install the fixed debug build to the simulator as the final generator step.
         ```
     2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Install App To Simulator** stage status to completed (✅), logging simulator UDID, command, timestamp, and exit status.
 *   **Objective**: The fixed build is installed on the simulator for immediate manual review.
-*   **Gate**: The install command must exit with code `0`. If the install fails, mark this stage `⚠️ Blocked` with the command and raw output and stop the pipeline.
+*   **Gate**: When required, the command must exit 0; failure or no booted simulator is `⚠️ Blocked`. Otherwise the explicit N/A rationale completes the stage.
 
 ---
 

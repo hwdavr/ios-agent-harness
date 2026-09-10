@@ -1,6 +1,6 @@
 ---
 name: requirement-capture
-description: Captures unambiguous product requirements and user goals from the user's prompt.
+description: Capture unambiguous product requirements and user goals.
 ---
 
 # Skill — Feature Requirement Capture
@@ -61,7 +61,7 @@ Format each as:
 ```
 
 **Rule Applicability**
-Copy all nine rows from `harness/templates/rule-applicability-template.md`. For every
+Copy all ten rows from `harness/templates/rule-applicability-template.md`. For every
 row, record a supported decision, trigger or rationale, and planned evidence. If no
 analytics is justified, record `Not applicable — analytics: none`; do not create an
 event or log merely to make a row required.
@@ -97,7 +97,7 @@ Write **`docs/current/requirement-summary.md`** following **`harness/templates/r
 - [ ] Expected behaviors are concrete and independently testable
 - [ ] Non-goals are explicit (scope is bounded)
 - [ ] All assumptions are listed and accepted by the user
-- [ ] All nine Rule Applicability decisions are explicit and supported
+- [ ] All ten Rule Applicability decisions are explicit and supported
 - [ ] User has explicitly confirmed the document is correct
 
 **Do not proceed to Slice Planning until the user approves this document.**

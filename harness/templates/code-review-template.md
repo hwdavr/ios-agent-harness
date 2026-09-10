@@ -38,6 +38,7 @@ REQUIRED**. Do not require analytics events or logs when their trigger is absent
 | API | | Yes / No | | PASS / REVISION REQUIRED / N/A |
 | OBS | | Yes / No | | PASS / REVISION REQUIRED / N/A |
 | ANL | | Yes / No | | PASS / REVISION REQUIRED / N/A |
+| SEC | | Yes / No | | PASS / REVISION REQUIRED / N/A |
 
 ## Rule Detail Findings
 

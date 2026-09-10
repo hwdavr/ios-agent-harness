@@ -1,5 +1,5 @@
 ---
-description: You are a senior iOS developer clarifying requirements and planning a complex feature by breaking it into deliverable vertical slices — harness-planning workflow.
+description: Plan a complex iOS feature into approved vertical slices and sprint-contract artifacts.
 ---
 
 # Workflow: Harness Planning

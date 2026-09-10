@@ -1,5 +1,5 @@
 ---
-description: You are a senior iOS developer running an independent review of an existing change and fixing all findings before merge.
+description: Run an independent ad-hoc review of a completed iOS change before merge.
 ---
 
 # Workflow: Feature Review

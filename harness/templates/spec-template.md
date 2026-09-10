@@ -10,6 +10,23 @@ Use this template when producing `spec_v<N>.md` in the **Requirement, Impact & D
 ## Requirement Summary
 <description>
 
+## Rule Applicability
+
+Complete every row before approval. Use `Required`, `Not applicable — <feature-specific reason>`, or `Exception — approved by <user/date>`, and preserve this matrix in the implementation and review artifacts.
+
+| Rule ID | Rule document | Decision | Feature-specific evidence or reason |
+|---|---|---|---|
+| ARCH | `ios-architecture.md` | <decision> | |
+| IMPL | `implementation-rules.md` | <decision> | |
+| TEST | `testing-strategy.md` | <decision> | |
+| SUI | `swiftui-rules.md` | <decision> | |
+| L10N | `localization-rules.md` | <decision> | |
+| NAV | `navigation-rules.md` | <decision> | |
+| API | `api-contract-rules.md` | <decision> | |
+| OBS | `observability.md` | <decision> | |
+| ANL | `analytics-rules.md` | <decision> | |
+| SEC | `ios-security.md` | <decision> | Authentication, Keychain, ATS, WKWebView, AI/model, SDK, or release-security boundary. |
+
 ## Functional Requirements
 
 - **FR-001**: System MUST [specific capability, e.g., "allow users to create accounts"]
@@ -31,27 +48,6 @@ Use this template when producing `spec_v<N>.md` in the **Requirement, Impact & D
 - **SC-002**: [Measurable metric, e.g., "System handles 1000 concurrent users without degradation"]
 - **SC-003**: [User satisfaction metric, e.g., "90% of users successfully complete primary task on first attempt"]
 - **SC-004**: [Business metric, e.g., "Reduce support tickets related to [X] by 50%"]
-
----
-
-## Rule Applicability
-
-Copy the complete matrix from
-[`rule-applicability-template.md`](rule-applicability-template.md). Keep all nine rows
-and replace each `<decision>` with a supported decision before the requirements stage
-can pass.
-
-| Rule ID | Rule document | Default | Decision for this change | Trigger / rationale | Planned evidence |
-|---|---|---|---|---|---|
-| ARCH | `ios-architecture.md` | Always | <decision> | <trigger/rationale> | <evidence> |
-| IMPL | `implementation-rules.md` | Always | <decision> | <trigger/rationale> | <evidence> |
-| TEST | `testing-strategy.md` | Always | <decision> | <trigger/rationale> | <evidence> |
-| SUI | `swiftui-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
-| L10N | `localization-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
-| NAV | `navigation-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
-| API | `api-contract-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
-| OBS | `observability.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
-| ANL | `analytics-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: ios-unit-test
-description: Writes unit tests using Swift Testing framework for ViewModels, use cases, and mappers.
+description: Write Swift Testing unit tests for ViewModels, use cases, and mappers.
 ---
 
 # Skill — iOS Unit Testing

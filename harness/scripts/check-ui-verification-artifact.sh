@@ -6,6 +6,7 @@
 set -e
 
 DOCS_DIR="${1:-}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 fail() {
   echo "FAIL: $1" >&2
@@ -59,9 +60,8 @@ jq empty "$REPORT" 2>/dev/null \
   || fail "$REPORT is not valid JSON"
 
 # Required top-level keys
-for key in version reference_design design_anchors runtime_evidence \
-           build_and_static_checks normalization scope structural_verification \
-           defect_classification ai_visual_evaluation verdict; do
+for key in version reference_design build_and_static_checks normalization scope \
+           structural_verification defect_classification ai_visual_evaluation verdict; do
   jq -e ".$key" "$REPORT" >/dev/null 2>&1 \
     || fail "$REPORT is missing required key '$key'"
 done
@@ -78,6 +78,11 @@ fi
 VERDICT_RESULT=$(jq -r '.verdict.result' "$REPORT" 2>/dev/null)
 [ -n "$VERDICT_RESULT" ] && [ "$VERDICT_RESULT" != "null" ] \
   || fail "$REPORT verdict must declare a result"
+
+for key in design_anchors runtime_evidence; do
+  jq -e ".$key" "$REPORT" >/dev/null 2>&1 \
+    || fail "$REPORT is missing required key '$key'"
+done
 
 # Reference design asset must exist on disk.
 REFERENCE_ASSET=$(jq -r '.reference_design' "$REPORT" 2>/dev/null)

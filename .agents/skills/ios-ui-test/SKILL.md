@@ -1,6 +1,6 @@
 ---
 name: ios-ui-test
-description: Writes XCUITest instrumented UI tests for SwiftUI screens and navigation flows.
+description: Write XCUITest UI tests for SwiftUI screens and navigation flows.
 ---
 
 # Skill — iOS UI Testing

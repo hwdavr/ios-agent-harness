@@ -1,6 +1,6 @@
 ---
 name: implementation-plan
-description: Generates a detailed implementation and test plan before coding.
+description: Create a detailed implementation and test plan before coding.
 ---
 
 # Skill — Implementation Plan
@@ -13,10 +13,17 @@ This is the final gate before implementation begins.
 
 ## Load
 - `rules/testing-strategy.md`
+- `rules/testing-practices.md`
 - `harness/templates/rule-applicability-template.md`
 - `harness/templates/implementation-plan-template.md`
 - `harness/templates/test-plan-template.md`
 - `docs/current/spec_v<N>.md` (Requirement, Impact & Design Analysis stage output)
+
+When the approved `SEC` decision is `Required` or excepted, load
+`rules/ios-security.md` and carry its required boundary, failure-mode, and test
+evidence into the plan.
+Load `rules/testing-runtime-evidence.md` only when the planned evidence includes a
+platform, instrumented runtime, end-to-end journey, or visual claim.
 
 ---
 
@@ -26,7 +33,7 @@ This is the final gate before implementation begins.
 Using all outputs from the **Requirement, Impact & Design Analysis** stage, compile a complete implementation plan.
 
 Start by reading the approved **Rule Applicability** matrix in the active specification.
-Preserve all nine decisions in the plan. Every `Required` row needs concrete work and
+Preserve all ten decisions in the plan. Every `Required` row needs concrete work and
 verification evidence; a `Not applicable` or `Exception` row keeps its approved
 rationale. Do not introduce analytics events or logs solely because their rows exist.
 

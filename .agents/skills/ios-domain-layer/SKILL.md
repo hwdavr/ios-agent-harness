@@ -1,6 +1,6 @@
 ---
 name: ios-domain-layer
-description: Implements the domain layer (use cases, domain models, repository protocols).
+description: Implement domain use cases, domain models, and repository protocols.
 ---
 
 # Skill — iOS Domain Layer

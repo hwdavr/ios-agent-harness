@@ -31,11 +31,11 @@ Every feature declares the root `platform_validation` object in `feature_list.js
 
 When the feature is platform-bound, link the workspace artifact `platform-capability-matrix.md`. The matrix MUST declare the minimum API, target API, every important API boundary, the single owner of each device resource, the input/output contract, and the required fallback for unsupported platforms. A missing emulator, device, model, locale, permission, hardware capability, or platform service is an evidence failure—not a passing skip. The exact failure policy is `fail_loudly`: the command must exit non-zero or the feature must be marked `Blocked`/`Revise`.
 
-Platform-bound features MUST declare at least one real instrumented boundary test. A fake adapter, fake recognizer, iOS simulator-only intent test, or manually emitted callback is supplemental evidence and cannot satisfy the platform gate by itself. The test must exercise the shipped Android boundary and record a successful `xcodebuild test (UI Tests)` result in `feature_list.json` evidence.
+Platform-bound features MUST declare at least one real instrumented boundary test. A fake adapter, fake recognizer, iOS simulator-only intent test, or manually emitted callback is supplemental evidence and cannot satisfy the platform gate by itself. The test must exercise the shipped iOS platform boundary and record a successful `xcodebuild test (UI Tests)` result in `feature_list.json` evidence.
 
 ## Rule Applicability Contract *(required)*
 
-Copy the approved nine-row matrix from the requirement artifact. The decision must be `Required`, `Not applicable — <feature-specific reason>`, or `Exception — approved by <user/date>`. Every `Required` row must map to implementation and verification evidence before a slice can pass.
+Copy the approved ten-row matrix from the requirement artifact. The decision must be `Required`, `Not applicable — <feature-specific reason>`, or `Exception — approved by <user/date>`. Every `Required` row must map to implementation and verification evidence before a slice can pass.
 
 | Rule ID | Rule document | Decision | Slice evidence |
 |---|---|---|---|
@@ -48,6 +48,7 @@ Copy the approved nine-row matrix from the requirement artifact. The decision mu
 | API | `api-contract-rules.md` | <decision> | |
 | OBS | `observability.md` | <decision> | |
 | ANL | `analytics-rules.md` | <decision> | |
+| SEC | `ios-security.md` | <decision> | |
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 name: android-to-ios-ui-migration
-description: Migrate Android Jetpack Compose screens to production SwiftUI with measured visual parity. Use when porting an Android UI screen, component, theme, or navigation state to iOS; when extracting Compose dimensions, typography, colors, semantics, and interaction states into an iOS design mapping; or when Android source and screenshots must be reconciled before SwiftUI implementation and XCUITest verification.
+description: Migrate Android Jetpack Compose screens to production SwiftUI with measured visual parity.
 ---
 
 # Android-to-iOS UI Migration

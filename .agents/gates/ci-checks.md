@@ -92,6 +92,15 @@ rejects unsafe cleartext, WebView, Mermaid, AI-input logging, and untrusted-outp
 sink patterns, while the contract test proves unsafe fixtures fail and reports do
 not leak fixture content.
 
+### 7b. iOS Security Code Rules
+
+Changes that touch an iOS security boundary must load
+`.agents/rules/ios-security.md` and carry its boundary, failure-mode, and test
+evidence into the review. The full-source bundle is the canonical CI enforcement
+entry point; SwiftLint and the applicable instrumented boundary tests remain
+required. A missing runtime or unavailable platform boundary is blocked evidence,
+not a passing check.
+
 ### 8. Localization Check
 ```bash
 bash harness/scripts/check-localization-rules.sh
@@ -133,7 +142,8 @@ bash harness/scripts/check-keyboard-mockup-contract.sh "$FEATURE_DIR"
 bash harness/scripts/tests/rule-applicability-contract-test.sh
 ```
 **Must pass** when changing `AGENTS.md`, workflows, skills, templates, or artifact gates
-that govern requirements, planning, implementation, testing, or review.
+that govern requirements, planning, implementation, testing, or review. Ensures requirement
+artifacts carry all ten rule decisions and that the stage gate rejects incomplete matrices.
 
 ### 15. Rules-Matrix Contract
 ```bash

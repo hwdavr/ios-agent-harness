@@ -1,6 +1,6 @@
 ---
 name: ios-data-layer
-description: Implements the data layer (SwiftData + URLSession + DTOs + Repository).
+description: Implement SwiftData persistence, URLSession networking, DTOs, and repositories.
 ---
 
 # Skill — iOS Data Layer

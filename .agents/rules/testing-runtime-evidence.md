@@ -1,0 +1,67 @@
+# Runtime Testing Evidence Rules
+
+## When to Load
+
+Load this rule when the approved scope or submitted diff touches SwiftUI rendering, user gestures,
+navigation/back stack, navigation state recreation, post-return persistence, iOS SDK behavior,
+hardware/device capabilities, models, locales, permissions, or visual evidence.
+
+## Runtime Selection and Execution
+
+- Use the iOS Simulator (e.g. `iPhone 16`) for instrumented XCUITest flows.
+- Use `XCUIApplication` with stable `accessibilityIdentifier` attributes for all interactive and structural elements.
+- Do not use `sleep()` — use `waitForExistence(timeout:)` or asynchronous expectations.
+- Do not call a real production backend; use deterministic local mocked endpoints.
+
+## Platform-Bound Evidence
+
+A platform-bound feature requires a real instrumented boundary test in addition to deterministic
+unit/integration tests. The test must exercise the shipped adapter against the declared iOS API or
+resource and assert an observable platform result.
+
+Fake adapters, fake callbacks, and seam instantiation are supplemental. If a required runtime,
+simulator, model, locale, permission, or service is unavailable, the command must fail or record
+`Blocked`/`Revise`; it cannot pass by skip or warning.
+
+## Production Journey Boundary
+
+For navigation, state preservation, back stack, destination recreation, or post-return persistence:
+
+- Mount the production navigation hierarchy.
+- Perform real UI gestures through stable `accessibilityIdentifier` tags.
+- Cross the declared return boundary.
+- Assert the visible result after returning.
+
+Direct ViewModel calls, internal state mutation, manually invoked closures, and view-only tests
+are supplemental. Register shipped required journeys in `docs/product/journey-registry.yaml` and
+run `bash harness/scripts/check-journey-registry.sh --run-all` during verification.
+
+## Visual Evidence Capture
+
+When `requires_visual_verification` is true, dedicated UI tests must render every contract state and
+capture visual evidence during active rendering using `XCUIScreen.main.screenshot()`. Save screenshots
+to the feature's `visual_evidence/` directory.
+
+Post-test external screencaps are prohibited because the test window has already been destroyed.
+Every visual Test ID requires a non-empty screenshot and a reference-anchor row tied to an
+accessibility identifier, runtime test method, measured relationship, and tolerance.
+
+## Rendered Rich-Text Evidence
+
+Claims that bold, italic, underline, strikethrough, code, monospace, or another inline style is
+visibly rendered require concrete rendered pixels or measured attributes. Assert an explicit checked
+pixel difference or attribute outcome.
+
+Model marks, raw string contents, toolbar selection state, and a non-empty full-screen PNG are
+supplemental and do not prove rendered appearance.
+
+## Visual Comparison Contract
+
+- Structural conformance is binding through reference-anchor bounds assertions.
+- Golden regression is binding at similarity >= 0.95 with zero high-severity violations (`compare-visual-evidence.sh`).
+- Mockup conformance is informational because generated/reference copy cannot pixel-match runtime.
+- Each non-anchor-only contract screenshot must have a promoted golden baseline.
+- `reference-map.json` may map a capture to a reference, a masked reference, or `null` for an
+  explicit anchor-only state.
+- Missing or ambiguous references fail as `NO_REFERENCE`; they are never silently skipped.
+- Preserve actual captures, comparison reports, and diff overlays under `visual_evidence/`.

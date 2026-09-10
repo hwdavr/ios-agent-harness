@@ -1,6 +1,6 @@
 ---
 name: ios-implementation
-description: Implements a user story or feature across data, domain, and UI layers sequentially.
+description: Implement an iOS feature across data, domain, and UI layers sequentially.
 ---
 
 # Skill — iOS Implementation (Data + Domain + UI)

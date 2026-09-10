@@ -1,5 +1,5 @@
 ---
-description: You are a senior iOS developer implementing features step-by-step using the harness-generator pipeline.
+description: Implement an approved complex iOS feature slice through harness-generator stages.
 ---
 
 # Workflow: Harness Generator
@@ -68,6 +68,8 @@ Build out the selected feature across the necessary layers.
     2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Implement** stage status to completed (✅) with list of created/modified files.
 *   **Objective**: Only the layers and conditional rules selected by the approved slice are implemented, `xcodebuild build` compiles cleanly, UI changes conform to `docs/product/design_system.md` plus approved feature exceptions, and progress is logged in the summary.
 
+This workflow is implementation-first; do not insert a feature-level RED/TDD stage before Stage 4.
+
 ### Stage 5 — Test
 Verify the correctness of the implemented behavior visually and logically.
 *   **Action**:
@@ -84,25 +86,25 @@ Run all static check suites, lint rules, and custom compliance rules, and resolv
 *   **Objective**: Diagnose and resolve all formatting, quality, localization, and architectural style guidelines issues, reconcile any newly discovered rule trigger with the approved matrix, and log check success in `$FEATURE_DIR/summary_{feature_id}.md`.
 *   **Gate**: All required quality checks must exit `0`. If any check fails, record the failing command and raw output, mark this stage `⚠️ Blocked`, and stop the pipeline.
 
-### Stage 7 — Finalize & Exit
-Verify all acceptance criteria, update project state, commit, and prepare for handoff.
+### Stage 7 — Update State
+Verify all acceptance criteria, update project state, commit, and record progress.
 
 > [!IMPORTANT]
 > **Strict Verification Gate**: You **CANNOT** directly or arbitrarily change a feature's status to `passing` in `feature_list.json`. Transitioning a feature to `passing` is a gate controlled exclusively by executing successful verification commands.
 >
 > **Gate Check Policy**:
 > 1. **Identify Gate Criteria**: Read the selected user story in `$FEATURE_DIR/sprint-contract.md`. Every `Acceptance Test Cases` command is a mandatory gate. The active feature's `"verification"` field must reference the same Test IDs and commands.
-> 2. **Validate fresh evidence**: Reuse the successful Test-stage command evidence when the production sources, build/test configuration, declared verification command, and runtime target are unchanged. Re-run only the affected command when one of those inputs changed; do not repeat a green acceptance suite solely to copy its output into a later stage.
+> 2. **Validate fresh evidence**: Reuse successful Test-stage evidence only after `bash harness/scripts/check-evidence-receipt.sh <receipt.json> --source <hash> --build-config <hash> --command <hash> --runtime <hash>` confirms that the production sources, build/test configuration, declared verification command, runtime target, exit code, and evidence file are unchanged. Re-run only the affected command when validation fails; do not repeat a green acceptance suite solely to copy its output into a later stage.
 > 3. **On Failure — bounded diagnosis and retry**: If any verification command fails (exit code `non-zero`), keep the stage non-passing and diagnose, fix, and re-run that specific command up to three times. If it remains non-zero, record the gate as `⚠️ Blocked` or non-passing and stop before the next verification item.
 > 4. **Validate & Attach Evidence**:
 >    *   The status can **ONLY** transition to `passing` if **every** acceptance-test command eventually executes successfully (exit code `0`) — either on the first run or after resolution.
 >    *   You **MUST** attach objective evidence for every Test ID, including the command, exit status, fix attempts (if any), and final result, inside the `"evidence"` field of the active feature object.
->    *   If any verification command fails, the status must be marked as `blocked` or returned to `in_progress`. Document the unresolved command and prerequisite.
->    *   A visual-verification owner cannot transition to `passing` unless `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` exits `0`. This requires a non-empty screenshot and a `visual_evidence/reference-anchor-verification.md` row for every visual Test ID; the row must connect the approved reference to a visual bounds `accessibilityIdentifier`, a runtime assertion, and a concrete measured relationship. The validator also requires each visual row and command to target a dedicated `*VisualFlowTests.swift` method with method-scoped `-only-testing`, so functional tests cannot overwrite visual evidence.
+>    *   If any verification command remains unresolved after 3 fix attempts, the status must be marked as `blocked` or returned to `in_progress`. Document all unresolved items.
+>    *   A visual-verification owner cannot transition to `passing` unless `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` exits `0`. This requires a non-empty screenshot and a `visual_evidence/reference-anchor-verification.md` row for every visual Test ID; the row must connect the approved reference to a visual bounds `accessibilityIdentifier`, a runtime assertion, and a concrete measured relationship.
 
 *   **Action**:
     1. Execute the verification gate (see Gate Check Policy above). Attach evidence to `feature_list.json`, then run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate "$FEATURE_ID"`. A slice cannot transition to `passing` unless the recorded evidence command is scoped to every declared acceptance test suite.
-    2. Once verification passes and evidence is attached, update `$FEATURE_DIR/feature_list.json`.
+    2. Once verification passes and evidence is attached, update `$FEATURE_DIR/feature_list.json` and `$FEATURE_DIR/progress.md`.
     3. Update `docs/product/product.md` directly:
         *   Update the **Product Portfolio Summary** to reflect the delivered slice.
         *   Add the feature to **Current Product Capabilities** with its delivered behavior and notable implementation notes.
@@ -116,14 +118,26 @@ Verify all acceptance criteria, update project state, commit, and prepare for ha
         ```bash
         git commit -m "feat(<area>): <short description of implemented feature>"
         ```
-    7. Review the **[`clean-state-checklist-template.md`](../../harness/templates/clean-state-checklist-template.md)** — architecture & standards (§2), observability (§5), and cleanliness (§6) items are code-review checks. Reference the fresh Test and Code Quality evidence for build/test/lint checks unless a relevant input changed after that stage; do not re-run an unchanged green verification command solely for Clean Exit. If any item fails, keep clean exit non-passing and diagnose, fix, and re-run that item up to three times. After processing all items, all checks **SHOULD** pass; any remaining `⚠️ unresolved` items must be documented in the session handoff and keep the pipeline stopped.
-    8. Create or update **`$FEATURE_DIR/session-handoff.md`** by strictly following **[`session-handoff-template.md`](../../harness/templates/session-handoff-template.md)**. Detail what is working, what changed, unverified paths, risks, unresolved gate items, and next steps.
-    9. **Never move the feature directory.** Its `docs/product/` path is stable; only tracker and per-slice statuses change.
-    10. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Finalize & Exit** stage status to completed (✅), transition the selected slice summary to Complete, and document key outcomes, open items, and handoff decisions.
-*   **Objective**: Ensure all state updates are backed by mechanical, verifiable evidence. Leave the repository in a completely green, stable, and self-documenting state that a fresh session can immediately pick up and resume.
+    7. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Update State** stage status to completed (✅), logging the commit hash and verification execution outcome.
+*   **Objective**: Ensure all state updates are backed by mechanical, verifiable evidence. The stable product workspace remains at the same path throughout delivery.
 
-### Stage 8 — Install App To Simulator
-Install the completed debug build to the simulator as the final generator step.
+### Stage 8 — Clean Exit
+Ensure that the final repository state is clean, verified, and fully prepared for the next developer or agent session.
+
+> [!IMPORTANT]
+> **Checklist & Handoff Policy**:
+> 1. **Run Clean State Checklist**: Copy the Core checks and only the triggered conditional sections from **[`clean-state-checklist-template.md`](../../harness/templates/clean-state-checklist-template.md)**. Record every omitted trigger as `N/A — <feature-specific reason>`. Reference fresh Test and Code Quality evidence while its receipt remains valid; rerun only invalidated evidence. A failed required item keeps Clean Exit non-passing and stops the pipeline.
+> 2. **Produce Session Handoff**: Create or update **`$FEATURE_DIR/session-handoff.md`** by strictly following the format and fields defined in **[`session-handoff-template.md`](../../harness/templates/session-handoff-template.md)**. Detail what is working, what changed, unverified paths, risks, unresolved gate items, and next steps.
+> 3. **Verify Observability Metrics**: Run `bash harness/scripts/check-harness-metrics.sh --validate "$FEATURE_DIR/summary_{feature_id}.md"` to confirm execution metrics are complete.
+> 4. **Never move the feature directory.** Its `docs/product/` path is stable; only tracker and per-slice statuses change.
+
+*   **Action**:
+    1. Verify all checklist criteria, reference fresh Test and Code Quality evidence, and write `$FEATURE_DIR/session-handoff.md`. Re-run only a verification command invalidated by a later relevant change.
+    2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Clean Exit** stage status to completed (✅), transition the selected slice summary to Complete, and document key outcomes, open items, and handoff decisions.
+*   **Objective**: Leave the repository in a completely green, stable, and self-documenting state that a fresh session can immediately pick up and resume.
+
+### Stage 9 — Install App To Simulator
+Install the completed debug build to the simulator as the final generator step when the slice affects UI, requires instrumented/platform verification, or the user explicitly requests installation. Otherwise record `N/A — no iOS runtime or installation boundary in the approved scope`.
 
 *   **Action**:
     1. Install the app to the booted simulator:
@@ -132,4 +146,4 @@ Install the completed debug build to the simulator as the final generator step.
         ```
     2. **Update `$FEATURE_DIR/summary_{feature_id}.md`** to mark the **Install App To Simulator** stage status to completed (✅), logging the simulator UDID, install command, timestamp, and exit status.
 *   **Objective**: Leave the implemented feature installed on the simulator for immediate manual review.
-*   **Gate**: The install command must exit with code `0`. If the install fails, mark this stage `⚠️ Blocked` with the command and raw output and stop the pipeline. If no simulator is booted, mark this stage blocked with the `xcrun simctl list devices` output and do not claim the generator session is fully complete.
+*   **Gate**: When required, the install command must exit 0; failure or no booted simulator is `⚠️ Blocked`. When not required, the explicit N/A rationale completes the stage without an install command.

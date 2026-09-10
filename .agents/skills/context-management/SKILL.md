@@ -1,6 +1,6 @@
 ---
 name: context-management
-description: Optimizes agent context setup. Use when starting a new session, when agent output quality degrades, when switching between tasks, or when you need to configure rules files and context for a project.
+description: Set up focused session context and project rules for the active task.
 ---
 
 # Context Management
@@ -14,7 +14,14 @@ description: Optimizes agent context setup. Use when starting a new session, whe
 5. The skill(s) for the current stage only
 6. Source files for the specific feature area (ViewModel, use case, repository interface)
 
-**Rule:** Never preload all skills at once. Load what the current stage requires.
+**Implementation-only:** load `rules/implementation-rules.md` only after the
+Implementation stage is selected. Do not infer or preload iOS security guidance at session
+start; the selected stage skill loads it only after inspected scope triggers its boundary.
+
+**Rule:** Never preload all skills or conditional rules. Use the Rule Applicability trigger
+catalog, or the complex-slice context index, and load only Required, excepted, or newly triggered
+documents. During testing/review load `rules/testing-practices.md`; add
+`rules/testing-runtime-evidence.md` only for runtime-bound claims.
 
 ---
 
@@ -22,9 +29,9 @@ description: Optimizes agent context setup. Use when starting a new session, whe
 
 | Layer | Load these files |
 |-------|-----------------|
-| UI / Presentation | Screen composable · `UiState` · ViewModel · UI model · mapper |
-| Domain | Use case · domain model · repository interface |
-| Data | Repository impl · DAO · DTO · mapper |
+| UI / Presentation | SwiftUI View · UIState · ViewModel · UI model · mapper |
+| Domain | Use case · domain model · repository protocol |
+| Data | Repository impl · SwiftData Model · DTO · mapper |
 
 ---
 
@@ -43,9 +50,9 @@ description: Optimizes agent context setup. Use when starting a new session, whe
 
 | Directory | Contains |
 |-----------|----------|
-| `NotesTakingAppiOS/java/...` | App code (`ui/`, `domain/`, `data/`) |
-| `NotesTakingAppiOSTests/` | Unit and integration tests (run) |
-| `NotesTakingAppiOSUITests/` | Instrumented UI tests |
+| `NotesTakingAppiOS/` | App code (`Views/`, `ViewModels/`, `Domain/`, `Data/`) |
+| `NotesTakingAppiOSTests/` | Unit and integration tests (Swift Testing + XCTest) |
+| `NotesTakingAppiOSUITests/` | Instrumented UI tests (XCUITest) |
 | `sharedContracts/` | API specs and shared JSON test scenarios |
 | `docs/knowledge/` | Historical decisions and known pitfalls |
 
@@ -53,14 +60,13 @@ description: Optimizes agent context setup. Use when starting a new session, whe
 
 ## Context Drift — Warning Signs
 
-- Wrong package structure or naming conventions
-- Composable calling a repository directly
-- `Thread.sleep` in tests instead of `waitUntil`
-- Hardcoded strings instead of `LocalizedStringKey`
+- Wrong directory structure or naming conventions
+- View calling a repository directly
+- `sleep()` in tests instead of `waitForExistence`
+- Hardcoded strings instead of `LocalizedStringKey` / `String(localized:)`
 - Missing `accessibilityIdentifier` on interactive elements
-- `LiveData` instead of `StateFlow`
 - DTO outside the data layer
-- Hallucinated class names
+- Hallucinated type or method names
 
 ## Context Drift — Recovery
 
@@ -73,8 +79,9 @@ description: Optimizes agent context setup. Use when starting a new session, whe
 
 ## Session Start Checklist
 
-- [ ] `AGENTS.md` + both rule files loaded
+- [ ] `AGENTS.md` + both L1 rule files loaded
 - [ ] Correct workflow identified
 - [ ] Only current-stage skill(s) loaded
+- [ ] Implementation rules loaded only when the Implementation stage is selected
 - [ ] Feature-area source files loaded
 - [ ] No unresolved assumptions

@@ -1,5 +1,5 @@
 ---
-description: Migrate Android behavior and business logic (including affected UI interactions) to iOS with test-first parity and dated feature-folder artifacts.
+description: Migrate Android behavior, logic, and UI interactions to iOS with verified parity.
 ---
 
 # Workflow: Android → iOS Migration

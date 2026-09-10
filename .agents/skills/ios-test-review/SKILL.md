@@ -1,64 +1,130 @@
 ---
 name: ios-test-review
-description: Reviews test quality: coverage, assertions, test isolation, and scenario reuse.
+description: Conduct independent iOS test review across coverage, doubles, and assertions.
 ---
 
 # Skill — iOS Test Review
 
 ## Purpose
-Review test quality independently from the code review: coverage targets, assertion quality, test isolation, and scenario reuse.
 
----
+Independently review test quality, assertion depth, boundary handling, and coverage
+evidence before code review. The canonical report structure and traceability table
+live in `harness/templates/test-review-template.md`.
 
 ## Load
-- `rules/testing-strategy.md`
-- `harness/templates/rule-applicability-template.md`
-- `skills/shared-json-scenarios/SKILL.md`
 
----
+- All test files mapped by the active plan or sprint contract, plus the production files that implement the mapped behavior.
+- `rules/testing-strategy.md`, `rules/testing-practices.md`,
+  `harness/templates/test-review-template.md`, and
+  `harness/templates/rule-applicability-template.md`.
+- Load `rules/testing-runtime-evidence.md` only when the plan or diff makes a
+  platform, instrumented runtime, end-to-end journey, or visual claim.
+- Load `rules/ios-security.md` when the approved `SEC` row is `Required` or
+  excepted, or when the changed behavior newly triggers a security boundary.
+
+If a required baseline or test-evidence artifact is missing, record it as a blocking finding. Do not substitute a prior `test_review_*.md` for the missing source evidence.
 
 ## Execute
 
-### Rule Applicability Test Reconciliation
+### B0. Rule Applicability Test Reconciliation
 
-Read the approved matrix from the active specification and test plan. For every rule,
-record whether its planned verification evidence exists and exercises a real production
-trigger where applicable. Independently flag a test gap when the diff triggers a rule
-marked `Not applicable`, or when an exception lacks its cited user approval. Do not
-invent analytics or logging tests for a correctly non-applicable row.
+Read the approved Rule Applicability matrix and test plan before assessing tests. For
+ARCH, IMPL, TEST, SUI, L10N, NAV, API, OBS, ANL, and SEC, verify that the planned test,
+static-check, review evidence, or explicit non-applicable rationale exists and remains
+valid against the diff. Do not invent analytics or logging tests when their triggers are
+absent; an unsupported decision is **REVISION REQUIRED**.
 
-For a harness feature, run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate` before recording a passing review. The report must retain the acceptance Test ID beside the test file and method; a missing method, shared-scenario reference, or suite-scoped evidence command is `REVISION REQUIRED`.
+For `SEC: Required`, also verify the rule's validation,
+redaction/fallback, and real instrumented boundary evidence. Missing runtime evidence
+is blocked, not passing.
 
-### Coverage Review
-- [ ] Overall project ≥ 80% line coverage (`xccov`)
-- [ ] New ViewModel classes ≥ 90%
-- [ ] New domain use case classes ≥ 90%
-- [ ] SwiftUI Views excluded from coverage (correct)
+### B1. Establish review scope and evidence provenance
 
-### Test Quality Review
-- [ ] AAA pattern followed
-- [ ] One assertion per concept — no bundled assertions
-- [ ] No envelope-only assertions (verify semantic content, not `contains("<svg")`)
-- [ ] Tests are isolated — no shared state between tests
-- [ ] DAMP over DRY — tests tell self-contained stories
-- [ ] Real objects preferred over mocks (mock only boundaries)
-- [ ] No `sleep()` in tests — proper expectations used
+For harness evaluation, run the acceptance-test traceability validator in evaluation
+mode before accepting the review. It must prove each acceptance Test ID maps to a real
+Swift test method, a suite-scoped command, its declared scenario, and successful evidence:
 
-### Integration Test Review
-- [ ] At least one integration test per API endpoint
-- [ ] Shared JSON scenarios used — no inline mock data
-- [ ] All error paths covered (4xx, 5xx, timeout, malformed)
-- [ ] Unknown enum values tested
+```bash
+bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate
+```
 
-### Bug Fix Review
-- [ ] Reproduction test added and fails before fix
-- [ ] Reproduction test passes after fix
-- [ ] No unrelated file changes
+1. Record the current commit, changed files, selected feature/slice, and the source paths used for review.
+2. For every recorded test or coverage result, capture the command, exit code, timestamp, commit (when available), and whether it was:
+   - **Independently executed** during this review;
+   - **Recorded testing-stage evidence**; or
+   - **Up-to-date / not executed**.
+3. Do not call recorded or up-to-date evidence a fresh passing execution. Runtime commands belong to Stage 4 of the active review workflow; cite their result once that stage has run.
 
----
+### B2. Build complete requirement-to-test traceability
+
+List every functional requirement, acceptance criterion, and documented edge case from the active `spec.md` and `sprint-contract.md`. Add one row per requirement to the review report with:
+
+| Source ID | Required behavior | Test file + method | Production trigger exercised | Observable assertion | Evidence status | Result |
+|---|---|---|---|---|---|---|
+
+Use the exact requirement ID where available. A mapped test is **not sufficient** unless it both exercises the production trigger and asserts the required observable outcome.
+
+Mark a row **REVISION REQUIRED** when any of the following is true:
+
+- The requirement has no mapped test.
+- The named test method or test file does not exist.
+- The test sets UI state, calls a setter, injects a final callback, or pre-populates success state instead of exercising the production event it claims to cover.
+- The test clicks a control but does not assert the callback result, state transition, navigation result, system permission result, or user-visible outcome required by the source requirement.
+- The test asserts a callback was invoked but does not assert the resulting UI or lifecycle effect where the requirement is user-visible.
+- The test is the only caller of a completion callback or state transition that has no production call site.
+- The FR names multiple outcomes (e.g. a serialization round-trip *and* graceful fallback for missing/unknown fields, or a happy path *and* an error/fallback path) but only one of them is mapped to a test — the untested outcome must be marked `REVISION REQUIRED`, even when the happy-path test passes.
+
+### B3. Review test quality and boundaries
+
+For every mapped test file, check:
+
+- **Naming**: names describe the real Given / When / Then behavior.
+- **Production realism**: the event source, callback, permission result, lifecycle event, or navigation action is represented at the lowest reliable test layer.
+- **Assertiveness**: assertions verify the required externally observable result; flag unused capture variables, setter-only tests, empty verification blocks, `#expect(true)`, and unasserted optional unwrapping without a behavior assertion.
+- **Isolation**: unit tests isolate external boundaries; integration tests use real in-memory components where appropriate; UI tests use deterministic fakes.
+- **Shared scenarios**: API tests use shared JSON scenarios. Flag inline API payloads, including multiline JSON strings, unless the test is not API-related and the reason is recorded.
+- **Import hygiene**: no unnecessary framework imports in unit tests, explicit test imports.
+
+### B4. Check conditional behavior categories
+
+When the source requirements include the category below, verify both the success path and the stated failure/boundary path. Mark the category N/A only when the active specification has no such behavior, and state why.
+
+| Category | Required review check |
+|---|---|
+| Runtime permissions | `Info.plist` usage description where needed, authorization request, grant path, denial UI, and Settings action if specified. |
+| Asynchronous tasks / animation | Production completion path is reachable; tests do not invoke completion directly as a substitute for production wiring. |
+| Lifecycle / navigation | Dismiss, sheet presentation, back navigation, view recreation, and cleanup requirements use the real lifecycle or navigation trigger. |
+| Error / retry | Error state, retry trigger, bounded retry behavior, and user-visible recovery result are asserted. |
+| API / data | Every endpoint has success, 4xx, 5xx, malformed payload, and unknown-enum coverage as applicable. |
+
+### B5. Coverage and regression review
+
+From evidence with clear provenance, assess whether coverage is concentrated on trivial code rather than behavior branches. Flag new domain use cases and ViewModels below 90% and overall coverage below 80%.
+
+For bug fixes, confirm that the reproduction test was red before the fix, is green afterward, and contains no uncontrolled timing or threading.
 
 ## Output
-Test review findings with severity.
-Coverage report snapshot with actual percentages.
-Include a Rule Applicability Test Reconciliation table with the approved decision,
-trigger/test evidence, and result for all nine rules.
+
+Produce a report from `harness/templates/test-review-template.md`:
+
+- **Ad-hoc workflows**: `docs/current/test_review_v<N>.md`
+- **Harness evaluation**: `$FEATURE_DIR/test_review_{feature_id}.md`
+
+The report must include evidence provenance, the complete traceability matrix, test-quality findings, coverage distribution, and an overall verdict. Update the active summary only after both test and code review verdicts are known.
+
+## Done When
+
+All of the following are mechanically verifiable:
+
+- [ ] Every FR, AC, and documented edge case in the active baseline has a traceability row.
+- [ ] Every named outcome within an FR (happy path, fallback, error, boundary, compatibility) is covered by its own test; no FR is approved on a happy-path test alone when it promises more.
+- [ ] Every row identifies a real production trigger and an observable assertion, or is explicitly marked `REVISION REQUIRED`.
+- [ ] Test, coverage, and runtime-check evidence records command, exit code, provenance, and scope.
+- [ ] No mapped test is approved when it is setter-only, assertion-free, test-only callback wiring, or otherwise detached from the specified behavior.
+- [ ] API endpoints, permission paths, callbacks, lifecycle, navigation, and errors are reviewed when in scope; N/A rows include a reason.
+- [ ] Regression reproduction is confirmed for bug fixes.
+- [ ] The active workflow's test-review report exists with an evidence-based verdict.
+
+**APPROVED →** Return to the active workflow and proceed to Code Review.
+
+**REVISION REQUIRED →** Return to Testing or Implementation according to the missing behavior's root cause. Do not approve a feature with an unverified required traceability row.

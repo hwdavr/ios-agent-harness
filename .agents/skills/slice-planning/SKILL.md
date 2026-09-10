@@ -1,6 +1,6 @@
 ---
 name: slice-planning
-description: Decomposes requirements into vertical slices and schedules a Sprint Contract.
+description: Decompose requirements into vertical slices and a sprint contract.
 ---
 
 # Skill — Slice Planning
@@ -78,7 +78,7 @@ A `affects_ui: false` slice is still vertical when an *existing* reachable entry
 
 ### 4. Define Features inside `feature_list.json`
 
-The `feature_list.json` root MUST include a `platform_validation` object alongside `features`. For platform-bound work set `required: true`, `unsupported_environment_policy: "fail_loudly"`, `capability_matrix: "platform-capability-matrix.md"`, `real_boundary_test_required: true`, `real_boundary_test_ids`, `real_boundary_test_files`, and `real_boundary_test_signal`, and declare at least one real instrumented boundary test in the owning slice's `acceptance_test_ids`; the platform capability matrix is generated only in this case. For work with no Android/device/platform boundary — the common case — set `required: false`, provide a `reason`, and generate **no matrix artifact**; the JSON declaration plus reason is the whole contract.
+The `feature_list.json` root MUST include a `platform_validation` object alongside `features`. For platform-bound work set `required: true`, `unsupported_environment_policy: "fail_loudly"`, `capability_matrix: "platform-capability-matrix.md"`, `real_boundary_test_required: true`, `real_boundary_test_ids`, `real_boundary_test_files`, and `real_boundary_test_signal`, and declare at least one real instrumented boundary test in the owning slice's `acceptance_test_ids`; the platform capability matrix is generated only in this case. For work with no iOS/device/platform boundary — the common case — set `required: false`, provide a `reason`, and generate **no matrix artifact**; the JSON declaration plus reason is the whole contract.
 
 For each slice, you must populate the `features` list in the `feature_list.json` schema. Define each task completely, ensuring that each field is explained and adheres to the following definitions:
 
@@ -89,10 +89,10 @@ For each slice, you must populate the `features` list in the `feature_list.json`
 - **`description`**: A comprehensive detailed instruction mapping the precise code-level logic, domain model changes, and database structures required. **This field specifically tells the generator agent exactly what to do** at a technical execution level.
 - **`ui_design`**: A file path to a layout asset/mockup or a reference name from an external design tool (e.g. Figma or Pencil.dev) depicting the UI specifications for the feature.
 - **`user_visible_behavior`**: A clear explanation of what observable UI elements, texts, behavior, or default flows are affected by this task.
-- **`affects_ui`**: Boolean. `true` if the slice adds, removes, or modifies any Composable, screen layout, or visible UI state. It always triggers UI-focused automated acceptance testing and `android-code-review` SKILL.md §4 during harness-evaluation. It does not, by itself, require a screenshot gate. When `false`, the slice is treated as a non-UI change.
-- **`requires_visual_verification`**: Boolean. Set this to `true` only for the final user story that makes the completed visual flow reachable and reviewable. Set it to `false` for intermediate UI slices, including a slice that changes Composables but has no standalone production entry point. A `true` owner MUST include the required `TC-US-*-VIS` rows and state-verifying screenshot commands; `false` slices require automated UI/integration proof for their acceptance criteria but no screenshot gate.
+- **`affects_ui`**: Boolean. `true` if the slice adds, removes, or modifies any SwiftUI View, screen layout, or visible UI state. It always triggers UI-focused automated acceptance testing and `ios-code-review` SKILL.md §4 during harness-evaluation. It does not, by itself, require a screenshot gate. When `false`, the slice is treated as a non-UI change.
+- **`requires_visual_verification`**: Boolean. Set this to `true` only for the final user story that makes the completed visual flow reachable and reviewable. Set it to `false` for intermediate UI slices, including a slice that changes SwiftUI views but has no standalone production entry point. A `true` owner MUST include the required `TC-US-*-VIS` rows and state-verifying screenshot commands; `false` slices require automated UI/integration proof for their acceptance criteria but no screenshot gate.
 - **`status`**: The progress status (`not_started`, `in_progress`, `blocked`, or `passing`).
-- **`verification`**: An array of specific, step-by-step proof required for that feature. A high-quality verification is defined as a set of instrumented tests or integration tests that can be executed directly in the shell to provide PASS or FAIL results. The visual-verification owner MUST also include every state-verifying screenshot command referenced by its `TC-US-*-VIS` Test IDs. A bare `adb exec-out screencap` command is not sufficient evidence because it can capture an unrelated screen.
+- **`verification`**: An array of specific, step-by-step proof required for that feature. A high-quality verification is defined as a set of instrumented tests or integration tests that can be executed directly in the shell to provide PASS or FAIL results. The visual-verification owner MUST also include every state-verifying screenshot command referenced by its `TC-US-*-VIS` Test IDs. A bare `xcrun simctl io booted screenshot` command is not sufficient evidence because it can capture an unrelated screen.
 - **`evidence`**: Terminal output, test reports, or screenshots verifying task completion.
 - **`notes`**: Additional technical context or design considerations.
 

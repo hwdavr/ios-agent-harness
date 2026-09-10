@@ -14,6 +14,23 @@ Use this template when producing the plan in the **Implementation Plan** stage.
 
 > 2–3 sentences. What is being built, why, and for whom.
 
+## Rule Applicability
+
+Copy the complete approved matrix from the specification. Every `Required` row must have implementation work and verification evidence below; every conditional document must be loaded only when its row is `Required` or an approved exception applies.
+
+| Rule ID | Rule document | Decision | Implementation work / verification evidence |
+|---|---|---|---|
+| ARCH | `ios-architecture.md` | <decision> | |
+| IMPL | `implementation-rules.md` | <decision> | |
+| TEST | `testing-strategy.md` | <decision> | |
+| SUI | `swiftui-rules.md` | <decision> | |
+| L10N | `localization-rules.md` | <decision> | |
+| NAV | `navigation-rules.md` | <decision> | |
+| API | `api-contract-rules.md` | <decision> | |
+| OBS | `observability.md` | <decision> | |
+| ANL | `analytics-rules.md` | <decision> | |
+| SEC | `ios-security.md` | <decision> | |
+
 ---
 
 ## Impact Summary
@@ -37,25 +54,6 @@ Use this template when producing the plan in the **Implementation Plan** stage.
 - **Fields removed**: `fieldName`
 - **Fields changed**: `fieldName: OldType → NewType`
 - **OpenAPI Status**: <Already defined in sharedContracts/openapi.yaml / Requires update: list changes>
-
----
-
-## Rule Applicability Implementation
-
-Copy the approved Rule Applicability matrix from the requirement artifact. Keep all
-nine rows; do not replace a `Not applicable` or approved exception with silence.
-
-| Rule ID | Approved decision | Planned work or retained rationale | Verification evidence |
-|---|---|---|---|
-| ARCH | <decision> | <files/boundary decision or rationale> | <evidence> |
-| IMPL | <decision> | <files/real behavior or rationale> | <evidence> |
-| TEST | <decision> | <test layer or rationale> | <evidence> |
-| SUI | <decision> | <UI work or rationale> | <evidence> |
-| L10N | <decision> | <catalog/accessibility work or rationale> | <evidence> |
-| NAV | <decision> | <route/back-stack work or rationale> | <evidence> |
-| API | <decision> | <OpenAPI/DTO work or rationale> | <evidence> |
-| OBS | <decision> | <logger/error-boundary work or rationale> | <evidence> |
-| ANL | <decision> | <event work or `analytics: none` rationale> | <evidence> |
 
 ---
 
@@ -137,4 +135,4 @@ States covered:
 
 ## Out of Scope
 
-> List anything explicitly NOT being changed in this task to prevent scope creep.
+- What is NOT being done in this increment

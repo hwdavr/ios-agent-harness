@@ -1,13 +1,13 @@
 ---
 name: ux-design
-description: Android/Jetpack Compose/Material 3 UI/UX design skill. Formulates design specifications (design.md) and generates visual mockup images for each screen when no user-provided screenshot/mockup exists.
+description: Design iOS SwiftUI UI and produce design.md plus mockups when none are supplied.
 ---
 
-# Skill — UX Design (Android / Jetpack Compose / Material 3)
+# Skill — UX Design (iOS / SwiftUI)
 
 ## Purpose
 
-Turn user requirements and feature specifications into a complete, state-of-the-art UI/UX design document (`design.md`) and high-fidelity visual mockup images (`design/mockup_<screen_name>.png`) tailored for Android applications using Jetpack Compose and Material Design 3 (M3).
+Turn user requirements and feature specifications into a complete, state-of-the-art UI/UX design document (`design.md`) and high-fidelity visual mockup images (`design/mockup_<screen_name>.png`) tailored for iOS applications using SwiftUI and Apple Human Interface Guidelines (HIG).
 
 > **Conditional Usage Rule**:
 > - **If user-provided screenshot/mockup exists**: Save the image(s) to `design/`, populate `design.md` referencing those images, and **do NOT generate AI mockup images**.
@@ -18,7 +18,7 @@ Turn user requirements and feature specifications into a complete, state-of-the-
 ## Load
 
 - `docs/product/design_system.md` — mandatory project-wide visual source of truth; load before making any visual decision
-- `skills/ux-design/references/quick-reference.md` — 10 priority categories for Android/Compose UX rules
+- `skills/ux-design/references/quick-reference.md` — 10 priority categories for iOS/SwiftUI UX rules
 - `skills/ux-design/references/pro-rules.md` — Pre-delivery polish checklist & app interface standards
 - `harness/templates/feature-design-template.md` — Standard structure for `design.md`
 
@@ -29,10 +29,10 @@ Turn user requirements and feature specifications into a complete, state-of-the-
 ### 1. Analyze Feature & Apply The Project Design System
 
 > **Update vs. New Screen Rule**:
-> - **If the screen is an update of an existing feature**: Read the existing Compose source for that screen and its components first. Extract the current layout, component inventory, semantic tokens, typography, `accessibilityIdentifier` IDs, and visual states directly from the code. Do **NOT** mock up a new design from scratch — preserve the existing design and only describe the delta being changed. Use this code-derived design as the baseline for `design.md` and any mockup generation.
+> - **If the screen is an update of an existing feature**: Read the existing SwiftUI source for that screen and its components first. Extract the current layout, component inventory, semantic tokens, typography, `accessibilityIdentifier` IDs, and visual states directly from the code. Do **NOT** mock up a new design from scratch — preserve the existing design and only describe the delta being changed. Use this code-derived design as the baseline for `design.md` and any mockup generation.
 > - **If the screen is net-new**: Proceed to design from the project design system as described below.
 
-Read `docs/product/design_system.md`, inspect the relevant existing Compose screen/components, and extract from the user request and `spec.md`:
+Read `docs/product/design_system.md`, inspect the relevant existing SwiftUI screen/views, and extract from the user request and `spec.md`:
 - **Product Domain**: Target Application Domain / Productivity / Utility
 - **Visual Style**: Use the applicable app-shell or editor mode defined by the project design system. Do not select a new style from generic trends.
 - **Color Palette (Existing Semantic Tokens)**:
@@ -40,7 +40,7 @@ Read `docs/product/design_system.md`, inspect the relevant existing Compose scre
   - Secondary / OnSecondary
   - Surface / OnSurface / SurfaceContainer
   - Accent / Highlights (Tailored HSL / Harmonious hex)
-- **Typography Hierarchy**: Reuse the typography and component-specific sizes in the project design system; use M3 roles only where it leaves the mapping open.
+- **Typography Hierarchy**: Reuse the typography and component-specific sizes in the project design system; use Dynamic Type roles only where it leaves the mapping open.
 - **Component Inventory**: Reuse established top bars, bottom toolbars, buttons, sliders, rails, overlays, sheets, and picker patterns before defining a new component.
 
 If the user request or supplied mockup conflicts with `docs/product/design_system.md`, record the exact user-approved exception in `design.md`. If no explicit exception exists, the project design system wins. Never invent an exception silently.
@@ -59,14 +59,14 @@ Ensure each screen block includes:
 - Visual States (Loading, Empty, Content, Error)
 - Interaction Rules & Gestures
 - Copy Requirements
-- Accessibility (dynamic text, min touch targets 48x48dp, contentDescription)
+- Accessibility (Dynamic Type, min touch targets 44x44pt, accessibilityLabel)
 - Responsive & Configuration Behavior
 
 ### 3. Visual Mockup Generation (When No User Mockup Provided)
 
 For **each screen** defined in `design.md`:
-1. Formulate a rich prompt for `generate_image` describing an Android app screen running Jetpack Compose Material 3. Begin with the mandatory mockup prompt baseline from `docs/product/design_system.md` and include the exact relevant hex/alpha values, typography, component sizes, shapes, and visual-state rules:
-   - High-fidelity Android mobile app UI mockup of `<Screen Name>`
+1. Formulate a rich prompt for `generate_image` describing an iOS app screen running SwiftUI. Begin with the mandatory mockup prompt baseline from `docs/product/design_system.md` and include the exact relevant hex/alpha values, typography, component sizes, shapes, and visual-state rules:
+   - High-fidelity iOS mobile app UI mockup of `<Screen Name>`
    - Use the project-defined app-shell or editor mode and its existing semantic accent; do not invent vibrant/purple/glassmorphism treatments
    - Include only the top bars, content regions, toolbars, controls, and component families required by the approved feature design
    - Crisp rendering, UI component detail, no device frame

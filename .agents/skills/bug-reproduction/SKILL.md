@@ -1,6 +1,6 @@
 ---
 name: bug-reproduction
-description: Reproduces a bug with a failing test before fixing it.
+description: Reproduce a bug with a failing test before fixing it.
 ---
 
 # Skill — Bug Reproduction (TDD)
@@ -63,30 +63,28 @@ Bug report arrives
   Run full test suite (no regressions)
 ```
 
-#### Example (Swift/Android)
-```kotlin
+#### Example (Swift)
+```swift
 // Bug: "ViewModel doesn't emit error state when saving a note with empty title"
 
 // Step 1: Write the reproduction test (it should FAIL)
-@Test
-fun givenNoteWithEmptyTitle_whenSaving_thenEmitsError() {
-    val note = Note(id = "1", title = "")
-    coEvery { repository.saveNote(note) } throws IllegalArgumentException("Empty title")
+@Test func givenNoteWithEmptyTitle_whenSaving_thenEmitsError() async {
+    let note = Note(id: "1", title: "")
+    mockRepository.saveNoteResult = .failure(AppError.emptyTitle)
 
-    viewModel.saveNote(note)
+    await viewModel.save(note: note)
 
     // This assertion fails because the ViewModel currently ignores the error and stays in Success
-    assertEquals(EditorUiState.Error("Empty title"), viewModel.uiState.value)
+    #expect(viewModel.state == .error("Empty title"))
 }
 
 // Step 2: Implement the fix in the ViewModel
-fun saveNote(note: Note) {
-    viewModelScope.launch {
-        try {
-            repository.saveNote(note)
-        } catch (e: IllegalArgumentException) {
-            _uiState.value = EditorUiState.Error(e.message ?: "Invalid title")
-        }
+func save(note: Note) async {
+    do {
+        try await repository.save(note: note)
+        self.state = .success
+    } catch {
+        self.state = .error(error.localizedDescription)
     }
 }
 
@@ -100,18 +98,18 @@ fun saveNote(note: Note) {
 3. **Write the minimal test** that targets the root cause statement in `spec_v<N>.md`.
 4. **Do not write the fix**. Do not adjust application code to make the test pass.
 5. **Use shared JSON scenarios** if an API response is involved — do not inline mock data.
-6. **Add `@Ignore("BUG: <short description> — remove when fixed")`** if the test would block CI before the fix lands; remove the annotation in the Implementation stage.
+6. **Add `@Test(.disabled("BUG: <short description> — remove when fixed"))`** if the test would block CI before the fix lands; remove the annotation in the Implementation stage.
 
 ### 3. Run the test — confirm RED
 
 ```bash
-./gradlew xcodebuild test --tests "<FullyQualifiedTestClass>"
+xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:NotesTakingAppiOSTests/<TestClassName>/<testMethodName>
 ```
 
-or for instrumented tests:
+or for UI tests:
 
 ```bash
-./gradlew xcodebuild test -Pandroid.testInstrumentationRunnerArguments.class=<FullyQualifiedTestClass>
+xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:NotesTakingAppiOSUITests/<TestClassName>/<testMethodName>
 ```
 
 **The test must fail.** A test that passes immediately means one of:

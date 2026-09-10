@@ -1,62 +1,96 @@
 # Clean State Checklist
 
-Run this before committing and at the end of a feature session. Record unavailable
-runtime checks as blocked evidence, never as a pass.
+Copy the Core checks and only the conditional sections triggered by the approved Rule
+Applicability matrix, execution flags, or submitted diff. For each omitted conditional section,
+record `N/A — <feature-specific reason>`. A diff-triggered rule overrides an unsupported N/A and
+must be reviewed as a planning defect.
 
-## 1. Rule Applicability Contract
+Reference fresh evidence from earlier stages when its source, build configuration, command, and
+runtime fingerprints are unchanged. Do not rerun a valid gate merely to copy its output.
 
-- [ ] The approved specification has all nine rows: ARCH, IMPL, TEST, SUI, L10N, NAV,
-  API, OBS, and ANL.
-- [ ] Each decision is `Required`, `Not applicable — <reason>`, or an explicitly
-  user-approved exception.
-- [ ] Plans and review reports preserve the decisions, rationale, and evidence.
-- [ ] Analytics and observability were assessed without adding events/logs merely to
-  satisfy the matrix.
+## Core Checks
 
-## 2. Build, Static Analysis, and Suppressions
+- [ ] Build/compile evidence is successful for every affected module.
+- [ ] `swiftlint` exits 0.
+- [ ] `bash harness/scripts/check-full-source-rules.sh` exits 0 against the complete source tree.
+- [ ] Required tests run with non-zero test counts and applicable coverage thresholds pass.
+- [ ] No new suppression, baseline, exclusion, placeholder, dummy, no-op, or secret is introduced.
+- [ ] Changed files stay within approved scope and architectural boundaries.
+- [ ] Required artifacts, lifecycle state, progress, and handoff evidence are current.
+- [ ] No stale or orphan artifact created by this change remains.
 
-- [ ] `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build` passes when the simulator is available.
-- [ ] `swiftlint` and applicable harness rule checks are recorded with exit codes.
-- [ ] Full-source rules bundle passes: run `bash harness/scripts/check-full-source-rules.sh` (or `harness\scripts\check-full-source-rules.cmd` on Windows) and verify architecture, SwiftUI, localization, navigation, and test assertions pass over the complete source tree.
-- [ ] No new `swiftlint:disable`, broad exclusion, baseline, `@preconcurrency import`,
-  or inline debug workaround hides a violation without documented user approval.
+## Conditional: API
 
-## 3. Architecture and Implementation
+Include when API is Required/excepted or the diff changes endpoints, DTOs, schemas, or error
+contracts.
 
-- [ ] Data, Domain, ViewModel, and SwiftUI boundaries are preserved; DTOs do not leak
-  out of the data layer.
-- [ ] Domain code has no SwiftUI/UIKit, SwiftData, URLSession, or data-layer imports.
-- [ ] Every changed function, branch, and callback implements the approved behavior;
-  no placeholders, stubs, dummy returns, or no-op handlers remain.
-- [ ] Secrets are absent from source and configuration follows the `.xcconfig` / build
-  configuration policy.
+- [ ] DTOs and mappings match `sharedContracts/openapi.yaml`.
+- [ ] Shared JSON integration scenarios and defensive error/unknown-value cases pass.
 
-## 4. UI, Navigation, and Localization *(when required)*
+## Conditional: SWIFTDATA
 
-- [ ] SwiftUI views contain rendering and event forwarding, not business logic.
-- [ ] UI states, keyboard-visible behavior, semantic colors, and accessibility
-  identifiers follow the approved design and SwiftUI rules.
-- [ ] User-visible text and icon labels use localization keys in `Localizable.xcstrings`.
-- [ ] Typed navigation, route arguments, back-stack behavior, and cleanup match the
-  approved navigation contract.
+Include when persistence, SwiftData models, schema, containers, migrations, caches, or restart behavior changes.
 
-## 5. Tests and Runtime Evidence
+- [ ] Migration/schema evidence and restart persistence tests pass without data corruption.
+- [ ] ModelContext, transaction, cache invalidation, and cleanup behavior match the approved plan.
 
-- [ ] `xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16'` passes, or the environment block is recorded.
-- [ ] Test IDs cover the required Rule Applicability rows and all acceptance criteria.
-- [ ] Changed API endpoints have shared-scenario integration tests; bug fixes have a
-  red-then-green reproduction test.
-- [ ] UI/visual evidence is captured by XCUITest when the sprint contract requires it.
+## Conditional: NAV
 
-## 6. Observability, Analytics, and Privacy *(when required)*
+Include when NAV is Required/excepted or the diff changes routes, destinations, saved state,
+back-stack, deep links, or post-return behavior.
 
-- [ ] Added logs use `os.Logger`, `Bundle.main.bundleIdentifier` subsystem, appropriate
-  level, and no PII, secrets, or user-generated sensitive content.
-- [ ] Added analytics is emitted from ViewModels with approved event names/data only.
+- [ ] The declared production-entry journey passes through real UI gestures and visible outcome.
+- [ ] `bash harness/scripts/check-journey-registry.sh --run-all` exits 0.
 
-## 7. Documentation and Handoff
+## Conditional: UI
 
-- [ ] Summary and review reports cite the requirement, plan, test, and command evidence.
-- [ ] Complex features have a valid lifecycle state, tracker update, and required
-  workspace evidence.
-- [ ] New reusable decisions or pitfalls are captured where future work needs them.
+Include when SUI/L10N is Required/excepted, `affects_ui` is true, or a View/resource changes.
+
+- [ ] Design-system, state, accessibility, accessibilityIdentifier, localization, and interaction checks pass.
+- [ ] When visual verification is required, visual artifact, reference-anchor, golden comparison,
+  and applicable rendered-output validators exit 0 with in-test screenshots.
+
+## Conditional: PLATFORM
+
+Include when `platform_validation.required` is true or the behavior depends on an iOS SDK,
+device, simulator, hardware feature, model, locale, permission, or external service.
+
+- [ ] The capability matrix is complete and its unsupported-environment policy is `fail_loudly`.
+- [ ] Every owned real boundary test runs against the declared runtime and exits 0; fake/mock tests
+  remain supplemental.
+
+## Conditional: OBS
+
+Include when OBS is Required/excepted or the diff adds/changes application logging or diagnostics.
+
+- [ ] Logs follow `.agents/rules/observability.md` tag and level policy.
+- [ ] No PII, secret, user-generated sensitive content, raw payload, prompt, or token is logged.
+- [ ] Do not add logging only to make this section applicable.
+
+## Conditional: RESET
+
+Include only when the approved behavior adds or changes reset, deletion, cache clearing, database
+clearing, or preference clearing.
+
+- [ ] The reset is explicitly authorized, scoped, idempotent, and verified without unrelated data loss.
+- [ ] Required failure diagnostics follow `.agents/rules/observability.md`.
+
+## Conditional: ADR
+
+Include when the change makes an architectural decision, changes a public contract, or creates a
+reusable non-obvious pitfall.
+
+- [ ] The ADR, change record, or pitfall documents the decision, evidence, compatibility, and risks.
+
+## Conditional Results
+
+| Trigger | Result | Evidence or feature-specific N/A reason |
+|---|---|---|
+| API | PASS / FAIL / `N/A — <feature-specific reason>` | |
+| SWIFTDATA | PASS / FAIL / `N/A — <feature-specific reason>` | |
+| NAV | PASS / FAIL / `N/A — <feature-specific reason>` | |
+| UI | PASS / FAIL / `N/A — <feature-specific reason>` | |
+| PLATFORM | PASS / FAIL / `N/A — <feature-specific reason>` | |
+| OBS | PASS / FAIL / `N/A — <feature-specific reason>` | |
+| RESET | PASS / FAIL / `N/A — <feature-specific reason>` | |
+| ADR | PASS / FAIL / `N/A — <feature-specific reason>` | |

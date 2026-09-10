@@ -1,6 +1,6 @@
 ---
 name: feature-specification
-description: Clarifies a broad feature requirement through chat questions, then writes spec.md (always) and design.md (for new screens) with no open questions before planning.
+description: Clarify a feature and write approved spec.md and design.md before planning.
 ---
 
 # Skill — Feature Specification
@@ -28,11 +28,12 @@ This skill ends only when every material question has been answered by the user 
 
 ## Load
 
-- `docs/product/design_system.md` — mandatory for every UI-affecting specification and design
-- `rules/ios-architecture.md`, `rules/implementation-rules.md`, `rules/testing-strategy.md`
-- `rules/swiftui-rules.md`, `rules/localization-rules.md`, `rules/navigation-rules.md`
-- `rules/api-contract-rules.md`, `rules/observability.md`, `rules/analytics-rules.md`
-- `harness/templates/rule-applicability-template.md`
+- `rules/ios-architecture.md`, `rules/testing-strategy.md`
+- `harness/templates/rule-applicability-template.md` as the conditional-rule trigger catalog
+- Load the mapped conditional rule only after its row is `Required`, excepted, or
+  newly triggered by inspected scope. For UI scope this includes
+  `docs/product/design_system.md`, `rules/swiftui-rules.md`, and
+  `rules/localization-rules.md`; the SwiftUI keyboard behavior applies to text input.
 - `harness/templates/feature-spec-template.md`
 - `harness/templates/feature-design-template.md`
 

@@ -41,7 +41,7 @@ write_valid_spec() {
   printf '%s\n' '# Spec' '' '## Screen States' '' '## Rule Applicability' '' \
     '| Rule ID | Rule document | Default | Decision for this change | Trigger / rationale | Planned evidence |' \
     '|---|---|---|---|---|---|' > "$target"
-  for rule_id in ARCH IMPL TEST SUI L10N NAV API OBS ANL; do
+  for rule_id in ARCH IMPL TEST SUI L10N NAV API OBS ANL SEC; do
     printf '| %s | rule.md | Always | Required | contract test | shell evidence |\n' "$rule_id" >> "$target"
   done
 }

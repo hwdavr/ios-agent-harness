@@ -33,9 +33,6 @@ for required_file in \
   "$REPO_ROOT/.agents/skills/ios-code-review/SKILL.md" \
   "$REPO_ROOT/.agents/gates/ci-checks.md" \
   "$REPO_ROOT/.agents/gates/review-checklist.md" \
-  "$REPO_ROOT/.agents/prompts/harness-generator.md" \
-  "$REPO_ROOT/.agents/prompts/harness-evaluation.md" \
-  "$REPO_ROOT/.agents/prompts/harness-fix.md" \
   "$REPO_ROOT/harness/templates/code-review-template.md" \
   "$REPO_ROOT/harness/templates/summary-template.md" \
   "$REPO_ROOT/harness/templates/clean-state-checklist-template.md" \
@@ -58,6 +55,23 @@ grep -Fq 'check-ai-security-rules.sh' "$BUNDLE" \
   || fail "bundle does not invoke the AI security evaluator"
 grep -Fq 'ai-security-rules-contract-test.sh' "$BUNDLE" \
   || fail "bundle does not invoke the AI security contract test"
+
+security_rule="$REPO_ROOT/.agents/rules/ios-security.md"
+[ -f "$security_rule" ] || fail "iOS security code rules file is missing"
+grep -Fq 'untrusted' "$security_rule" \
+  || fail "iOS security code rules do not define an untrusted-input boundary"
+grep -Fq 'App Transport Security' "$security_rule" \
+  || fail "iOS security code rules do not define ATS policy"
+grep -Fq 'WKWebView' "$security_rule" \
+  || fail "iOS security code rules do not define WKWebView policy"
+grep -Fq 'check-ai-security-rules.sh' "$security_rule" \
+  || fail "iOS security code rules do not identify the mechanical evaluator"
+grep -Fq 'ios-security.md' "$REPO_ROOT/AGENTS.md" \
+  || fail "root context map does not index iOS security code rules"
+grep -Fq 'ios-security.md' "$REPO_ROOT/.agents/skills/security-and-hardening/SKILL.md" \
+  || fail "security hardening skill does not defer to iOS security code rules"
+grep -Fq 'ios-security.md' "$REPO_ROOT/.agents/gates/review-checklist.md" \
+  || fail "review checklist does not require iOS security code rules when triggered"
 
 mkdir -p "$fixture_root/NotesTakingAppiOS/Views"
 mkdir -p "$fixture_root/NotesTakingAppiOSTests"
