@@ -94,10 +94,11 @@ A finding is not considered resolved until its in-report status line exists and 
     2. Re-run the global quality gates: `swiftlint`, `bash harness/scripts/check-full-source-rules.sh`, and `xcodebuild test` with coverage (overall ≥ 80%; ≥ 90% for ViewModel & Use Case). The full-source bundle is mandatory and must not be replaced by changed-file checker invocations.
     3. Attach objective evidence (command + exit status) to each Test ID's `evidence` field in `$FEATURE_DIR/feature_list.json` only after the command succeeds. If any command fails, do not mark its evidence passing; keep the feature non-passing and stop.
     4. Run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate`; it must prove every acceptance Test ID still maps to a real test method, declared scenario, suite-scoped command, and successful evidence.
-    5. Run `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` when visual verification is required.
-    6. Reconcile the in-report statuses with re-verification: any finding whose verification command still fails must read `Unresolved ⚠️` in the report (not `Fixed ✅`).
-    7. Reconcile all Rule Applicability rows again. A rule newly triggered by a fix must be recorded in the specification and both review reports before the feature can proceed.
-    8. Mark Fix-Stage 4 ✅ in `$FEATURE_DIR/summary_{feature_id}.md` detailing test counts, coverage percentages, and visual evidence.
+    5. Run `bash harness/scripts/check-platform-evidence.sh "$FEATURE_DIR" --evaluate`; missing matrices, unavailable/pending/skipped environments, fake-only platform tests, and missing successful `xcodebuild test` evidence remain hard failures; record them as `Unresolved ⚠️` rather than passing them through.
+    6. Run `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR" --evaluate` when visual verification is required.
+    7. Reconcile the in-report statuses with re-verification: any finding whose verification command still fails must read `Unresolved ⚠️` in the report (not `Fixed ✅`).
+    8. Reconcile all Rule Applicability rows again. A rule newly triggered by a fix must be recorded in the specification and both review reports before the feature can proceed.
+    9. Mark Fix-Stage 4 ✅ in `$FEATURE_DIR/summary_{feature_id}.md` detailing test counts, coverage percentages, platform and visual evidence.
 *   **Objective**: All acceptance-test commands and quality gates pass with evidence attached; report statuses are consistent with re-verification results.
 
 ### Fix-Stage 5 — Finalize & Exit

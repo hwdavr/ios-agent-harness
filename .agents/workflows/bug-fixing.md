@@ -77,8 +77,16 @@ Gate: `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS
 ### Stage 5 — Testing
 **INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
+For navigation, saved-state, back-stack, destination-recreation, or post-return
+persistence defects, the test plan must include a `## Production Journey Boundary`
+section naming an XCUITest that mounts the production entry point, performs the
+real UI actions, crosses the return boundary, and asserts the visible result after
+return. Direct ViewModel or `*Content` tests are supplemental evidence only.
+
 Output: Unit tests, integration tests, and shared JSON scenarios created or updated; `docs/current/summary_v<N>.md` updated with test count and coverage.
-Gate: tests pass, coverage targets met.
+Gate: tests pass, coverage targets met. If `NAV` is `Required`, run
+`bash harness/scripts/check-stage-artifacts.sh bug-fixing testing docs/current`; it
+must exit 0.
 
 ---
 
