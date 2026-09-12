@@ -20,8 +20,26 @@ write_valid_fixture() {
     '    }' \
     '}' \
     > "$fixture_root/NotesTakingAppiOSUITests/EmojiPickerVisualFlowTests.swift"
-  printf 'reference mockup' > "$feature_dir/design/mockup_picker.png"
-  printf '%6000s' 'x' > "$feature_dir/visual_evidence/emoji_picker_content.png"
+  # Real PNGs are required because the visual gate now runs the perceptual
+  # comparator, not only the screenshot-size and anchor checks.
+  python3 - "$feature_dir" <<'EOF'
+import random
+import sys
+from PIL import Image
+
+feature_dir = sys.argv[1]
+rng = random.Random(42)
+image = Image.new("RGB", (108, 234))
+image.putdata([
+    (rng.randrange(256), rng.randrange(256), rng.randrange(256))
+    for _ in range(108 * 234)
+])
+image.save(f"{feature_dir}/design/mockup_picker.png")
+image.save(f"{feature_dir}/visual_evidence/emoji_picker_content.png")
+EOF
+  mkdir -p "$fixture_root/UX/golden-baselines"
+  cp "$feature_dir/visual_evidence/emoji_picker_content.png" \
+    "$fixture_root/UX/golden-baselines/emoji_picker_content.png"
   printf '%s\n' \
     '# Sprint Contract' \
     '' \
@@ -165,6 +183,12 @@ write_valid_fixture "$tiny_screenshot"
 printf 'too small' > "$tiny_screenshot/visual_evidence/emoji_picker_content.png"
 expect_failure "likely a blank or transparent capture" \
   bash "$VALIDATOR" "$tiny_screenshot"
+
+missing_golden="$fixture_root/missing-golden"
+write_valid_fixture "$missing_golden"
+rm "$fixture_root/UX/golden-baselines/emoji_picker_content.png"
+expect_failure "has no promoted golden baseline" \
+  bash "$VALIDATOR" "$missing_golden"
 
 missing_contract_row="$fixture_root/missing-contract-row"
 write_valid_fixture "$missing_contract_row"

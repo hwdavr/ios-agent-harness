@@ -5,6 +5,8 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 FEATURE_DIR="${1:-}"
 MODE="${2:---evaluate}"
 
@@ -21,6 +23,7 @@ fi
 
 FEATURE_JSON="$FEATURE_DIR/feature_list.json"
 CONTRACT="$FEATURE_DIR/sprint-contract.md"
+ROOT_DIR="${HARNESS_PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
 [ -f "$FEATURE_JSON" ] || fail "missing $FEATURE_JSON"
 [ -f "$CONTRACT" ] || fail "missing $CONTRACT"
 
@@ -142,6 +145,7 @@ for test_id in $CONTRACT_IDS; do
 done
 
 if [ "$MODE" = "--evaluate" ]; then
+  GOLDEN_DIR="$ROOT_DIR/UX/golden-baselines"
   ANCHOR_REPORT="$FEATURE_DIR/visual_evidence/reference-anchor-verification.md"
   [ -f "$ANCHOR_REPORT" ] || fail "missing $ANCHOR_REPORT; visual evidence needs reference-anchor verification"
   grep -Fq "## Reference Anchor Verification" "$ANCHOR_REPORT" \
@@ -159,19 +163,6 @@ if [ "$MODE" = "--evaluate" ]; then
     || fail "$ANCHOR_REPORT references missing or empty design asset $REFERENCE_ASSET"
 
   SEEN_SCREENSHOT_PATHS=""
-  while IFS= read -r contract_row; do
-    [ -n "$contract_row" ] || continue
-    screenshot_path=$(printf '%s\n' "$contract_row" | grep -oE 'visual_evidence/[[:alnum:]_./-]+\.png' | head -n 1 || true)
-    [ -n "$screenshot_path" ] || continue
-    printf '%s\n' "$SEEN_SCREENSHOT_PATHS" | grep -Fxq "$screenshot_path" \
-      && fail "visual screenshot path $screenshot_path is used by more than one visual row" \
-      || true
-    SEEN_SCREENSHOT_PATHS="$SEEN_SCREENSHOT_PATHS
-$screenshot_path"
-  done <<EOF
-$CONTRACT_ROWS
-EOF
-
   for test_id in $CONTRACT_IDS; do
     CONTRACT_ROW=$(printf '%s\n' "$CONTRACT_ROWS" | grep -E "^\\|[[:space:]]*$test_id[[:space:]]*\\|" || true)
     SCREENSHOT_PATH=$(printf '%s\n' "$CONTRACT_ROW" | grep -oE 'visual_evidence/[[:alnum:]_./-]+\.png' | head -n 1 || true)
@@ -186,6 +177,27 @@ EOF
     MIN_SCREENSHOT_BYTES=5120
     [ "$SCREENSHOT_SIZE" -ge "$MIN_SCREENSHOT_BYTES" ] \
       || fail "$test_id screenshot $SCREENSHOT_PATH is only ${SCREENSHOT_SIZE} bytes (minimum ${MIN_SCREENSHOT_BYTES}); likely a blank or transparent capture"
+
+    if printf '%s\n' "$SEEN_SCREENSHOT_PATHS" | grep -Fxq "$SCREENSHOT_PATH"; then
+      fail "${SCREENSHOT_PATH} is used by more than one visual row"
+    fi
+    SEEN_SCREENSHOT_PATHS="${SEEN_SCREENSHOT_PATHS}${SCREENSHOT_PATH}"$'\n'
+
+    # Every non-anchor-only capture must have an approved golden baseline. This
+    # makes the perceptual comparison a real regression gate instead of an
+    # optional report generated after the feature has already passed.
+    REFERENCE_MAP="$FEATURE_DIR/visual_evidence/reference-map.json"
+    MAP_ENTRY_TYPE="missing"
+    if [ -f "$REFERENCE_MAP" ]; then
+      MAP_ENTRY_TYPE=$(jq -r --arg f "$(basename "$SCREENSHOT_PATH")" \
+        'if type == "object" and has($f) then (.[$f] | type) else "missing" end' \
+        "$REFERENCE_MAP" 2>/dev/null || echo "missing")
+    fi
+    if [ "$MAP_ENTRY_TYPE" != "null" ]; then
+      GOLDEN_BASELINE="$GOLDEN_DIR/$(basename "$SCREENSHOT_PATH")"
+      [ -s "$GOLDEN_BASELINE" ] \
+        || fail "$test_id screenshot $SCREENSHOT_PATH has no promoted golden baseline at $GOLDEN_BASELINE; approve the capture and promote it: bash harness/scripts/compare-visual-evidence.sh --promote-golden \"$FEATURE_DIR/$SCREENSHOT_PATH\" --name \"$(basename "${SCREENSHOT_PATH%.png}")\""
+    fi
 
     REPORT_ROWS=$(grep -E "^\\|[[:space:]]*$test_id[[:space:]]*\\|" "$ANCHOR_REPORT" || true)
     REPORT_ROW_COUNT=$(printf '%s\n' "$REPORT_ROWS" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')
@@ -209,6 +221,15 @@ EOF
     printf '%s\n' "$REPORT_ROW" | grep -Eq '\|[[:space:]]*PASS[[:space:]]*\|[[:space:]]*$' \
       || fail "$test_id reference-anchor row must end with PASS"
   done
+
+  [ -f "$SCRIPT_DIR/compare-visual-evidence.sh" ] \
+    || fail "missing required comparator: $SCRIPT_DIR/compare-visual-evidence.sh"
+  echo "Running perceptual visual comparison checks..."
+  bash "$SCRIPT_DIR/compare-visual-evidence.sh" \
+    --feature "$FEATURE_DIR" \
+    --crop-insets \
+    --project-root "$ROOT_DIR" \
+    || fail "perceptual visual comparison failed"
 fi
 
 echo "PASS: visual methods, contract rows, acceptance IDs, connected evidence, screenshots, and reference-anchor proof are aligned."
