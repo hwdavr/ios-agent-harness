@@ -8,13 +8,18 @@ tag, not only the target's tag. Handle anchors must not use an interactive ident
 `_handle` or `-handle`; use a distinct visual-shape identifier such as `*_handle_visual`.
 
 **Screenshot capture requirement**: The `Runtime proof` column must reference a dedicated
-`*VisualFlowTest.swift` test method that captures the screenshot from within the running test via
-`XCUIScreen.main.screenshot()` or `XCUIScreen.main.screenshot()`
-during `instrumented test.waitForIdle()`. Post-test CLI screencaps (`&& pm screenshot`) are
-prohibited because the test Activity/window is already destroyed when the test runner finishes.
+`*VisualFlowTests.swift` test method that captures the screenshot from within the running test via
+`XCUIScreen.main.screenshot()` or in-test capture helper during idle test execution. Post-test CLI
+screencaps are prohibited because the test window is already destroyed when the test runner finishes.
+
+**Capture scope requirement**: When the paired visual acceptance row claims app-shell chrome
+(for example global tabs, system bars, or a full-page shell), its `Setup and action` cell must
+declare `Capture scope: app-shell; production root: <ViewOrWindowRoot>.` The named
+`VisualFlowTests` must invoke that root. Use `Capture scope: component` only when shell chrome is
+explicitly outside the proof. Record the same scope and root in the `Runtime proof` cell.
 
 ## Reference Anchor Verification
 
 | Visual Test ID | Reference anchor | Runtime proof | Measured relationship | Actual screenshot | Result |
 |----------------|------------------|---------------|-----------------------|-------------------|--------|
-| TC-US-1-VIS-01 | <exact relationship from the approved reference> | `<Feature>VisualFlowTest#capture<State>`; accessibilityIdentifier: `<visual_bounds_tag>` | `<visualBounds>.<edge> == <anchorBounds>.<edge> ± <tolerance>dp` | `visual_evidence/<screen>_<state>.png` | PASS / FAIL |
+| TC-US-1-VIS-01 | <exact relationship from the approved reference> | `<Feature>VisualFlowTests#test<State>`; captureScope: component; accessibilityIdentifier: `<visual_bounds_identifier>` | `<visualBounds>.<edge> == <anchorBounds>.<edge> ± <tolerance>pt` | `visual_evidence/<screen>_<state>.png` | PASS / FAIL |

@@ -66,7 +66,7 @@ As a <user type>, I want to <action> so that <outcome>.
 ## Rule Applicability
 
 Copy the complete matrix from
-[`rule-applicability-template.md`](rule-applicability-template.md). Keep all nine rows
+[`rule-applicability-template.md`](rule-applicability-template.md). Keep all ten rows
 and replace each `<decision>` with `Required`, `Not applicable — <feature-specific
 reason>`, or `Exception — approved by <user/date>`.
 
@@ -81,6 +81,7 @@ reason>`, or `Exception — approved by <user/date>`.
 | API | `api-contract-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
 | OBS | `observability.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
 | ANL | `analytics-rules.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
+| SEC | `ios-security.md` | Conditional | <decision> | <trigger/rationale> | <evidence> |
 
 ## Edge Cases
 

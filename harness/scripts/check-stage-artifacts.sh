@@ -11,6 +11,7 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="${HARNESS_PROJECT_ROOT:-$(pwd)}"
 
 WORKFLOW="${1:-}"
 STAGE="${2:-}"
@@ -147,6 +148,7 @@ case "$WORKFLOW/$STAGE" in
         echo "FAIL: $DOCS_DIR/design.md must reference docs/product/design_system.md." >&2
         exit 1
       fi
+      HARNESS_PROJECT_ROOT="$PROJECT_ROOT" bash "$SCRIPT_DIR/check-existing-screen-baseline-contract.sh" "$DOCS_DIR"
       bash "$SCRIPT_DIR/check-keyboard-mockup-contract.sh" "$DOCS_DIR"
     fi
     ;;
@@ -158,6 +160,7 @@ case "$WORKFLOW/$STAGE" in
       require_file "platform-capability-matrix.md" "platform capability matrix (platform-bound features only)"
     fi
     if [ -f "$DOCS_DIR/design.md" ]; then
+      HARNESS_PROJECT_ROOT="$PROJECT_ROOT" bash "$SCRIPT_DIR/check-existing-screen-baseline-contract.sh" "$DOCS_DIR"
       bash "$SCRIPT_DIR/check-keyboard-mockup-contract.sh" "$DOCS_DIR"
     fi
     if ! grep -q "Acceptance Test Cases" "$DOCS_DIR/sprint-contract.md"; then

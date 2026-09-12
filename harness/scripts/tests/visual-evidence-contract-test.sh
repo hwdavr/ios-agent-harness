@@ -6,10 +6,20 @@ REPO_ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 VALIDATOR="$REPO_ROOT/harness/scripts/check-visual-evidence-contract.sh"
 fixture_root=$(mktemp -d "${TMPDIR:-/tmp}/visual-evidence-test.XXXXXX")
 trap 'rm -rf "$fixture_root"' EXIT
+export HARNESS_PROJECT_ROOT="$fixture_root"
 
 write_valid_fixture() {
   local feature_dir="$1"
   mkdir -p "$feature_dir/design" "$feature_dir/visual_evidence"
+  mkdir -p "$fixture_root/NotesTakingAppiOSUITests"
+  printf '%s\n' \
+    'import XCTest' \
+    '' \
+    'class EmojiPickerVisualFlowTests: XCTestCase {' \
+    '    func testEmojiPickerContentLightTheme() {' \
+    '    }' \
+    '}' \
+    > "$fixture_root/NotesTakingAppiOSUITests/EmojiPickerVisualFlowTests.swift"
   printf 'reference mockup' > "$feature_dir/design/mockup_picker.png"
   printf '%6000s' 'x' > "$feature_dir/visual_evidence/emoji_picker_content.png"
   printf '%s\n' \
@@ -65,6 +75,35 @@ expect_failure() {
 valid="$fixture_root/valid"
 write_valid_fixture "$valid"
 (cd "$REPO_ROOT" && bash "$VALIDATOR" "$valid")
+
+app_shell_without_scope="$fixture_root/app-shell-without-scope"
+write_valid_fixture "$app_shell_without_scope"
+sed 's/| fixture | screenshot saved at/| Render full-page app shell | screenshot saved at/' \
+  "$app_shell_without_scope/sprint-contract.md" \
+  > "$app_shell_without_scope/sprint-contract.tmp"
+mv "$app_shell_without_scope/sprint-contract.tmp" "$app_shell_without_scope/sprint-contract.md"
+expect_failure "must declare Capture scope: app-shell" \
+  bash "$VALIDATOR" "$app_shell_without_scope"
+
+app_shell_without_root_call="$fixture_root/app-shell-without-root-call"
+write_valid_fixture "$app_shell_without_root_call"
+sed 's/| fixture | screenshot saved at/| Capture scope: app-shell; production root: `MainTabView`. Render full-page app shell | screenshot saved at/' \
+  "$app_shell_without_root_call/sprint-contract.md" \
+  > "$app_shell_without_root_call/sprint-contract.tmp"
+mv "$app_shell_without_root_call/sprint-contract.tmp" "$app_shell_without_root_call/sprint-contract.md"
+expect_failure "must invoke declared production root MainTabView" \
+  bash "$VALIDATOR" "$app_shell_without_root_call"
+
+app_shell_with_root_call="$fixture_root/app-shell-with-root-call"
+write_valid_fixture "$app_shell_with_root_call"
+sed 's/| fixture | screenshot saved at/| Capture scope: app-shell; production root: `MainTabView`. Render full-page app shell | screenshot saved at/' \
+  "$app_shell_with_root_call/sprint-contract.md" \
+  > "$app_shell_with_root_call/sprint-contract.tmp"
+mv "$app_shell_with_root_call/sprint-contract.tmp" "$app_shell_with_root_call/sprint-contract.md"
+mkdir -p "$fixture_root/NotesTakingAppiOSUITests"
+printf 'import XCTest\nclass EmojiPickerVisualFlowTests: XCTestCase {\n    func testEmojiPicker() {\n        let _ = MainTabView()\n    }\n}\n' \
+  > "$fixture_root/NotesTakingAppiOSUITests/EmojiPickerVisualFlowTests.swift"
+env HARNESS_PROJECT_ROOT="$fixture_root" bash "$VALIDATOR" "$app_shell_with_root_call"
 
 functional_visual_class="$fixture_root/functional-visual-class"
 write_valid_fixture "$functional_visual_class"
@@ -155,4 +194,4 @@ jq '.features[0].verification = []' \
 mv "$missing_verification/feature_list.tmp" "$missing_verification/feature_list.json"
 expect_failure "is not listed in feature_list.json verification" bash "$VALIDATOR" "$missing_verification"
 
-echo "PASS: visual evidence validator rejects missing anchor proof, blank screenshots, and aligns methods, contract rows, screenshots, and evidence."
+echo "PASS: visual evidence validator rejects missing anchor proof, blank screenshots, unverified golden promotion, app-shell captures without their root, and unaligned methods, contract rows, screenshots, and evidence."

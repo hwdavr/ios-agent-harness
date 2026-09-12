@@ -108,6 +108,39 @@ for method in $CONTRACT_METHODS; do
     || fail "visual contract method $method is not listed in feature_list.json verification"
 done
 
+# A component-only composition cannot prove app-shell chrome. Make shell claims explicit at
+# planning time and require the named visual test source to invoke the declared production root.
+ROOT_DIR="${HARNESS_PROJECT_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)}"
+
+for test_id in $CONTRACT_IDS; do
+  CONTRACT_ROW=$(printf '%s\n' "$CONTRACT_ROWS" | grep -E "^\\|[[:space:]]*$test_id[[:space:]]*\\|" || true)
+  if ! printf '%s\n' "$CONTRACT_ROW" | grep -Eqi \
+    'app[[:space:]-]*shell|full[[:space:]-]*page[[:space:]-]*shell|bottom[[:space:]-]*navigation|navigationbar|system[[:space:]-]*bar'; then
+    continue
+  fi
+
+  printf '%s\n' "$CONTRACT_ROW" | grep -Fq "Capture scope: app-shell" \
+    || fail "$test_id claims app-shell chrome and must declare Capture scope: app-shell"
+  PRODUCTION_ROOT=$(printf '%s\n' "$CONTRACT_ROW" |
+    sed -n 's/.*production root:[[:space:]]*`\([A-Za-z_][A-Za-z0-9_]*\)`.*/\1/p' | head -n 1)
+  [ -n "$PRODUCTION_ROOT" ] \
+    || fail "$test_id app-shell visual row must name production root: \`<ViewOrWindowRoot>\`"
+
+  VISUAL_TARGET=$(printf '%s\n' "$CONTRACT_ROW" |
+    sed -n -E 's/.*`([^`]*VisualFlowTests?(\.swift)?#[A-Za-z_][A-Za-z0-9_]*)`.*/\1/p' | head -n 1)
+  if [ -z "$VISUAL_TARGET" ]; then
+    VISUAL_TARGET=$(printf '%s\n' "$CONTRACT_ROW" |
+      sed -n -E 's/.*(NotesTakingAppiOSUITests\/[^|[:space:]]*VisualFlowTests?(\.swift)?#[A-Za-z_][A-Za-z0-9_]*).*/\1/p' | head -n 1)
+  fi
+  [ -n "$VISUAL_TARGET" ] \
+    || fail "$test_id app-shell visual row must name a VisualFlowTests.swift#method target"
+  VISUAL_FILE="${VISUAL_TARGET%%#*}"
+  [ -f "$ROOT_DIR/$VISUAL_FILE" ] \
+    || fail "$test_id app-shell visual test source is missing: $VISUAL_FILE"
+  grep -Eq "$PRODUCTION_ROOT[[:space:]]*[<(]" "$ROOT_DIR/$VISUAL_FILE" \
+    || fail "$test_id app-shell visual test $VISUAL_FILE must invoke declared production root $PRODUCTION_ROOT"
+done
+
 if [ "$MODE" = "--evaluate" ]; then
   ANCHOR_REPORT="$FEATURE_DIR/visual_evidence/reference-anchor-verification.md"
   [ -f "$ANCHOR_REPORT" ] || fail "missing $ANCHOR_REPORT; visual evidence needs reference-anchor verification"

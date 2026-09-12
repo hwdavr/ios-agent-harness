@@ -9,6 +9,21 @@
 
 ---
 
+## Existing Surface Baseline
+
+Complete this table for every screen marked `Updated` in **Screens Covered**. Run the named
+instrumented UI test on an iOS Simulator; the test must produce its capture while the SwiftUI
+screen is active using `XCUIScreen.main.screenshot()` or in-test capture helper, saving the
+unchanged image into `design/`. A post-test command-line screencap or an AI-generated image is
+not a baseline. For a net-new-only design, write one row with `Not applicable — no existing
+surface is modified` and leave the evidence columns as `N/A`.
+
+| Existing surface | Baseline decision | Source test | Test method | Test-produced capture | Pulled baseline asset | Simulator execution evidence |
+|------------------|-------------------|-------------|-------------|-----------------------|-----------------------|------------------------------|
+| <exact Updated screen name> | Required | `NotesTakingAppiOSUITests/.../<Screen>VisualFlowTests.swift` | `<captureMethod>` | `<capture_name>.png` | `design/baseline_<screen>.png` | `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' test -only-testing:NotesTakingAppiOSUITests/<Screen>VisualFlowTests/<captureMethod>` — PASSED, <N>/<N> tests |
+
+---
+
 ## Conditional Keyboard-Visible Mockup Contract
 
 If any screen contains a bottom sheet with a textbox, text field, search field, or other text-input control, define a separate keyboard-visible visual state. Explain how the sheet changes while the keyboard is shown, and reference a distinct non-empty image such as `design/mockup_<screen_name>_keyboard.png` in addition to the base mockup. The keyboard-visible mockup is required even when the keyboard changes only the sheet height or available content region.

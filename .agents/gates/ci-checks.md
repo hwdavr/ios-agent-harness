@@ -137,6 +137,16 @@ bash harness/scripts/check-keyboard-mockup-contract.sh "$FEATURE_DIR"
 ```
 **Must pass during harness planning.** A design with text input must describe the keyboard-visible state and reference distinct non-empty base and keyboard-visible mockup assets.
 
+### 13a. Existing-Surface Planning Baseline (when a planned screen is updated)
+```bash
+bash harness/scripts/check-existing-screen-baseline-contract.sh "$FEATURE_DIR"
+bash harness/scripts/tests/existing-screen-baseline-contract-test.sh
+```
+**Must pass during harness planning.** Every `Updated` screen needs an unchanged, source-fed
+simulator capture produced inside the named instrumented UI test. The design must trace the test file,
+method, test-produced capture name, pulled `design/baseline_*.png` asset, and passing simulator
+execution. Generic mockups and post-test command-line screencaps cannot satisfy this baseline.
+
 ### 14. Rule Applicability Harness Contract (when harness guidance changes)
 ```bash
 bash harness/scripts/tests/rule-applicability-contract-test.sh
