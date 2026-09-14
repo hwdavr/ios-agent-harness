@@ -25,6 +25,7 @@ Do not load or execute a Data, Domain, or UI section merely because another laye
 - `rules/api-contract-rules.md` when API is `Required` or excepted
 - `rules/swiftui-rules.md`, `rules/localization-rules.md`, `docs/product/design_system.md`, `design.md`, and mockups when the slice affects UI
 - `rules/navigation-rules.md`, `rules/analytics-rules.md`, and `rules/observability.md` only when their Rule Applicability decision is `Required` or excepted
+- `rules/ios-security.md` when `SEC` is Required or excepted, or the slice newly triggers Keychain, ATS, WKWebView, AI/model, SDK, or security-sensitive boundaries
 
 **Adhoc workflows** (`feature-delivery`, `bug-fixing`):
 - `docs/current/implementation_plan_v<N>.md` — implementation plan approved by user
