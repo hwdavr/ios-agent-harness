@@ -11,7 +11,7 @@ Implement the UI Layer: ViewModels, UI models, mappers, and SwiftUI Views.
 ---
 
 ## Load
-- `rules/ios-architecture.md`
+- `rules/ios-architecture.md` (skip if already loaded this session — L1 is session-scoped)
 - `rules/swiftui-rules.md`
 - `rules/navigation-rules.md`
 - `rules/localization-rules.md`

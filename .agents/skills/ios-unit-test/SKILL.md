@@ -16,35 +16,10 @@ Write unit tests for ViewModels, use cases, and mapper logic using Swift Testing
 ---
 
 ## Execute
-
-### When to write unit tests
-- ViewModel state transitions
-- Domain use case logic
-- Mapper logic (DTO → Domain, Domain → UI)
-- Formatting and fallback logic
-
-### Rules
-- Use Swift Testing: `@Test func`, `#expect(...)`, `#require(...)`
-- Test file name ends with `Tests`
-- One main scenario per test function
-- Follow AAA pattern (Arrange, Act, Assert)
-- Test public API — not private implementation details
-- Prefer real model instances over mock model objects
-
-### Example
-```swift
-@Test func givenEmptyTitle_whenSaving_thenEmitsError() async throws {
-    // Arrange
-    let viewModel = EditorViewModel(repository: mockRepo)
-    await mockRepo.setSaveBehavior { throw ValidationError.emptyTitle }
-
-    // Act
-    await viewModel.saveNote(Note(title: ""))
-
-    // Assert
-    #expect(viewModel.uiState.error != nil)
-}
-```
+- **Scope**: ViewModel state transitions, domain use case logic, mappers (DTO → Domain, Domain → UI), formatting/fallback.
+- **Framework**: Swift Testing (`@Test func`, `#expect(...)`, `#require(...)`).
+- **Naming**: File ends with `Tests`, test functions use descriptive Given/When/Then names.
+- **Conventions**: Follow AAA pattern, test public API, one main scenario per test. Prefer real model instances over mocks.
 
 ---
 

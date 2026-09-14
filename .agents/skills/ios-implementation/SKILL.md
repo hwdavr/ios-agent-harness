@@ -8,10 +8,6 @@ description: Implement an iOS feature across data, domain, and UI layers sequent
 ## Purpose
 Implement only the layers affected by the approved change, in small verified increments.
 Do not load or execute a Data, Domain, or UI section merely because another layer is in scope.
-
-> This is the **compact implementation stage** used by `feature-delivery` and `bug-fixing` workflows.
-> For granular layer-by-layer control, use the individual stages `ios-data-layer/SKILL.md`, `ios-domain-layer/SKILL.md`, and `ios-ui-layer/SKILL.md`.
-
 ---
 
 ## Load
@@ -42,106 +38,28 @@ Do not load or execute a Data, Domain, or UI section merely because another laye
 
 ## Execute
 
-Use the approved plan or generated context index to select the affected layers. Skip
-unaffected sections and their checklist rows; a skipped layer must be recorded as
-`Not applicable — <slice-specific reason>`, never silently treated as completed.
-
-### Before Layer Work — Apply the Approved Rule Contract
-
-Read the active specification's complete Rule Applicability matrix before editing.
-Implement and verify every `Required` row; retain the rationale for each `Not
-applicable` or approved exception. Revisit the matrix and the specification if a new
-trigger appears during implementation. Analytics and observability are conditional:
-never add events or logs only to turn their decision into `Required`.
+Use the approved plan or generated context index to select affected layers. Skip unaffected layers.
+Analytics and observability are conditional: never add events or logs only to turn their decision into `Required`; neither is mandatory.
 
 ### Layer 1 — Data Layer
-
-#### 1.1 API / DTO changes
-If the API contract changed:
-1. Update `sharedContracts/openapi.yaml` to reflect the new contract — **do this first**
-2. Create or modify DTO structs in `Data/<feature>/Remote/DTOs/`
-3. Mark properties as optional (`T?`) for optional fields
-4. Handle unknown enum values with a fallback variant:
-   ```swift
-   enum NoteStatus: String, Codable {
-       case active, archived, unknown
-       init(from decoder: Decoder) throws {
-           let container = try decoder.singleValueContainer()
-           let raw = try container.decode(String.self)
-           self = NoteStatus(rawValue: raw) ?? .unknown
-       }
-   }
-   ```
-
-#### 1.2 SwiftData / local data changes
-If local storage is affected:
-1. Create or modify `@Model` class in `Data/<feature>/Local/`
-2. Mark properties with default values for optional migration
-3. **Increment the SwiftData schema version** — use `VersionedSchema` for migration
-4. Map DTO → Domain model inside the repository — **never pass DTOs to upper layers**
-5. Translate API errors to domain errors before they leave this layer
-6. Map every field explicitly — no reflection or structural bridging
-7. Handle nil defensively: `dto.field ?? defaultValue`
+1. **API / DTO**: If API changed, update `sharedContracts/openapi.yaml` first. Add/modify DTOs in `Data/<feature>/Remote/DTOs/`. Optional fields use `T?`. Enums must decode with an unknown/fallback case defensively.
+2. **SwiftData / Persistence**: `@Model` in `Data/<feature>/Local/`. Use `VersionedSchema` for schema migration.
+3. **Repository**: Implement protocol in Data layer. Explicitly map DTO → Domain model inside repository (**never pass DTOs to upper layers**). Translate API errors to domain errors before leaving this layer. Handle nil defensively: `dto.field ?? defaultValue`.
 
 ---
 
 ### Layer 2 — Domain Layer
-
-#### 2.1 Domain model changes
-1. Add or remove properties in domain model structs
-2. Import **no SwiftUI or UIKit framework classes**
-3. If an enum is added, include an `unknown` / fallback variant
-
-#### 2.2 Repository protocol changes
-1. Add or update method signatures in the repository protocol (defined in domain layer)
-2. Keep protocols stable and framework-independent
-3. Use `async throws` or `AsyncSequence` based on existing conventions in the codebase
-4. Confirm the protocol change matches the Data Layer implementation above
-
-#### 2.3 Use case changes
-1. Create or update use cases — one use case does one thing
-2. Use cases may coordinate multiple repository methods but must not call data sources directly
-3. Implement business validation, filtering, and decision logic here — not in the ViewModel
-
-**Business logic that belongs in use cases (not ViewModel or View):**
-- Access permission checks
-- Filter / sort logic driven by business rules
-- Validation before mutations
-- Data combination from multiple repositories
+1. **Domain Models**: Structs only. Import **no SwiftUI or UIKit framework classes**. Add unknown/fallback to enums.
+2. **Repository Protocol**: Define signatures with domain models and `async throws`. Framework-independent.
+3. **Use Cases**: One use case does one thing. Owns business validation, filtering, sorting, and coordination. Never call data sources directly or import UI frameworks.
 
 ---
 
 ### Layer 3 — UI Layer
-
-#### 3.1 ViewModel
-1. Expose screen state as `@Observable` — one ViewModel per screen
-2. Handle all states: loading, success, empty, error, retry, permission
-3. Emit one-off events (navigation, toast, alert) via closures — not as persistent state
-4. Call use cases only — **never call repositories or data sources directly**
-5. Do not import URLSession or data-layer classes
-6. When OBS is `Required`, add structured logs at the approved state transitions and
-   error boundaries — follow `rules/observability.md`; otherwise do not add diagnostic
-   noise merely for this checklist.
-
-#### 3.2 UI model and mapper
-1. Create or update UI model structs if the domain model needs formatting for display
-2. Create or update the Domain → UI mapper in the ViewModel layer
-3. Do not pass domain models directly to SwiftUI Views when UI formatting is needed
-
-#### 3.3 SwiftUI View
-1. Split every screen into stateless `Content` + stateful `Screen` wrapper (see `rules/swiftui-rules.md`)
-2. The stateless `Content` View receives UI state and closures — it does not call the ViewModel
-3. **View the mockup images** in the active design directory before writing UI code — use both `design.md` text and visual mockup images as visual context for component layout, spacing, and visual hierarchy
-4. Use `LocalizedStringKey` / `String(localized:)` for all user-visible text — **no hardcoded strings**
-5. Add `.accessibilityIdentifier("stable_name")` to all interactive elements and key content areas
-6. Map every visual choice to `docs/product/design_system.md` semantic tokens/shared components or to an explicit approved exception in the active `design.md`
-7. **Visual-verification owner**: if this slice owns `requires_visual_verification: true` in `feature_list.json`, implement its visual capture per the sprint contract's visual-verification gate
-
-#### 3.4 Navigation, Analytics & String resources
-1. When NAV is `Required`, update navigation destinations using enum-based route types.
-2. When ANL is `Required`, fire the approved analytics events from the ViewModel — not
-   from SwiftUI Views. When it is not required, retain `analytics: none` in the plan.
-3. When L10N is `Required`, add all new user-visible text to `Localizable.xcstrings`.
+1. **ViewModel**: `@Observable` class — one per screen. Handle all states: loading, success, empty, error, retry. Call use cases only (**never call repositories or data sources directly**). Emit one-off events via closures. Add structured logs only when OBS is `Required`.
+2. **UI Models & Mappers**: Create UI models and Domain → UI mappers in ViewModel layer when formatting is needed.
+3. **SwiftUI View**: Split into stateless `Content` + stateful `Screen` wrapper. View design mockups before writing UI. All text via `String(localized:)` (**no hardcoded strings**). Add `.accessibilityIdentifier("stable_name")` to all interactive elements. Follow `docs/product/design_system.md` semantic tokens. If owning `requires_visual_verification: true`, implement capture per contract.
+4. **Navigation & Analytics**: Enum-based routes when NAV is `Required`. Fire analytics from ViewModel (not Views) when ANL is `Required`; otherwise keep `analytics: none`. Add strings to `Localizable.xcstrings`.
 
 ---
 

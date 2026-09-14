@@ -72,7 +72,7 @@ Do not preload unrelated skills. Requirements, planning, and review must load th
 Key skills under `.agents/skills/`:
 - **Planning & Requirements**: `spec-driven-development`, `feature-specification`, `slice-planning`, `implementation-plan`
 - **UX & Design**: `ux-design`, `android-to-ios-ui-migration`
-- **Implementation**: `ios-implementation`, `ios-data-layer`, `ios-domain-layer`, `ios-ui-layer`, `api-contract-update`
+- **Implementation**: `ios-implementation`, `ios-ui-layer`, `api-contract-update`
 - **Testing & Verification**: `ios-testing`, `ui-verification`, `ios-unit-test`, `ios-ui-test`, `shared-json-scenarios`
 - **Review & Quality**: `code-quality-fix`, `ios-code-review`, `code-review-and-quality`, `ios-test-review`, `ios-code-quality-checks`
 - **Session & Knowledge**: `context-management`, `knowledge-capture`, `documentation-and-adrs`, `karpathy-guidelines`

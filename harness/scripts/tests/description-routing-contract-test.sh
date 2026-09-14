@@ -5,7 +5,7 @@ set -euo pipefail
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../../.." && pwd)"
 MAX_DESCRIPTION_CHARS=120
 MAX_TOTAL_CHARS=3600
-EXPECTED_DESCRIPTION_COUNT=44
+EXPECTED_DESCRIPTION_COUNT=41
 
 fail() {
   echo "FAIL: $1" >&2

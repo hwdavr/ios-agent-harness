@@ -18,36 +18,11 @@ Write integration tests covering ViewModel + repository + mocked API end-to-end 
 ---
 
 ## Execute
-
-### Test coverage per API endpoint
-For each changed API endpoint, test:
-- Success response (2xx)
-- 4xx client error
-- 5xx server error
-- Malformed or partial payload
-- Network timeout / disconnect
-- Unknown enum value (must not crash)
-
-### Rules
-- Use shared JSON scenarios — **no inline mock data**
-- Store scenarios in `sharedContracts/test-scenarios/`
-- If API used by ViewModel: assert `expected.ui`
-- If API used only by repo/use case: assert `expected.domain`
-- Use `URLProtocol` subclass for mocking URLSession
-- Use in-memory `ModelConfiguration` for SwiftData integration tests
-
-### Example
-```swift
-@Test func givenValidNote_whenSave_thenReturnsDomainModel() async throws {
-    let scenario = try JSONScenario.load("note_save_success")
-    URLProtocolMock.register(scenario.apiMocks)
-
-    let repository = NoteRepository()
-    let result = try await repository.save(scenario.input)
-
-    #expect(result == scenario.expected.domain)
-}
-```
+- **Coverage per API endpoint**: Success (2xx), 4xx client error, 5xx server error, malformed payload, timeout, unknown enum fallback.
+- **Shared Scenarios**: Use shared JSON scenarios from `sharedContracts/test-scenarios/` — **never inline mock response data**.
+- **Layer assertions**: Assert `expected.ui` when endpoint is consumed by ViewModel; assert `expected.domain` when consumed only by repo/use case.
+- **Mocking**: Use `URLProtocol` subclass to mock URLSession network traffic.
+- **Persistence**: Use in-memory `ModelConfiguration` for SwiftData integration tests.
 
 ---
 

@@ -17,41 +17,11 @@ Write UI tests using XCUITest for SwiftUI screens, user gestures, and navigation
 ---
 
 ## Execute
-
-### When to use
-- SwiftUI rendering requires simulator runtime verification
-- User gesture interaction (tap, swipe, scroll)
-- Navigation between screens
-- Critical multi-screen flows
-
-### Rules
-- Use `XCUIApplication` + `launch()`
-- Locate elements via `.accessibilityIdentifier` — not static text
-- Use `waitForExistence(timeout:)` and expectations — never `sleep()`
-- One main business scenario per test
-- Do not use real production backend — use mock server or launch arguments
-
-### Example
-```swift
-func testSaveNoteButtonEnabledWhenTitleNotEmpty() throws {
-    let app = XCUIApplication()
-    app.launchArguments = ["-UITesting"]
-    app.launch()
-
-    let titleField = app.textFields["editor_title_field"]
-    titleField.tap()
-    titleField.typeText("My Note")
-
-    let saveButton = app.buttons["editor_save_button"]
-    XCTAssertTrue(saveButton.isEnabled)
-}
-```
-
-### Visual verification
-For screens requiring visual verification:
-1. Render active screen state
-2. Capture via `XCUIScreen.main.screenshot()`
-3. Save to `$FEATURE_DIR/visual_evidence/` for review
+- **Scope**: Gestures, navigation flows, critical multi-screen paths, visual verification on simulator.
+- **Framework**: `XCUIApplication()`, launch with UI test arguments.
+- **Identifiers**: Locate elements via `.accessibilityIdentifier` — **never by static text**.
+- **Timing**: Use `waitForExistence(timeout:)` and expectations — **never `sleep()`**.
+- **Visual Verification**: When required, capture screen via `XCUIScreen.main.screenshot()` and save under `visual_evidence/`.
 
 ---
 
