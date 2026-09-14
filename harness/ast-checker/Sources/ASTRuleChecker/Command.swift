@@ -236,7 +236,7 @@ public struct CheckerRunner {
     private func loadRegistry(_ configuration: CheckerConfiguration) throws -> DynamicIdentifierRegistry? {
         guard configuration.mode == .swiftui else { return nil }
         let path = configuration.registryPath ?? URL(fileURLWithPath: configuration.projectRoot)
-            .appendingPathComponent("harness/rules-matrix/documented-dynamic-accessibility-identifiers.json").path
+            .appendingPathComponent("docs/harness/documented-dynamic-accessibility-identifiers.json").path
         let registry = try DynamicIdentifierRegistry.load(path: path)
         let fileManager = FileManager.default
         for entry in registry.entries {

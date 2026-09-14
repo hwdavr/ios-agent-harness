@@ -31,7 +31,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 SOURCE_ROOT="${explicit_source_root:-${SWIFTUI_SOURCE_ROOT:-$PROJECT_ROOT/NotesTakingAppiOS}}"
-REGISTRY="${DOCUMENTED_DYNAMIC_ACCESSIBILITY_IDS_REGISTRY:-$PROJECT_ROOT/harness/rules-matrix/documented-dynamic-accessibility-identifiers.json}"
+REGISTRY="${DOCUMENTED_DYNAMIC_ACCESSIBILITY_IDS_REGISTRY:-$PROJECT_ROOT/docs/harness/documented-dynamic-accessibility-identifiers.json}"
 
 exec "$PROJECT_ROOT/harness/scripts/run-ast-checker.sh" swiftui \
     --project-root "$PROJECT_ROOT" \

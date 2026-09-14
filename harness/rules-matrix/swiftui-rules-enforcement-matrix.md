@@ -160,6 +160,8 @@ to the approved catalog and this documentation before it can pass the SwiftUI ch
 | `MainSearchHeader.swift` | `{screen}_search_{element}` |
 | `MoveToView.swift` | `move_to_folder_{id}` |
 | `SettingsTabView.swift` | `settings_{id}_row` |
+| `ManageAccessContent.swift` | `note_access_*_{shareID}` |
+| `NoteAccessSheets.swift` | `note_access_role_option_{shareID}`, `note_access_revoke_{shareID}` |
 
 > [!NOTE]
 > String-resource checks (rules 1.6 · 4.1) are now owned by [`check-localization-rules.sh`](../scripts/check-localization-rules.sh). See the [Localization Rules Enforcement Matrix](localization-rules-enforcement-matrix.md) for details.

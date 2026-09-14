@@ -87,7 +87,7 @@ expect_failure "dynamic accessibilityIdentifier is not an approved documented im
 
 invalid_registry="$fixture_root/invalid-registry.json"
 jq '(.entries[0].documentation) = "harness/rules-matrix/missing.md"' \
-  "$PROJECT_ROOT/harness/rules-matrix/documented-dynamic-accessibility-identifiers.json" \
+  "$PROJECT_ROOT/docs/harness/documented-dynamic-accessibility-identifiers.json" \
   > "$invalid_registry"
 expect_failure "references missing documentation" \
   env DOCUMENTED_DYNAMIC_ACCESSIBILITY_IDS_REGISTRY="$invalid_registry" \
