@@ -4,7 +4,6 @@ public struct DynamicIdentifierRegistry: Codable {
     public struct Entry: Codable {
         public let id: String
         public let file: String
-        public let documentation: String
         public let template: String
         public let sourceType: String
         public let linePattern: String
@@ -12,14 +11,12 @@ public struct DynamicIdentifierRegistry: Codable {
         public init(
             id: String,
             file: String,
-            documentation: String,
             template: String,
             sourceType: String,
             linePattern: String
         ) {
             self.id = id
             self.file = file
-            self.documentation = documentation
             self.template = template
             self.sourceType = sourceType
             self.linePattern = linePattern
@@ -48,7 +45,7 @@ public struct DynamicIdentifierRegistry: Codable {
         } catch {
             throw JSONValidationError(
                 path: path,
-                message: "Missing documented dynamic accessibility-identifier registry"
+                message: "Missing dynamic accessibility-identifier registry"
             )
         }
         let decoder = JSONDecoder()
@@ -61,8 +58,7 @@ public struct DynamicIdentifierRegistry: Codable {
         }
         guard !registry.entries.isEmpty,
               registry.entries.allSatisfy({
-                  !$0.id.isEmpty && !$0.file.isEmpty && !$0.documentation.isEmpty &&
-                      !$0.template.isEmpty &&
+                  !$0.id.isEmpty && !$0.file.isEmpty && !$0.template.isEmpty &&
                       ["immutable-domain-id", "fixed-catalog-key", "immutable-screen-prefix"].contains($0.sourceType) &&
                       !$0.linePattern.isEmpty
               }) else {

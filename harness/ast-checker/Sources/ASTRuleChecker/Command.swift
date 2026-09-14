@@ -248,28 +248,6 @@ public struct CheckerRunner {
                     message: "Registry entry \(entry.id) references missing source file: \(entry.file)"
                 )
             }
-            guard !entry.documentation.hasPrefix("/"), !entry.documentation.contains("..") else {
-                throw JSONValidationError(
-                    path: path,
-                    message: "Registry entry \(entry.id) has an unsafe documentation path: \(entry.documentation)"
-                )
-            }
-            let documentationPath = URL(fileURLWithPath: configuration.projectRoot)
-                .appendingPathComponent(entry.documentation).path
-            guard fileManager.fileExists(atPath: documentationPath) else {
-                throw JSONValidationError(
-                    path: path,
-                    message: "Registry entry \(entry.id) references missing documentation: \(entry.documentation)"
-                )
-            }
-            let documentation = try String(contentsOfFile: documentationPath, encoding: .utf8)
-            guard documentation.contains(entry.template) else {
-                throw JSONValidationError(
-                    path: path,
-                    message: "Registry entry \(entry.id) is not documented by template " +
-                        "'\(entry.template)' in \(entry.documentation)"
-                )
-            }
         }
         return registry
     }

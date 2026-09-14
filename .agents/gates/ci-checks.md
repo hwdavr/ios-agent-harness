@@ -155,15 +155,7 @@ bash harness/scripts/tests/rule-applicability-contract-test.sh
 that govern requirements, planning, implementation, testing, or review. Ensures requirement
 artifacts carry all ten rule decisions and that the stage gate rejects incomplete matrices.
 
-### 15. Rules-Matrix Contract
-```bash
-bash harness/scripts/tests/rules-matrix-contract-test.sh
-```
-**Must pass** whenever a rules-enforcement matrix, its catalog, or a scripted rule
-owner changes. The catalog is the source of truth for every matrix row, summary count,
-and scripted checker owner; stale summaries and unknown owners are hard failures.
-
-### 16. Acceptance-Test Traceability Contract
+### 15. Acceptance-Test Traceability Contract
 ```bash
 bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --evaluate
 ```
@@ -171,7 +163,7 @@ bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --eval
 each acceptance Test ID maps to one declared Swift test method, a suite-scoped
 test command, its declared shared JSON scenario(s), and successful evidence.
 
-### 17. Evaluation/Fix Lifecycle Contract
+### 16. Evaluation/Fix Lifecycle Contract
 ```bash
 bash harness/scripts/tests/review-lifecycle-contract-test.sh
 ```
@@ -180,7 +172,7 @@ artifact validators change. It rejects free-form score/routing mismatches,
 contradictory successful evidence, and fix passes that advance beyond a blocked
 stage or leave review findings without in-report resolution status.
 
-### 18. AST Rule-Checker Contract
+### 17. AST Rule-Checker Contract
 ```bash
 bash harness/scripts/tests/ast-rule-checker-contract-test.sh
 ```

@@ -43,7 +43,6 @@ final class RuleCheckerTests: XCTestCase {
                 .init(
                     id: "fixture",
                     file: "Views/InvalidView.swift",
-                    documentation: "docs/fixture.md",
                     template: "fixture",
                     sourceType: "immutable-screen-prefix",
                     linePattern: "^$"

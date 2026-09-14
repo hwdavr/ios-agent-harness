@@ -42,10 +42,19 @@ REQUIRED**. Do not require analytics events or logs when their trigger is absent
 
 ## Rule Detail Findings
 
-### Architecture, Implementation, and Testing
+### Architecture *(when the diff triggers ARCH)*
 
-- [ ] Layer boundaries hold: Views do not call repositories; ViewModels do not call
-  URLSession or data-layer implementations; DTOs remain in the data layer.
+Record only the semantic architectural risks introduced by the diff; structural
+violations are proven by the architecture checker and SwiftLint evidence above.
+
+- [ ] Business-logic ownership is correct.
+- [ ] Layer boundaries and DTO containment hold.
+- [ ] State and one-off event design have a clear owner and complete transitions.
+- [ ] DTO → Domain and Domain → UI mappings are in their required layers.
+- [ ] Dependency-injection scope and lifetime match the changed boundary.
+
+### Implementation and Testing
+
 - [ ] Every changed function, branch, and callback performs the required behavior; no
   placeholder return, `fatalError("TODO")`, no-op handler, or dummy comment exists.
 - [ ] The test layer selected by the plan provides sufficient evidence for the changed

@@ -105,7 +105,7 @@ struct SwiftUIRuleChecker {
                 report(
                     rule: "SUI",
                     node: call,
-                    message: "dynamic accessibilityIdentifier is not an approved documented immutable identifier"
+                    message: "dynamic accessibilityIdentifier is not an approved registered immutable identifier"
                 )
                 return
             }

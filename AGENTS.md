@@ -34,7 +34,6 @@ Do not preload unrelated skills. Requirements, planning, and review must load th
 | `.agents/skills/` | How-to guides and modular workflow steps (L2). |
 | `.agents/gates/` | CI checks and review/release checklists. |
 | `harness/templates/` | Standard output formats for plans, reviews, tests. |
-| `harness/rules-matrix/` | Visual matrix mapping of rules to files. |
 | `harness/scripts/` | Validation scripts and contract test runners. |
 | `docs/product/<YYYY-MM-DD>-<feature-short-name>/` | Stable complex-feature workspace for planning, implementation, evidence, and completed records. |
 | `docs/knowledge/` | Past bugs, pitfalls, architecture decisions (L3). |

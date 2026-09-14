@@ -4,9 +4,6 @@
 These rules define the mandatory layer boundaries and patterns for this project.
 All contributors (human and AI) must follow these rules. Any change that violates these rules must be rejected unless this file is updated with explicit justification in the same change.
 
-> **Enforcement Matrix** — each rule below is tagged as Scripted 🤖 / Evaluator 🧠 / Human 👁️
-> in [`architecture-rules-enforcement-matrix.md`](../../harness/rules-matrix/architecture-rules-enforcement-matrix.md).
-
 ---
 
 ## Layer Model
@@ -147,6 +144,38 @@ These are never allowed without explicit architectural justification:
 - Domain layer importing UIKit or SwiftUI framework classes
 - Adding feature logic without tests
 - AI-generated code merged without review
+
+---
+
+## Architecture Verification
+
+Automated structural checks are the evidence for mechanically detectable rules:
+
+```bash
+bash harness/scripts/check-architecture-rules.sh
+swiftlint
+```
+
+The repository-wide `bash harness/scripts/check-full-source-rules.sh` remains the
+required CI evidence; run an individual checker only to diagnose a failure. Do not
+repeat automated checker findings as manual review work.
+
+When the diff introduces or changes an architectural boundary, review only the
+semantic risks it triggers:
+
+- **Business-logic ownership** — decisions and validation belong in Domain or a
+  ViewModel, never in a SwiftUI View or persistence/network adapter.
+- **Layer boundaries** — dependencies flow inward and DTOs remain in Data.
+- **State and event design** — state has a clear owner, transitions are complete,
+  and one-off events are not retained as persistent UI state.
+- **Mappings** — DTO → Domain stays in Data and Domain → UI stays in ViewModel
+  or its dedicated mapper.
+- **DI scope** — dependencies have an appropriate app or screen lifetime and do
+  not leak `ModelContext`, `URLSession`, or implementation types across layers.
+
+The code-review report records only the applicable items above. Human approval and
+any user-approved exception are governed by the review and merge workflow in
+[`review-checklist.md`](../gates/review-checklist.md), not by duplicated per-rule documentation.
 
 ---
 

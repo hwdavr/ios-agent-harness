@@ -3,10 +3,6 @@
 ## Purpose
 Rules for handling all user-visible text in this project.
 
-> **Enforcement Matrix** — each rule below is tagged as Scripted 🤖 / Evaluator 🧠 / Human 👁️
-> in `harness/rules-matrix/localization-rules-enforcement-matrix.md`.
-> Scripted checks run via `harness/scripts/check-localization-rules.sh`.
-
 ---
 
 ## String Localization Is Mandatory
@@ -83,3 +79,19 @@ Button(action: onDelete) {
 }
 .accessibilityLabel(Text("note_delete_icon_description"))
 ```
+
+---
+
+## Localization Verification
+
+Run the automated check for every user-visible copy change:
+
+```bash
+bash harness/scripts/check-localization-rules.sh
+```
+
+When a diff adds or changes localized copy, review only the semantic risks it
+introduces: ownership in `Localizable.xcstrings`, descriptive key naming, plural and
+format-argument behavior, and VoiceOver labels for non-text controls. The
+full-source rules bundle is the required CI evidence; review and merge approval are
+handled in the review workflow.

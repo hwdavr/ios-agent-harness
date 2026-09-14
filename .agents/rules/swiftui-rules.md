@@ -3,9 +3,6 @@
 ## Purpose
 Rules for writing SwiftUI views in this project.
 
-> **Enforcement Matrix** — each rule below is tagged as Scripted 🤖 / Evaluator 🧠 / Human 👁️
-> in `harness/rules-matrix/swiftui-rules-enforcement-matrix.md`.
-
 ---
 
 ## View Responsibilities
@@ -89,9 +86,10 @@ Use descriptive, stable names:
 ```
 
 Dynamic identifiers are allowed only when the interpolated value is an immutable,
-domain-owned identifier and the prefix is explicitly documented by the
-feature design. Transient indexes, random IDs, timestamps, and
-user-generated text remain prohibited.
+domain-owned identifier or a fixed catalog key. Each must be registered in
+`docs/harness/documented-dynamic-accessibility-identifiers.json`; the SwiftUI
+checker validates the source file, approved template, source type, and line pattern.
+Transient indexes, random IDs, timestamps, and user-generated text remain prohibited.
 
 ---
 
@@ -187,3 +185,24 @@ Use `@Observable` ViewModels — not `@StateObject` / `@ObservedObject` (legacy 
 - Tapping a text field inside a sheet must **not** dismiss the sheet. The sheet stays open and expands above the keyboard; only a scrim tap, swipe-down, or an explicit close action dismisses it.
 - Apply keyboard avoidance to the sheet content so the focused field and remaining controls stay visible, and keep the sheet's results region scrollable.
 - The design (`design.md`) must include a distinct keyboard-visible mockup showing the sheet **still open** with the keyboard, alongside the base mockup — never a dismissed sheet.
+
+---
+
+## SwiftUI Verification
+
+Automated source evidence:
+
+```bash
+bash harness/scripts/check-swiftui-rules.sh
+bash harness/scripts/check-localization-rules.sh
+```
+
+The full-source rules bundle is the required CI evidence. When the diff changes a
+SwiftUI surface, review the semantic concerns it introduces: rendering versus
+business-logic ownership, state hoisting and stateful/stateless boundaries,
+component extraction, semantic token use, accessible interaction labels and
+identifiers, list performance, and keyboard-visible behavior. Runtime and visual
+claims require the declared UI evidence; they are not inferred from a source check.
+
+Human approval and exceptions are handled by the review and merge workflow, not by
+duplicated per-rule documentation.

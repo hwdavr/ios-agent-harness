@@ -88,13 +88,6 @@ bash harness/scripts/tests/rule-applicability-contract-test.sh
 Verifies the requirements-to-review contract itself. This is required when harness
 workflow, rule, skill, template, or gate sources change.
 
-### 10. Rules-Matrix Contract
-```bash
-bash harness/scripts/tests/rules-matrix-contract-test.sh
-```
-Verifies that the canonical enforcement catalog matches every iOS matrix row, summary,
-and scripted checker owner.
-
 ---
 
 ## Done When

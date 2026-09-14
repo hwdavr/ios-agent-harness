@@ -63,6 +63,8 @@ expect_success "SwiftUI valid fixture" \
     bash "$SWIFTUI_CHECKER" --all "$FIXTURE_ROOT/valid/swiftui"
 expect_failure_with "SwiftUI invalid fixture" "VStack with ForEach" \
     bash "$SWIFTUI_CHECKER" --all "$FIXTURE_ROOT/invalid/swiftui"
+expect_failure_with "SwiftUI unregistered dynamic identifier" "dynamic accessibilityIdentifier is not an approved registered immutable identifier" \
+    bash "$SWIFTUI_CHECKER" --all "$FIXTURE_ROOT/invalid/swiftui"
 expect_success "SwiftUI comment/string false-positive fixture" \
     bash "$SWIFTUI_CHECKER" --all "$FIXTURE_ROOT/false-positive/swiftui"
 

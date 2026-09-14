@@ -5,6 +5,13 @@ Checklist for reviewing any code change before it is considered complete.
 
 ---
 
+## Merge Approval
+
+- [ ] A designated human reviewer has reviewed the report and explicitly approved the change before merge.
+- [ ] Any rule exception cites the user's direct approval and its exact boundary.
+
+---
+
 ## Layer Boundaries
 
 - [ ] UI layer does not call repositories or data sources directly
