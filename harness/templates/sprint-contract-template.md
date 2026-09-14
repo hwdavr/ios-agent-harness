@@ -13,25 +13,10 @@ Use this template when producing the sprint contract in the **Requirement Analys
 ---
 
 ## 🎯 Scope
-
-### In Scope
-> Explicit list of target capabilities, user flows, and technical components to be implemented.
-*   [ ] `{In-scope capability 1}`
-*   [ ] `{In-scope capability 2}`
-*   [ ] `{In-scope capability 3}`
-
-### Out of Scope
-> Explicit list of boundaries, exclusions, and related features deferred to future sprints.
-*   *   `{Out-of-scope item 1}` (separate feature/deferred)
-*   *   `{Out-of-scope item 2}` (separate feature/deferred)
+Implements the approved scope defined in `spec.md` across the vertical slices below. See individual user stories for slice boundaries.
 
 ## Platform Capability & Environment Contract *(required)*
-
-Every feature declares the root `platform_validation` object in `feature_list.json` — `required`, `unsupported_environment_policy: "fail_loudly"`, and, for non-platform features, an explicit `reason`. The `platform-capability-matrix.md` artifact is generated **only for platform-bound features** (`platform_validation.required: true`); for all others the JSON declaration plus reason is the whole contract and no matrix is written.
-
-When the feature is platform-bound, link the workspace artifact `platform-capability-matrix.md`. The matrix MUST declare the minimum API, target API, every important API boundary, the single owner of each device resource, the input/output contract, and the required fallback for unsupported platforms. A missing emulator, device, model, locale, permission, hardware capability, or platform service is an evidence failure—not a passing skip. The exact failure policy is `fail_loudly`: the command must exit non-zero or the feature must be marked `Blocked`/`Revise`.
-
-Platform-bound features MUST declare at least one real instrumented boundary test. A fake adapter, fake recognizer, iOS simulator-only intent test, or manually emitted callback is supplemental evidence and cannot satisfy the platform gate by itself. The test must exercise the shipped iOS platform boundary and record a successful `xcodebuild test (UI Tests)` result in `feature_list.json` evidence.
+Declared via `platform_validation` in `feature_list.json`. When `required: true`, link `platform-capability-matrix.md` and declare real instrumented boundary tests; missing platform resources fail loudly (`fail_loudly`). When `required: false`, the JSON declaration plus reason is the complete contract.
 
 ## Rule Applicability Contract *(required)*
 
@@ -111,15 +96,10 @@ Every acceptance criterion must have exactly one primary automated test case. A 
 
 **Verification Rules**:
 
-1. The test must execute the production entry point for this user story. A unit test of an uncalled helper or use case is insufficient.
-2. A user-visible flow that crosses presentation, domain, or data boundaries must include an integration or instrumented test covering the complete path.
-3. The assertions must cover every named outcome in the linked AC, including fallback, error, and persistence behavior where required.
-4. Record the Test ID, command, exit status, and result in the feature evidence before a status can become `passing`.
-5. Run `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --test "$FEATURE_ID"` before the test stage is complete, then run it again with `--evaluate "$FEATURE_ID"` after successful evidence is recorded. The first command proves the declared Swift method and scenario reference; the second also proves suite-scoped evidence.
-6. **Visual verification gate** *(applies only when the slice's `requires_visual_verification` flag in `feature_list.json` is `true`)*: select one final user story that has a stable production entry point and makes the completed visual flow reviewable. That story MUST include one `TC-US-*-VIS` row per visually distinct completed-flow state that needs visual assessment; intermediate UI slices do not need screenshot rows. Each visual row MUST name a dedicated `*VisualFlowTests.swift` file and method, separate from functional UI tests. Its exact command MUST use a method-scoped `-only-testing:<test-target>/<Feature>VisualFlowTests/<method>` selector, render the active SwiftUI View, ensure the UI is idle, and capture a screenshot from within the running test via `XCUIScreen.main.screenshot()`, saving to `/var/tmp/<name>.png`. The command then copies the file to `$FEATURE_DIR/visual_evidence/<name>.png` and verifies it is non-empty. **Prohibition**: Post-test external screencaps (such as chaining CLI screenshots after `xcodebuild test`) are strictly forbidden because the test window is already destroyed when the test runner finishes, resulting in captures of the simulator home screen rather than the intended UI state. The Generator cannot transition the visual-verification owner to `passing` until every declared `TC-US-*-VIS` row has exit code 0, a saved screenshot from an in-test capture, and recorded target-state proof. The Evaluator then visually compares the captured screenshot against `$FEATURE_DIR/design.md` and records any deviation in layout, typography, color, spacing, or control placement as a review finding — canvas/photo content may legitimately differ between mockup and real app, so the comparison focuses on UI chrome, not image content.
-   Before the visual owner can pass, create `$FEATURE_DIR/visual_evidence/reference-anchor-verification.md` from `harness/templates/visual-reference-anchor-verification-template.md`. It must contain exactly one row per `TC-US-*-VIS-*`, cite the non-empty approved `design/` asset and matching actual screenshot, name the visual-bounds `accessibilityIdentifier` and runtime test method, and state a concrete bounds relation. If a row claims app-shell chrome (for example global navigation, system bars, or a full-page shell), its Setup and action must declare `Capture scope: app-shell; production root: <ViewOrWindowRoot>.` and the named test must invoke that root; a content-only screen capture is supplemental only. If the reference concerns a visual that sits inside a larger touch target, measure a test tag attached to the visual shape—not only the touch target.
-   The visual owner's `feature_list.json` must mirror these rows in `acceptance_test_ids`, include each visual method in `verification`, and record successful connected-test evidence for each row. Run `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"` to enforce this alignment.
-7. **Platform verification gate**: run `bash harness/scripts/check-platform-evidence.sh "$FEATURE_DIR" --planning` during planning. During delivery, run `bash harness/scripts/check-platform-evidence.sh "$FEATURE_DIR" --evaluate --slice "$FEATURE_ID"`; a slice that owns a declared real-boundary test cannot be accepted or marked `passing` until this exits 0. A non-owning slice validates the planned contract with the same slice-scoped command, while `bash harness/scripts/check-platform-evidence.sh "$FEATURE_DIR" --evaluate` remains mandatory before final feature evaluation.
+1. Tests must execute production entry points and cover all linked AC outcomes (including fallback and error paths).
+2. Traceability: Validate with `bash harness/scripts/check-acceptance-test-traceability.sh "$FEATURE_DIR" --test "$FEATURE_ID"` (and `--evaluate "$FEATURE_ID"` after recording passing evidence).
+3. **Visual gate** (when `requires_visual_verification == true`): The final reviewable user story declares `TC-US-*-VIS` rows targeting dedicated `*VisualFlowTests.swift` methods. In-test captures (`XCUIScreen.main.screenshot()`) save to `/var/tmp/<name>.png` and copy to `$FEATURE_DIR/visual_evidence/<name>.png`. Validate alignment via `bash harness/scripts/check-visual-evidence-contract.sh "$FEATURE_DIR"`. Complete `visual_evidence/reference-anchor-verification.md`. Post-test external screencaps are strictly forbidden.
+4. **Platform gate**: Validate during planning via `bash harness/scripts/check-platform-evidence.sh "$FEATURE_DIR" --planning` and during delivery via `--evaluate --slice "$FEATURE_ID"`.
 
 ---
 
@@ -167,12 +147,4 @@ Every acceptance criterion must have exactly one primary automated test case. A 
 ---
 
 ## 📊 Sprint Log
-> The audit trail tracking each agent's execution phase, revisions, and evaluation scores.
-
-| Phase | Agent | Target / Outcome | Notes & Core Decisions |
-| :--- | :--- | :--- | :--- |
-| **Planning** | Planner | `sprint-contract.md` compiled | Criteria defined and scope boundaries set. |
-| **Implementation** | Generator | `{Initial implementation / Code written}` | |
-| **Review 1** | Evaluator | `{Score X/5 / Findings list}` | |
-| **Revision 1** | Generator | `{Fixes applied}` | |
-| **Final Review** | Evaluator | APPROVED (Score: `X/5`) | All criteria successfully validated. |
+> Execution audit trail and evaluation records are tracked in `feature_list.json` (`execution_records`) and slice summaries.

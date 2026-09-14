@@ -44,7 +44,7 @@ Then answer:
 
 ### 2. Compile Sprint Contract
 
-Decompose the high-level requirement into a detailed scope, acceptance criteria, and verification plan. Strictly follow the structure in `harness/templates/sprint-contract-template.md` to generate `sprint-contract.md`. Fill in the Sprint Overview (Sprint ID, Feature Name, Duration), Scope (In Scope, Out of Scope), the **Spec Coverage Matrix**, and User Scenarios & Testing (user stories with acceptance criteria and acceptance test cases).
+Decompose the high-level requirement into a detailed scope, acceptance criteria, and verification plan. Strictly follow the structure in `harness/templates/sprint-contract-template.md` to generate `sprint-contract.md`. Fill in the Sprint Overview (Sprint ID, Feature Name, Duration), Scope reference to `spec.md`, the **Spec Coverage Matrix**, and User Scenarios & Testing (user stories with acceptance criteria and acceptance test cases).
 
 The Spec Coverage Matrix is mandatory. It must include the source requirement ID, concise requirement text, primary user-story ID, acceptance-test ID, and handling. A requirement may map to multiple secondary tests, but it must have exactly one primary owner. Preserve the source requirement ID verbatim so the planning gate can verify coverage.
 
@@ -67,7 +67,7 @@ Do not let one AC bundle multiple named outcomes — split a multi-outcome AC so
 
 > "After this slice ships alone, a user can observe \<observable delta\> through the existing entry point \<screen or action already in the app\>."
 
-If the sentence cannot be completed — because the slice's only consumer is a Composable, screen, or caller that a later slice introduces — the slice is **horizontal** and MUST be merged into the slice that first makes it user-visible.
+If the sentence cannot be completed — because the slice's only consumer is a SwiftUI view, screen, or caller that a later slice introduces — the slice is **horizontal** and MUST be merged into the slice that first makes it user-visible.
 
 A slice fails the test when any of the following hold:
 - `affects_ui` is `false` and the slice's only caller is UI or a feature added by a later slice (e.g. a tokenizer, repository, or formatter with no in-slice production consumer).
@@ -86,9 +86,9 @@ For each slice, you must populate the `features` list in the `feature_list.json`
 - **`priority`**: Integer priority indicating delivery order (lower number = higher priority).
 - **`area`**: The codebase component or feature area (e.g., `comments`, `folders`, `editor`).
 - **`title`**: A short, readable title summarizing the slice.
-- **`description`**: A comprehensive detailed instruction mapping the precise code-level logic, domain model changes, and database structures required. **This field specifically tells the generator agent exactly what to do** at a technical execution level.
+- **`description`**: A concise technical instruction specifying code-level changes, domain model updates, and data structures. Do NOT copy the user story narrative or acceptance criteria here; focus on execution directions for the generator agent.
 - **`ui_design`**: A file path to a layout asset/mockup or a reference name from an external design tool (e.g. Figma or Pencil.dev) depicting the UI specifications for the feature.
-- **`user_visible_behavior`**: A clear explanation of what observable UI elements, texts, behavior, or default flows are affected by this task.
+- **`user_visible_behavior`**: A concise summary (1–2 sentences) of what observable UI elements, texts, behavior, or default flows are affected by this task.
 - **`affects_ui`**: Boolean. `true` if the slice adds, removes, or modifies any SwiftUI View, screen layout, or visible UI state. It always triggers UI-focused automated acceptance testing and `ios-code-review` SKILL.md §4 during harness-evaluation. It does not, by itself, require a screenshot gate. When `false`, the slice is treated as a non-UI change.
 - **`requires_visual_verification`**: Boolean. Set this to `true` only for the final user story that makes the completed visual flow reachable and reviewable. Set it to `false` for intermediate UI slices, including a slice that changes SwiftUI views but has no standalone production entry point. A `true` owner MUST include the required `TC-US-*-VIS` rows and state-verifying screenshot commands; `false` slices require automated UI/integration proof for their acceptance criteria but no screenshot gate.
 - **`status`**: The progress status (`not_started`, `in_progress`, `blocked`, or `passing`).
@@ -109,7 +109,7 @@ Before finalizing, verify the bidirectional mapping is complete:
 5. **No under-covered FR outcomes**: Every distinct behavior named in an `FR-*` (happy path, fallback, error, boundary, backward/forward compatibility, graceful fallback) maps to its own AC and test. One happy-path test is insufficient when the FR text promises additional behaviors.
 6. **No invented scope**: Every planned capability, acceptance criterion, and verification requirement traces back to the source spec or an explicitly recorded user decision.
 7. **`requires_visual_verification` ↔ `TC-US-*-VIS` consistency**: For every feature with `"requires_visual_verification": true`, the matching `US-*` user story in `sprint-contract.md` MUST contain the visual-state rows needed to assess the completed flow, and each row's state-verifying `Exact command` MUST appear verbatim in the feature's `verification` array. A feature with `"requires_visual_verification": false` MUST contain no `TC-US-*-VIS` row. `affects_ui` alone does not require a screenshot gate.
-8. **One visual-verification owner**: If the planned feature contains UI changes, select exactly one final, user-reachable slice as the visual-verification owner. Its acceptance tests must navigate through the completed production flow before capturing. Do not attach screenshot rows to intermediate slices merely because they change a Composable.
+8. **One visual-verification owner**: If the planned feature contains UI changes, select exactly one final, user-reachable slice as the visual-verification owner. Its acceptance tests must navigate through the completed production flow before capturing. Do not attach screenshot rows to intermediate slices merely because they change a SwiftUI view.
 9. **No horizontal slices**: Every feature passes the Vertical Slice Test from step 3 — it has an observable, already-reachable entry point when shipped alone. A slice whose only consumer is a later slice's UI is horizontal and must be merged into that later slice.
 
 If a user story is too large to fit into a single feature slice, **split the user story** in the sprint contract first, then create the corresponding feature. If a feature slice doesn't map to any user story, either the sprint contract is missing a story or the slice should be merged into another feature.

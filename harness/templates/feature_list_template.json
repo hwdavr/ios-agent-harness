@@ -17,17 +17,17 @@
   "platform_validation": {
     "required": false,
     "unsupported_environment_policy": "fail_loudly",
-    "reason": "<why this feature has no Android/device/platform boundary — e.g. standard Jetpack SwiftUI + SwiftData on-device only>"
+    "reason": "<why this feature has no iOS platform/device boundary — e.g. standard SwiftUI + SwiftData on-device only>"
   },
   "features": [
     {
       "id": "US-1",
       "priority": 1,
-      "area": "chat",
+      "area": "editor",
       "title": "Create a new item",
-      "description": "Implement the domain use case and local database schema additions to create a new item and post to server.",
+      "description": "Implement domain use case and SwiftData model to create and persist items.",
       "ui_design": "docs/current/design/home_screen.png",
-      "user_visible_behavior": "A user can click + floating action button at home to create a new item.",
+      "user_visible_behavior": "User can tap add button to create a new item.",
       "affects_ui": true,
       "requires_visual_verification": true,
       "status": "not_started",
@@ -36,8 +36,8 @@
         "TC-US-1-VIS"
       ],
       "verification": [
-        "./gradlew xcodebuild test (UI Tests) -Pandroid.testInstrumentationRunnerArguments.class=<fully.qualified.TestClass>",
-        "env ./gradlew xcodebuild test (UI Tests) -Pandroid.testInstrumentationRunnerArguments.class=<package>.<Feature>VisualFlowTest#capture<State> && xcrun simctl spawn booted cp /var/tmp/<screen_id>_<state>.png \"$FEATURE_DIR/visual_evidence/<screen_id>_<state>.png\" && test -s \"$FEATURE_DIR/visual_evidence/<screen_id>_<state>.png\""
+        "xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:NotesTakingAppiOSTests/ItemTests",
+        "xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:NotesTakingAppiOSUITests/ItemVisualFlowTests/testItemScreen && cp /var/tmp/item_screen.png \"$FEATURE_DIR/visual_evidence/item_screen.png\" && test -s \"$FEATURE_DIR/visual_evidence/item_screen.png\""
       ],
       "evidence": [],
       "notes": ""
@@ -45,11 +45,11 @@
     {
       "id": "US-2",
       "priority": 2,
-      "area": "chat",
-      "title": "Send a message in the current conversation",
-      "description": "Implement the sendMessage URLSession API endpoint mapping and save the sent message into the local SwiftData database thread.",
-      "ui_design": "Pencil: Discussion Bottom Sheet",
-      "user_visible_behavior": "A user can submit a message and see it appear in the active thread.",
+      "area": "editor",
+      "title": "Edit existing item",
+      "description": "Update existing item in SwiftData and update view model state.",
+      "ui_design": "docs/current/design/editor_screen.png",
+      "user_visible_behavior": "User can modify item text and changes persist immediately.",
       "affects_ui": true,
       "requires_visual_verification": false,
       "status": "not_started",
@@ -57,30 +57,10 @@
         "TC-US-2-01"
       ],
       "verification": [
-        "./gradlew xcodebuild test (UI Tests) -Pandroid.testInstrumentationRunnerArguments.class=<fully.qualified.TestClass>"
+        "xcodebuild test -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' -only-testing:NotesTakingAppiOSTests/ItemEditorTests"
       ],
       "evidence": [],
-      "notes": "Intermediate UI slice; visual verification is owned by the final user-reachable slice."
-    },
-    {
-      "id": "US-3",
-      "priority": 3,
-      "area": "chat",
-      "title": "Persist the active conversation list",
-      "description": "Implement automatic offline syncing using a WorkManager sync worker that triggers when internet is restored.",
-      "ui_design": "Figma: Sidebar Navigation",
-      "user_visible_behavior": "A user sees previously created conversations after restarting the app.",
-      "affects_ui": false,
-      "requires_visual_verification": false,
-      "status": "not_started",
-      "acceptance_test_ids": [
-        "TC-US-3-01"
-      ],
-      "verification": [
-        "./gradlew xcodebuild test (UI Tests) -Pandroid.testInstrumentationRunnerArguments.class=<fully.qualified.TestClass>"
-      ],
-      "evidence": [],
-      "notes": "Background sync worker; no SwiftUI View changes. Visual verification (TC-US-*-VIS) is not required."
+      "notes": ""
     }
   ]
 }
