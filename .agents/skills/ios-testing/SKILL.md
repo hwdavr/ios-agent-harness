@@ -18,7 +18,7 @@ approved behavior before invoking this skill.
 ## Load
 
 **At a new session, load L1:**
-- `rules/testing-strategy.md`
+- `rules/testing-strategy.md` is auto-loaded as a system rule — do not re-read
 
 **Then load only the selected test-layer guidance:**
 - `rules/testing-practices.md` for test structure, doubles, reliability, and assertion quality
@@ -53,44 +53,16 @@ to a test, static check, or explicit review evidence. Preserve the rationale for
 non-applicable/exception rows; do not invent analytics or logging tests without a trigger.
 
 ### 2. Unit tests (`NotesTakingAppiOSTests/`)
-Write unit tests for all new or modified:
-- Domain use case logic
-- ViewModel state transitions
-- Mapper logic (DTO → Domain, Domain → UI)
-- Formatting and fallback logic
-
-Rules:
-- Use Swift Testing framework (`@Test`, `#expect`)
-- Class/struct name ends with `Tests`
-- One main scenario per test
-- 90% line coverage target for new ViewModel and domain classes
+Write unit tests for all new or modified use cases, ViewModels, mappers, and formatters.
+Follow `skills/ios-unit-test/SKILL.md` for framework, naming, and coverage rules.
 
 ### 3. Integration tests (`NotesTakingAppiOSTests/`)
-Write integration tests if an API is involved.
-
-For each changed API endpoint, test:
-- Success response (2xx)
-- 4xx client error
-- 5xx server error
-- Malformed or partial payload
-- Network timeout / disconnect
-- Unknown enum value (must not crash — must return fallback)
-
-Rules:
-- Use Swift Testing or XCTest with `async`/`await`
-- **Use shared JSON scenarios — do not inline mock data** (read `skills/shared-json-scenarios/SKILL.md`)
-- Store scenarios in `sharedContracts/test-scenarios/`
-- If API used by a ViewModel: assert `expected.ui` from the scenario
-- If API used only by repo / use case: assert `expected.domain`
+Write integration tests if an API is involved. Test success, 4xx, 5xx, malformed payload, timeout, and unknown enum fallback per endpoint.
+Follow `skills/ios-integration-test/SKILL.md` — use shared JSON scenarios, do not inline mock data.
 
 ### 4. UI tests (`NotesTakingAppiOSUITests/`)
 Write UI tests only when simulator runtime or real UI rendering is required.
-
-Rules:
-- Use `XCUIApplication` with XCUITest
-- Use `accessibilityIdentifier` to locate elements — not static text
-- Do not use `sleep()` — use `waitForExistence` or expectations
-- One main business scenario per test
+Follow `skills/ios-ui-test/SKILL.md` — use `accessibilityIdentifier`, not static text; no `sleep()`.
 
 ### 5. Run and record results
 ```bash

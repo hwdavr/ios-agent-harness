@@ -17,9 +17,9 @@ Do not load or execute a Data, Domain, or UI section merely because another laye
 ## Load
 
 **At a new session, load L1:**
-- `rules/ios-architecture.md`
-- `rules/implementation-rules.md`
-- `rules/testing-strategy.md`
+- `rules/ios-architecture.md` (skip if already loaded this session — L1 is session-scoped)
+- `rules/implementation-rules.md` (skip if already loaded this session)
+- `rules/testing-strategy.md` is auto-loaded as a system rule — do not re-read
 
 **Then load only triggered context:**
 - `rules/api-contract-rules.md` when API is `Required` or excepted
@@ -153,24 +153,9 @@ Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active w
 
 ## Done When
 
-**This stage is complete when every applicable item below is mechanically verified:**
-- [ ] `sharedContracts/openapi.yaml` updated (if API changed)
-- [ ] No DTOs referenced outside the data layer
-- [ ] All new enum fields have an `unknown` / fallback variant
-- [ ] SwiftData schema version incremented and migration added (if schema changed)
-- [ ] Repository methods return domain models, not DTOs
-- [ ] No UIKit/SwiftUI framework classes imported in domain layer
-- [ ] Use cases are single-responsibility
-- [ ] ViewModel does not import URLSession or data-layer classes
-- [ ] SwiftUI Views do not contain business logic
-- [ ] All user-visible text uses `LocalizedStringKey` — no hardcoded strings
-- [ ] All interactive elements have `.accessibilityIdentifier(...)` with a stable name
-- [ ] UI conforms to `docs/product/design_system.md` plus explicit approved feature exceptions
-- [ ] UIState covers loading, content, empty, and error states
+**This stage is complete when every applicable Execute section rule is mechanically verified:**
+- [ ] All layer rules from Execute sections above are satisfied (no DTO leaks, no business logic in Views, no dummy code, etc.)
 - [ ] Rule Applicability decisions are implemented or retained with their approved rationale
-- [ ] When OBS is `Required`, log statements use `os.Logger`, the bundle subsystem, a correct level, and no PII (see `rules/observability.md`)
-- [ ] When ANL is `Required`, analytics events are fired from the ViewModel and have no prohibited data
-- [ ] No dummy code in production sources — no `fatalError("TODO")`, `#warning("stub")`, stub return values, no-op handlers, or dummy comments (see `rules/implementation-rules.md`)
-- [ ] Build passes: `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build`
+- [ ] Build compiles without errors (full `xcodebuild build` gate runs at Code Quality Fix)
 
 **APPROVED →** Return to the active workflow file.

@@ -17,9 +17,10 @@ prove the rendered result. Do not translate Compose code line-for-line into Swif
   and navigation state.
 - The approved Android design/screenshot or Pencil/Figma reference, if available.
 - `docs/product/design_system.md` and the affected iOS SwiftUI code.
-- `.agents/rules/ios-architecture.md`, `.agents/rules/swiftui-rules.md`,
+- `.agents/rules/ios-architecture.md` (skip if already loaded this session), `.agents/rules/swiftui-rules.md`,
   `.agents/rules/localization-rules.md`, `.agents/rules/navigation-rules.md`,
-  `.agents/rules/implementation-rules.md`, `.agents/rules/testing-strategy.md`,
+  `.agents/rules/implementation-rules.md` (skip if already loaded this session),
+  `.agents/rules/testing-strategy.md` (auto-loaded as system rule — do not re-read),
   `.agents/rules/observability.md`, and `.agents/rules/analytics-rules.md`.
 - `harness/templates/rule-applicability-template.md`.
 - `references/compose-to-swiftui-mapping.md` for implementation mappings and measurement rules.

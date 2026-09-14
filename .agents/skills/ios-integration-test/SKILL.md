@@ -12,7 +12,7 @@ Write integration tests covering ViewModel + repository + mocked API end-to-end 
 
 ## Load
 - `skills/shared-json-scenarios/SKILL.md`
-- `rules/testing-strategy.md`
+- `rules/testing-strategy.md` is auto-loaded as a system rule — do not re-read
 - `rules/api-contract-rules.md`
 
 ---

@@ -14,7 +14,7 @@ live in `harness/templates/test-review-template.md`.
 ## Load
 
 - All test files mapped by the active plan or sprint contract, plus the production files that implement the mapped behavior.
-- `rules/testing-strategy.md`, `rules/testing-practices.md`,
+- `rules/testing-strategy.md` is auto-loaded as a system rule — do not re-read. Also load `rules/testing-practices.md`,
   `harness/templates/test-review-template.md`, and
   `harness/templates/rule-applicability-template.md`.
 - Load `rules/testing-runtime-evidence.md` only when the plan or diff makes a

@@ -12,8 +12,8 @@ Do not write any code in this stage.
 ---
 
 ## Load
-- `rules/ios-architecture.md`
-- `rules/testing-strategy.md`
+- `rules/ios-architecture.md` (skip if already loaded this session — L1 is session-scoped)
+- `rules/testing-strategy.md` is auto-loaded as a system rule — do not re-read
 - `harness/templates/rule-applicability-template.md` as the conditional-rule trigger catalog
 - Load `rules/swiftui-rules.md`, `rules/localization-rules.md`, `rules/api-contract-rules.md`,
   `rules/navigation-rules.md`, `rules/observability.md`, `rules/analytics-rules.md`, and

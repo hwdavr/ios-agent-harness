@@ -11,7 +11,7 @@ Write unit tests for ViewModels, use cases, and mapper logic using Swift Testing
 ---
 
 ## Load
-- `rules/testing-strategy.md`
+- `rules/testing-strategy.md` is auto-loaded as a system rule — do not re-read
 
 ---
 

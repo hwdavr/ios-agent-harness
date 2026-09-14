@@ -25,9 +25,9 @@ Determine scope before running any stage:
 ---
 
 ## Load
-- `rules/ios-architecture.md`
-- `rules/implementation-rules.md`
-- `rules/testing-strategy.md`
+- `rules/ios-architecture.md` (skip if already loaded this session — L1 is session-scoped)
+- `rules/implementation-rules.md` (skip if already loaded this session)
+- `rules/testing-strategy.md` is auto-loaded as a system rule — do not re-read
 - `rules/api-contract-rules.md`
 - `harness/templates/rule-applicability-template.md`
 - `docs/current/implementation_plan_v<N>.md` (once generated in Stage 2)

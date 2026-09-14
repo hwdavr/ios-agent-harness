@@ -12,7 +12,7 @@ Write UI tests using XCUITest for SwiftUI screens, user gestures, and navigation
 
 ## Load
 - `rules/swiftui-rules.md`
-- `rules/testing-strategy.md`
+- `rules/testing-strategy.md` is auto-loaded as a system rule — do not re-read
 
 ---
 
