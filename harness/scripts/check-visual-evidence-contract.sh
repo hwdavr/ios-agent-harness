@@ -145,7 +145,6 @@ for test_id in $CONTRACT_IDS; do
 done
 
 if [ "$MODE" = "--evaluate" ]; then
-  GOLDEN_DIR="$ROOT_DIR/UX/golden-baselines"
   ANCHOR_REPORT="$FEATURE_DIR/visual_evidence/reference-anchor-verification.md"
   [ -f "$ANCHOR_REPORT" ] || fail "missing $ANCHOR_REPORT; visual evidence needs reference-anchor verification"
   grep -Fq "## Reference Anchor Verification" "$ANCHOR_REPORT" \
@@ -153,14 +152,96 @@ if [ "$MODE" = "--evaluate" ]; then
   grep -Fq "| Visual Test ID | Reference anchor | Runtime proof | Measured relationship | Actual screenshot | Result |" "$ANCHOR_REPORT" \
     || fail "$ANCHOR_REPORT has no required reference-anchor table header"
 
-  REFERENCE_ASSET=$(sed -n 's/^\*\*Reference design\*\*: `\(design\/[^`]*\)`[[:space:]]*$/\1/p' "$ANCHOR_REPORT" | head -n 1)
-  [ -n "$REFERENCE_ASSET" ] \
-    || fail "$ANCHOR_REPORT must declare one backticked design/ reference asset"
-  case "$REFERENCE_ASSET" in
-    *..*) fail "$ANCHOR_REPORT reference asset must stay under design/" ;;
+  RUNTIME_APPEARANCE=$(sed -n -E 's/^\*\*Runtime appearance\*\*:[[:space:]]*`(light|dark)`[[:space:]]*$/\1/p' "$ANCHOR_REPORT" | head -n 1)
+  [ -n "$RUNTIME_APPEARANCE" ] \
+    || fail "$ANCHOR_REPORT must declare the runtime appearance as \`light\` or \`dark\`"
+  RUNTIME_DEVICE=$(sed -n -E 's/^\*\*Runtime device\*\*:[[:space:]]*`([^`]+)`[[:space:]]*$/\1/p' "$ANCHOR_REPORT" | head -n 1)
+  [ -n "$RUNTIME_DEVICE" ] \
+    || fail "$ANCHOR_REPORT must declare one concrete runtime device"
+  RUNTIME_LOGICAL_SIZE=$(sed -n -E 's/^\*\*Runtime logical size\*\*:[[:space:]]*`([0-9]+x[0-9]+) pt`[[:space:]]*$/\1/p' "$ANCHOR_REPORT" | head -n 1)
+  [ -n "$RUNTIME_LOGICAL_SIZE" ] \
+    || fail "$ANCHOR_REPORT must declare a runtime logical size such as \`393x852 pt\`"
+  RUNTIME_LOGICAL_WIDTH="${RUNTIME_LOGICAL_SIZE%x*}"
+  RUNTIME_LOGICAL_HEIGHT="${RUNTIME_LOGICAL_SIZE#*x}"
+  RUNTIME_LOCALE=$(sed -n -E 's/^\*\*Runtime locale\*\*:[[:space:]]*`([A-Za-z]{2,3}-[A-Za-z]{2})`[[:space:]]*$/\1/p' "$ANCHOR_REPORT" | head -n 1)
+  [ -n "$RUNTIME_LOCALE" ] \
+    || fail "$ANCHOR_REPORT must declare one concrete runtime locale such as \`en-US\`"
+  PREPARE_RUNTIME="$ROOT_DIR/harness/scripts/prepare-visual-runtime.sh"
+  [ -x "$PREPARE_RUNTIME" ] \
+    || fail "missing executable visual runtime preflight: $PREPARE_RUNTIME"
+  CHECK_THEME="$ROOT_DIR/harness/scripts/check-visual-theme.sh"
+  [ -x "$CHECK_THEME" ] \
+    || fail "missing executable visual theme check: $CHECK_THEME"
+  REFERENCE_MAP="$FEATURE_DIR/visual_evidence/reference-map.json"
+  [ -f "$REFERENCE_MAP" ] \
+    || fail "missing $REFERENCE_MAP; every runtime capture requires an explicit approved mockup mapping"
+  jq -e 'type == "object" and .version == 1 and (.captures | type == "object") and (.target_manifest | type == "string")' "$REFERENCE_MAP" >/dev/null 2>&1 \
+    || fail "$REFERENCE_MAP must use version 1 with target_manifest and captures object"
+  TARGET_MANIFEST_REL=$(jq -r '.target_manifest' "$REFERENCE_MAP")
+  case "$TARGET_MANIFEST_REL" in
+    visual-target.json) ;;
+    *) fail "$REFERENCE_MAP target_manifest must be visual-target.json so mockup generation and simulator capture share one source" ;;
   esac
-  [ -s "$FEATURE_DIR/$REFERENCE_ASSET" ] \
-    || fail "$ANCHOR_REPORT references missing or empty design asset $REFERENCE_ASSET"
+  TARGET_MANIFEST="$FEATURE_DIR/visual_evidence/$TARGET_MANIFEST_REL"
+  [ -f "$TARGET_MANIFEST" ] || fail "missing visual target manifest $TARGET_MANIFEST"
+  jq -e 'type == "object" and .version == 1 and (.target_id | type == "string") and (.appearance | IN("light", "dark")) and (.device | type == "string") and (.logical_size_pt.width > 0) and (.logical_size_pt.height > 0) and (.locale | type == "string") and (.states | type == "object")' "$TARGET_MANIFEST" >/dev/null 2>&1 \
+    || fail "$TARGET_MANIFEST must declare version, target_id, appearance, device, logical_size_pt, locale, and states"
+  TARGET_APPEARANCE=$(jq -r '.appearance' "$TARGET_MANIFEST")
+  [ "$TARGET_APPEARANCE" = "$RUNTIME_APPEARANCE" ] \
+    || fail "visual target appearance $TARGET_APPEARANCE must match runtime appearance $RUNTIME_APPEARANCE"
+  TARGET_DEVICE=$(jq -r '.device' "$TARGET_MANIFEST")
+  [ "$TARGET_DEVICE" = "$RUNTIME_DEVICE" ] \
+    || fail "visual target device $TARGET_DEVICE must match runtime device $RUNTIME_DEVICE"
+  TARGET_WIDTH=$(jq -r '.logical_size_pt.width' "$TARGET_MANIFEST")
+  TARGET_HEIGHT=$(jq -r '.logical_size_pt.height' "$TARGET_MANIFEST")
+  [ "$TARGET_WIDTH" = "$RUNTIME_LOGICAL_WIDTH" ] && [ "$TARGET_HEIGHT" = "$RUNTIME_LOGICAL_HEIGHT" ] \
+    || fail "visual target logical size must match runtime size ${RUNTIME_LOGICAL_WIDTH}x${RUNTIME_LOGICAL_HEIGHT} pt"
+  TARGET_LOCALE=$(jq -r '.locale' "$TARGET_MANIFEST")
+  [ "$TARGET_LOCALE" = "$RUNTIME_LOCALE" ] \
+    || fail "visual target locale $TARGET_LOCALE must match runtime locale $RUNTIME_LOCALE"
+
+  # A launch argument controls the app process, but not system UI such as the
+  # keyboard. Require every visual command to configure the concrete simulator
+  # appearance and disable test clones before it captures evidence.
+  while IFS= read -r visual_command; do
+    [ -n "$visual_command" ] || continue
+    printf '%s\n' "$visual_command" | grep -Fq 'harness/scripts/prepare-visual-runtime.sh' \
+      || fail "visual verification commands must run prepare-visual-runtime.sh before capture"
+    printf '%s\n' "$visual_command" | grep -Eq -- '--(target|visual-target)[[:space:]]' \
+      || fail "visual verification commands must pass the canonical visual-target.json to prepare-visual-runtime.sh"
+    printf '%s\n' "$visual_command" | grep -Fq 'visual-target.json' \
+      || fail "visual verification commands must reference visual_evidence/visual-target.json"
+    printf '%s\n' "$visual_command" | grep -Fq -- '-parallel-testing-enabled NO' \
+      || fail "visual verification commands must disable parallel simulator clones"
+  done <<EOF
+$VISUAL_COMMANDS
+EOF
+
+  # A declared command is not proof that the recorded successful evidence was
+  # produced by that command. Require each successful evidence row to preserve
+  # the same runtime setup, so stale pre-retro captures cannot remain green.
+  for test_id in $CONTRACT_IDS; do
+    EVIDENCE_COMMANDS=$(jq -r --arg owner "$VISUAL_OWNER" --arg id "$test_id" '
+      .features[]
+      | select(.id == $owner)
+      | (.evidence // [])[]
+      | select(.test_id == $id and .exit_status == 0 and ((.executed_command // "") | contains("xcodebuild test")))
+      | .executed_command
+    ' "$FEATURE_JSON")
+    while IFS= read -r evidence_command; do
+      [ -n "$evidence_command" ] || continue
+      printf '%s\n' "$evidence_command" | grep -Fq 'harness/scripts/prepare-visual-runtime.sh' \
+        || fail "$test_id successful evidence must record prepare-visual-runtime.sh"
+      printf '%s\n' "$evidence_command" | grep -Eq -- '--(target|visual-target)[[:space:]]' \
+        || fail "$test_id successful evidence must record the canonical visual-target.json"
+      printf '%s\n' "$evidence_command" | grep -Fq 'visual-target.json' \
+        || fail "$test_id successful evidence must record visual_evidence/visual-target.json"
+      printf '%s\n' "$evidence_command" | grep -Fq -- '-parallel-testing-enabled NO' \
+        || fail "$test_id successful evidence must record disabled parallel simulator clones"
+    done <<EOF
+$EVIDENCE_COMMANDS
+EOF
+  done
 
   SEEN_SCREENSHOT_PATHS=""
   for test_id in $CONTRACT_IDS; do
@@ -177,27 +258,50 @@ if [ "$MODE" = "--evaluate" ]; then
     MIN_SCREENSHOT_BYTES=5120
     [ "$SCREENSHOT_SIZE" -ge "$MIN_SCREENSHOT_BYTES" ] \
       || fail "$test_id screenshot $SCREENSHOT_PATH is only ${SCREENSHOT_SIZE} bytes (minimum ${MIN_SCREENSHOT_BYTES}); likely a blank or transparent capture"
+    bash "$CHECK_THEME" \
+      --expected "$RUNTIME_APPEARANCE" \
+      --image "$FEATURE_DIR/$SCREENSHOT_PATH" \
+      || fail "$test_id screenshot $SCREENSHOT_PATH does not match declared runtime appearance $RUNTIME_APPEARANCE"
 
     if printf '%s\n' "$SEEN_SCREENSHOT_PATHS" | grep -Fxq "$SCREENSHOT_PATH"; then
       fail "${SCREENSHOT_PATH} is used by more than one visual row"
     fi
     SEEN_SCREENSHOT_PATHS="${SEEN_SCREENSHOT_PATHS}${SCREENSHOT_PATH}"$'\n'
 
-    # Every non-anchor-only capture must have an approved golden baseline. This
-    # makes the perceptual comparison a real regression gate instead of an
-    # optional report generated after the feature has already passed.
-    REFERENCE_MAP="$FEATURE_DIR/visual_evidence/reference-map.json"
-    MAP_ENTRY_TYPE="missing"
-    if [ -f "$REFERENCE_MAP" ]; then
-      MAP_ENTRY_TYPE=$(jq -r --arg f "$(basename "$SCREENSHOT_PATH")" \
-        'if type == "object" and has($f) then (.[$f] | type) else "missing" end' \
-        "$REFERENCE_MAP" 2>/dev/null || echo "missing")
-    fi
-    if [ "$MAP_ENTRY_TYPE" != "null" ]; then
-      GOLDEN_BASELINE="$GOLDEN_DIR/$(basename "$SCREENSHOT_PATH")"
-      [ -s "$GOLDEN_BASELINE" ] \
-        || fail "$test_id screenshot $SCREENSHOT_PATH has no promoted golden baseline at $GOLDEN_BASELINE; approve the capture and promote it: bash harness/scripts/compare-visual-evidence.sh --promote-golden \"$FEATURE_DIR/$SCREENSHOT_PATH\" --name \"$(basename "${SCREENSHOT_PATH%.png}")\""
-    fi
+    CAPTURE_NAME="$(basename "$SCREENSHOT_PATH")"
+    MAP_ENTRY=$(jq -c --arg f "$CAPTURE_NAME" '.captures[$f] // empty' "$REFERENCE_MAP")
+    [ -n "$MAP_ENTRY" ] \
+      || fail "$test_id screenshot $SCREENSHOT_PATH has no explicit mockup mapping in $REFERENCE_MAP"
+    printf '%s' "$MAP_ENTRY" | jq -e 'type == "object" and ((keys | sort) == ["state_id"])' >/dev/null \
+      || fail "$test_id mockup mapping must contain only an explicit state_id; target metadata belongs in visual-target.json"
+    MAP_CONTENT_STATE_ID=$(printf '%s' "$MAP_ENTRY" | jq -r '.state_id // empty')
+    [ -n "$MAP_CONTENT_STATE_ID" ] \
+      || fail "$test_id mockup mapping must declare a stable content_state_id"
+    STATE_JSON=$(jq -c --arg state "$MAP_CONTENT_STATE_ID" '.states[$state] // empty' "$TARGET_MANIFEST")
+    [ -n "$STATE_JSON" ] && [ "$STATE_JSON" != "null" ] \
+      || fail "$test_id mockup state $MAP_CONTENT_STATE_ID is not declared in visual-target.json"
+    STATE_ID_FROM_MANIFEST=$(printf '%s' "$STATE_JSON" | jq -r '.content_state_id // empty')
+    [ "$STATE_ID_FROM_MANIFEST" = "$MAP_CONTENT_STATE_ID" ] \
+      || fail "$test_id visual target state must carry matching content_state_id $MAP_CONTENT_STATE_ID"
+    REFERENCE_ASSET=$(printf '%s' "$STATE_JSON" | jq -r '.reference // empty')
+    case "$REFERENCE_ASSET" in
+      design/mockup_*.png) ;;
+      *) fail "$test_id mockup mapping must reference an approved design/mockup_*.png asset" ;;
+    esac
+    case "$REFERENCE_ASSET" in
+      *..*) fail "$test_id mockup mapping must stay under design/" ;;
+    esac
+    [ -s "$FEATURE_DIR/$REFERENCE_ASSET" ] \
+      || fail "$test_id mockup mapping references missing or empty asset $REFERENCE_ASSET"
+    MAP_CONTENT_STATE=$(printf '%s' "$STATE_JSON" | jq -r '.content_state // empty')
+    [ -n "$MAP_CONTENT_STATE" ] \
+      || fail "$test_id mockup mapping must declare the intended content state"
+    printf '%s\n' "$CONTRACT_ROW" | grep -Fq "contentState: \`$MAP_CONTENT_STATE_ID\`" \
+      || fail "$test_id contract row must declare contentState: \`$MAP_CONTENT_STATE_ID\` to bind the runtime fixture to its mockup"
+    bash "$CHECK_THEME" \
+      --expected "$RUNTIME_APPEARANCE" \
+      --image "$FEATURE_DIR/$REFERENCE_ASSET" \
+      || fail "$test_id mockup $REFERENCE_ASSET does not match runtime appearance $RUNTIME_APPEARANCE"
 
     REPORT_ROWS=$(grep -E "^\\|[[:space:]]*$test_id[[:space:]]*\\|" "$ANCHOR_REPORT" || true)
     REPORT_ROW_COUNT=$(printf '%s\n' "$REPORT_ROWS" | sed '/^[[:space:]]*$/d' | wc -l | tr -d ' ')

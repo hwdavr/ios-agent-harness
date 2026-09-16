@@ -117,7 +117,7 @@ statement is not sufficient evidence.
 
 Read the Android UI test files for the target screen — Espresso tests, Compose test rules
 (`createComposeRule`, `onNodeWithTag`, `onNodeWithText`, `performClick`, assertion chains), and
-any screenshot/golden-image tests. Record the inventory in
+any screenshot/reference-image tests. Record the inventory in
 `docs/current/android_ui_test_inventory.md`:
 
 | Android test file | Test method | What it verifies | Mapped iOS test method | Status |
