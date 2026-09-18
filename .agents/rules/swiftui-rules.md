@@ -186,6 +186,12 @@ Use `@Observable` ViewModels — not `@StateObject` / `@ObservedObject` (legacy 
 - Apply keyboard avoidance to the sheet content so the focused field and remaining controls stay visible, and keep the sheet's results region scrollable.
 - The design (`design.md`) must include a distinct keyboard-visible mockup showing the sheet **still open** with the keyboard, alongside the base mockup — never a dismissed sheet.
 
+### Bottom-Sheet Composition
+
+- Use the platform presentation drag indicator as the sheet's single grabber. Do not add a custom drag capsule when the native indicator is visible.
+- Do not add an `xmark` or other generic header close button to a bottom sheet unless the approved design or requirement explicitly calls for that control.
+- Native swipe-down and scrim dismissal are the default sheet exit affordances; any additional dismissal control requires a documented design reason and an accessibility identifier.
+
 ---
 
 ## SwiftUI Verification

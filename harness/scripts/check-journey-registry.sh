@@ -246,8 +246,15 @@ def validate_registry():
                             cls_part = parts[-2]
                             if method and meth_part != method:
                                 violations.append(f"{entry_desc}: xcode_selector method '{meth_part}' does not match test_method '{method}'")
-                            if cls_part not in test_file_str:
-                                violations.append(f"{entry_desc}: xcode_selector class '{cls_part}' does not match file name '{test_file_str}'")
+                            class_declared = re.search(
+                                rf"\b(?:class|extension)\s+{re.escape(cls_part)}\b",
+                                test_content,
+                            )
+                            if cls_part not in test_file_str and not class_declared:
+                                violations.append(
+                                    f"{entry_desc}: xcode_selector class '{cls_part}' "
+                                    f"does not match file name or declaration in '{test_file_str}'"
+                                )
 
     if violations:
         print("======================================================", file=sys.stderr)
@@ -310,6 +317,31 @@ def check_coverage(journeys):
 
     print("======================================================")
 
+def run_journey_command(cmd, expected_methods):
+    result = subprocess.run(
+        cmd,
+        cwd=project_root,
+        capture_output=True,
+        text=True,
+    )
+    output = (result.stdout or "") + (result.stderr or "")
+    print(output, end="")
+    if result.returncode != 0:
+        return result.returncode
+
+    missing_methods = [
+        method for method in expected_methods
+        if not re.search(rf"Test case '.*\.{re.escape(method)}\(\)' ", output)
+    ]
+    if missing_methods:
+        print(
+            "FAIL: xcodebuild exited 0 but did not execute registered journey "
+            f"method(s): {', '.join(missing_methods)}",
+            file=sys.stderr,
+        )
+        return 1
+    return 0
+
 if mode == "validate":
     valid, _ = validate_registry()
     sys.exit(0 if valid else 2)
@@ -353,8 +385,7 @@ elif mode == "run-one":
         print("[DRY-RUN] Command would be executed successfully.")
         sys.exit(0)
 
-    res = subprocess.run(cmd, cwd=project_root)
-    sys.exit(0 if res.returncode == 0 else 1)
+    sys.exit(0 if run_journey_command(cmd, [entry["test_method"]]) == 0 else 1)
 
 elif mode == "run-all":
     valid, journeys = validate_registry()
@@ -382,8 +413,7 @@ elif mode == "run-all":
         print("[DRY-RUN] Command would be executed successfully.")
         sys.exit(0)
 
-    res = subprocess.run(cmd, cwd=project_root)
-    sys.exit(0 if res.returncode == 0 else 1)
+    sys.exit(0 if run_journey_command(cmd, [j["test_method"] for j in journeys]) == 0 else 1)
 
 else:
     print(f"FAIL: Unknown mode '{mode}'", file=sys.stderr)

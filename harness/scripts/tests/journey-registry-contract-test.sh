@@ -81,6 +81,37 @@ expect_success bash "$VALIDATOR" \
   --registry "$FIXTURE_ROOT/docs/product/journey-registry.yaml" \
   --validate
 
+# Case 1b: A method declared in an XCTest extension can use the owning test
+# class in its Xcode selector even when the source file has a split name.
+cat << 'EOF' > "$FIXTURE_ROOT/NotesTakingAppiOSUITests/DummyJourneyManagementTests.swift"
+import XCTest
+
+extension DummyJourneyTests {
+    func extensionJourneyMethod() {
+    }
+}
+EOF
+
+cat << 'EOF' > "$FIXTURE_ROOT/docs/product/journey-registry.yaml"
+journeys:
+  - id: J-DUMMY-EXTENSION-JOURNEY
+    description: "Home -> Editor -> save -> return to Home"
+    introduced_by: test-feature/US-1
+    destinations:
+      - home
+      - editor
+    test_file: NotesTakingAppiOSUITests/DummyJourneyManagementTests.swift
+    test_method: extensionJourneyMethod
+    xcode_selector: "NotesTakingAppiOSUITests/DummyJourneyTests/extensionJourneyMethod"
+    boundary: "Editor pops back to Home"
+    post_return_assertion: "Saved note visible in Home list"
+EOF
+
+expect_success bash "$VALIDATOR" \
+  --project-root "$FIXTURE_ROOT" \
+  --registry "$FIXTURE_ROOT/docs/product/journey-registry.yaml" \
+  --validate
+
 # Case 2: Missing registry file fails
 expect_failure 2 "Journey registry file not found" bash "$VALIDATOR" \
   --project-root "$FIXTURE_ROOT" \
@@ -227,4 +258,19 @@ expect_success bash "$VALIDATOR" \
   --run-all \
   --dry-run
 
-echo "PASS: All 9 journey-registry contract test cases passed."
+# Case 10: A runner that exits 0 without executing the selected test is rejected.
+mkdir -p "$FIXTURE_ROOT/bin"
+cat << 'EOF' > "$FIXTURE_ROOT/bin/xcodebuild"
+#!/usr/bin/env bash
+exit 0
+EOF
+chmod +x "$FIXTURE_ROOT/bin/xcodebuild"
+
+expect_failure 1 "did not execute registered journey method(s)" env \
+  PATH="$FIXTURE_ROOT/bin:$PATH" \
+  bash "$VALIDATOR" \
+    --project-root "$FIXTURE_ROOT" \
+    --registry "$FIXTURE_ROOT/docs/product/journey-registry.yaml" \
+    --run-one J-DUMMY-JOURNEY
+
+echo "PASS: All 11 journey-registry contract test cases passed."

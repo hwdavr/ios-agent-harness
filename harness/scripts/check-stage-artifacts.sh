@@ -3,7 +3,7 @@
 #
 # Usage: bash harness/scripts/check-stage-artifacts.sh <workflow> <stage> [artifact-directory] [feature-id]
 #   workflow: feature-delivery | bug-fixing | api-contract-update | harness-generator | harness-planning | create-ui-and-verify | android-to-ios-migration
-#   stage:    orient | requirement-analysis | implementation-plan | feature-specification | slice-planning | ui-verification | android-analysis | specification | test-migration
+#   stage:    orient | requirement-analysis | implementation-plan | testing | feature-specification | slice-planning | ui-verification | android-analysis | specification | test-migration
 #
 # Exits 0 if required artifacts are present, 1 otherwise.
 # Designed to run on macOS /bin/bash (Bash 3.2) — no mapfile, no arrays with set -u.
@@ -21,7 +21,7 @@ FEATURE_ID="${4:-}"
 if [ -z "$WORKFLOW" ] || [ -z "$STAGE" ]; then
   echo "Usage: $0 <workflow> <stage> [artifact-directory] [feature-id]" >&2
   echo "Workflows: feature-delivery, bug-fixing, api-contract-update, harness-generator, harness-planning, create-ui-and-verify, android-to-ios-migration" >&2
-  echo "Stages: orient, requirement-analysis, implementation-plan, feature-specification, slice-planning, ui-verification, android-analysis, specification, test-migration" >&2
+  echo "Stages: orient, requirement-analysis, implementation-plan, testing, feature-specification, slice-planning, ui-verification, android-analysis, specification, test-migration" >&2
   exit 2
 fi
 
@@ -133,6 +133,11 @@ case "$WORKFLOW/$STAGE" in
   bug-fixing/implementation-plan)
     require_file "implementation_plan_v*.md" "fix plan"
     warn_if_missing "test_plan_v*.md" "test plan (required by feature-delivery, optional for bug-fixing)"
+    ;;
+  bug-fixing/testing)
+    require_file "summary_v*.md" "stage progress tracker"
+    require_file "test_plan_v*.md" "test plan"
+    require_rule_applicability "$(latest_versioned_file "spec_v*.md")" "bug-fixing testing"
     ;;
   api-contract-update/requirement-analysis)
     require_file "summary_v*.md" "stage progress tracker"
@@ -308,6 +313,7 @@ EOF
     echo "  feature-delivery/implementation-plan" >&2
     echo "  bug-fixing/requirement-analysis" >&2
     echo "  bug-fixing/implementation-plan" >&2
+    echo "  bug-fixing/testing" >&2
     echo "  api-contract-update/requirement-analysis" >&2
     echo "  api-contract-update/implementation-plan" >&2
     echo "  harness-planning/feature-specification" >&2

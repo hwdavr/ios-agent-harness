@@ -156,4 +156,25 @@ fi
 printf '%s\n' "$invalid_output" | rg -Fq "missing the SEC rule-applicability row" || \
     fail "incomplete matrix did not report the missing rule row"
 
+TESTING_DOCS="$TEMP_ROOT/bug-testing"
+mkdir -p "$TESTING_DOCS"
+touch "$TESTING_DOCS/summary_v1.md" "$TESTING_DOCS/test_plan_v1.md"
+create_spec "$TESTING_DOCS/spec_v1.md"
+
+if ! bash "$STAGE_CHECKER" bug-fixing testing "$TESTING_DOCS" >/dev/null; then
+    fail "bug-fixing testing artifacts did not pass the testing gate"
+fi
+
+rm "$TESTING_DOCS/test_plan_v1.md"
+set +e
+testing_output=$(bash "$STAGE_CHECKER" bug-fixing testing "$TESTING_DOCS" 2>&1)
+testing_status=$?
+set -e
+
+if [[ $testing_status -eq 0 ]]; then
+    fail "bug-fixing testing gate passed without a test plan"
+fi
+printf '%s\n' "$testing_output" | rg -Fq "no file matching 'test_plan_v*.md'" || \
+    fail "bug-fixing testing gate did not report the missing test plan"
+
 echo "GREEN: rule-applicability contract passes valid and rejects incomplete requirement artifacts."
