@@ -30,4 +30,4 @@ SOURCE_ROOT="${ARCHITECTURE_SOURCE_ROOT:-$PROJECT_ROOT/NotesTakingAppiOS}"
 exec "$PROJECT_ROOT/harness/scripts/run-ast-checker.sh" architecture \
     --project-root "$PROJECT_ROOT" \
     --source-root "$SOURCE_ROOT" \
-    "${checker_arguments[@]}"
+    "${checker_arguments[@]-}"

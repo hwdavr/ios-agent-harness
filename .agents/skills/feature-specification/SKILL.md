@@ -164,7 +164,7 @@ Output: `design.md` + `design/mockup_*.png` AI-generated visual mockup images in
 
 - Ad-hoc workflows: `docs/current/spec.md`, `docs/current/design.md`, and `docs/current/design/` mockup assets (user-provided or generated)
 - Harness planning: `$FEATURE_DIR/spec.md`, `$FEATURE_DIR/design.md`, and `$FEATURE_DIR/design/` mockup assets (user-provided or generated)
-- Every `spec.md`: complete Rule Applicability matrix with nine decisions, triggers or rationales, and planned evidence
+- Every `spec.md`: complete Rule Applicability matrix with ten decisions, triggers or rationales, and planned evidence
 
 **Design-system conformance:** for UI work, `design.md` must link `docs/product/design_system.md` and list every explicit user-approved exception (or state that none exist).
 

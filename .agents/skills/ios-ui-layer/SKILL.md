@@ -24,9 +24,10 @@ Implement the UI Layer: ViewModels, UI models, mappers, and SwiftUI Views.
 
 ## Execute
 
-Before editing, read the active specification's Rule Applicability matrix. Implement
-only the rows marked `Required`; preserve explicit non-applicable/exception rationales
-in the plan and raise a specification update if the UI work introduces a new trigger.
+Before editing, read the active specification's canonical Rule Applicability matrix.
+Implement only the rows marked `Required`; keep non-applicable/exception rationales in
+that specification and raise a specification update if the UI work introduces a new
+trigger.
 
 ### 1. ViewModel
 1. Mark as `@Observable` — expose single UI state struct per screen

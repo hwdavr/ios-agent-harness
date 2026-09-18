@@ -106,7 +106,7 @@ Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active w
 - [ ] At least one integration test per new or changed API endpoint (when API is in scope)
 - [ ] Shared JSON scenarios used — no inline mock response data in test files (when API is in scope)
 - [ ] UI tests pass (if added)
-- [ ] Every required Rule Applicability row has the planned verification evidence
+- [ ] Every `Required` Rule Applicability row from the canonical specification has the planned verification evidence
 - [ ] Harness workflow: acceptance-test traceability gate passes for the selected slice
 
 **APPROVED →** Return to the active workflow file and proceed to the next stage defined there.

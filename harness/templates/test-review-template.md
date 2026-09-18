@@ -22,11 +22,12 @@ Do not label recorded, up-to-date, skipped, or unexecuted evidence as a fresh pa
 
 ## Rule Applicability Test Reconciliation
 
-Copy the approved decisions from the specification and test plan. Confirm the planned
-test/static/review evidence exists, uses a real production trigger where applicable,
-and remains valid against the diff. A triggered `Not applicable` rule or an unapproved
-exception is **REVISION REQUIRED**; do not invent logging or analytics tests where the
-approved decision correctly says they do not apply.
+Read the approved decisions and rationales from the canonical specification, then read
+the required-rule evidence mapping from the test plan. Independently reconcile all ten
+rules against the diff. Confirm the planned test/static/review evidence exists, uses a
+real production trigger where applicable, and remains valid against the diff. A
+triggered `Not applicable` rule or an unapproved exception is **REVISION REQUIRED**;
+do not invent logging or analytics tests where the trigger is absent.
 
 | Rule ID | Approved decision / rationale | Trigger or planned evidence checked | Test / static-check evidence | Result |
 |---|---|---|---|---|

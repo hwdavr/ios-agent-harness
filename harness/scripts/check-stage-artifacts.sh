@@ -94,6 +94,52 @@ require_rule_applicability() {
   echo "OK: $artifact has a complete rule-applicability contract."
 }
 
+require_canonical_rule_reference() {
+  local artifact="$1"
+  local specification="$2"
+  local label="$3"
+  local specification_reference
+
+  specification_reference="$(basename "$specification")#rule-applicability"
+  if ! grep -Fq "$specification_reference" "$artifact"; then
+    echo "FAIL: $artifact is missing the canonical Rule Applicability reference '$specification_reference' ($label)." >&2
+    exit 1
+  fi
+
+  echo "OK: $artifact references $specification_reference."
+}
+
+require_required_rule_mappings() {
+  local artifact="$1"
+  local specification="$2"
+  local label="$3"
+  local rule_id
+  local specification_row
+
+  for rule_id in ARCH IMPL TEST SUI L10N NAV API OBS ANL SEC; do
+    specification_row=$(grep -E "^[[:space:]]*\\|[[:space:]]*$rule_id[[:space:]]*\\|" "$specification" | head -n 1 || true)
+    case "$specification_row" in
+      *"| Required |"*)
+        if ! grep -Eq "^[[:space:]]*\\|[[:space:]]*$rule_id[[:space:]]*\\|" "$artifact"; then
+          echo "FAIL: $artifact is missing the required $rule_id evidence mapping ($label)." >&2
+          exit 1
+        fi
+        ;;
+    esac
+  done
+
+  echo "OK: $artifact maps every required Rule Applicability row."
+}
+
+require_rule_applicability_mapping() {
+  local artifact="$1"
+  local specification="$2"
+  local label="$3"
+
+  require_canonical_rule_reference "$artifact" "$specification" "$label"
+  require_required_rule_mappings "$artifact" "$specification" "$label"
+}
+
 latest_versioned_file() {
   local pattern="$1"
   find "$DOCS_DIR" -maxdepth 1 -name "$pattern" -print 2>/dev/null |
@@ -122,8 +168,12 @@ case "$WORKFLOW/$STAGE" in
     require_rule_applicability "$(latest_versioned_file "spec_v*.md")" "feature-delivery requirement analysis"
     ;;
   feature-delivery/implementation-plan)
+    require_file "spec_v*.md" "canonical requirement/impact/design spec"
     require_file "implementation_plan_v*.md" "implementation plan"
     require_file "test_plan_v*.md" "test plan"
+    specification=$(latest_versioned_file "spec_v*.md")
+    require_rule_applicability_mapping "$(latest_versioned_file "implementation_plan_v*.md")" "$specification" "feature-delivery implementation plan"
+    require_rule_applicability_mapping "$(latest_versioned_file "test_plan_v*.md")" "$specification" "feature-delivery test plan"
     ;;
   bug-fixing/requirement-analysis)
     require_file "summary_v*.md" "stage progress tracker"
@@ -131,13 +181,20 @@ case "$WORKFLOW/$STAGE" in
     require_rule_applicability "$(latest_versioned_file "spec_v*.md")" "bug-fixing requirement analysis"
     ;;
   bug-fixing/implementation-plan)
+    require_file "spec_v*.md" "canonical bug context/root cause spec"
     require_file "implementation_plan_v*.md" "fix plan"
     warn_if_missing "test_plan_v*.md" "test plan (required by feature-delivery, optional for bug-fixing)"
+    specification=$(latest_versioned_file "spec_v*.md")
+    require_rule_applicability_mapping "$(latest_versioned_file "implementation_plan_v*.md")" "$specification" "bug-fixing implementation plan"
+    if [ -n "$(latest_versioned_file "test_plan_v*.md")" ]; then
+      require_rule_applicability_mapping "$(latest_versioned_file "test_plan_v*.md")" "$specification" "bug-fixing test plan"
+    fi
     ;;
   bug-fixing/testing)
     require_file "summary_v*.md" "stage progress tracker"
     require_file "test_plan_v*.md" "test plan"
     require_rule_applicability "$(latest_versioned_file "spec_v*.md")" "bug-fixing testing"
+    require_rule_applicability_mapping "$(latest_versioned_file "test_plan_v*.md")" "$(latest_versioned_file "spec_v*.md")" "bug-fixing testing"
     ;;
   api-contract-update/requirement-analysis)
     require_file "summary_v*.md" "stage progress tracker"
@@ -145,8 +202,12 @@ case "$WORKFLOW/$STAGE" in
     require_rule_applicability "$(latest_versioned_file "spec_v*.md")" "api-contract-update requirement analysis"
     ;;
   api-contract-update/implementation-plan)
+    require_file "spec_v*.md" "canonical requirement/impact/design spec"
     require_file "implementation_plan_v*.md" "implementation plan"
     require_file "test_plan_v*.md" "test plan"
+    specification=$(latest_versioned_file "spec_v*.md")
+    require_rule_applicability_mapping "$(latest_versioned_file "implementation_plan_v*.md")" "$specification" "api-contract-update implementation plan"
+    require_rule_applicability_mapping "$(latest_versioned_file "test_plan_v*.md")" "$specification" "api-contract-update test plan"
     ;;
   harness-planning/feature-specification)
     require_file "spec.md" "feature specification"
@@ -299,8 +360,11 @@ EOF
     fi
     ;;
   android-to-ios-migration/implementation-plan)
+    require_file "spec.md" "canonical requirement spec"
     require_file "implementation_plan.md" "implementation plan"
     require_file "test_plan.md" "test plan"
+    require_rule_applicability_mapping "$DOCS_DIR/implementation_plan.md" "$DOCS_DIR/spec.md" "Android-to-iOS implementation plan"
+    require_rule_applicability_mapping "$DOCS_DIR/test_plan.md" "$DOCS_DIR/spec.md" "Android-to-iOS test plan"
     ;;
   android-to-ios-migration/*)
     echo "SKIP: android-to-ios-migration has no doc-artifact gate for '$STAGE' (RED evidence recorded in summary.md)."
