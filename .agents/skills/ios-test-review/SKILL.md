@@ -83,7 +83,10 @@ For every mapped test file, check:
 - **Production realism**: the event source, callback, permission result, lifecycle event, or navigation action is represented at the lowest reliable test layer.
 - **Assertiveness**: assertions verify the required externally observable result; flag unused capture variables, setter-only tests, empty verification blocks, `#expect(true)`, and unasserted optional unwrapping without a behavior assertion.
 - **Isolation**: unit tests isolate external boundaries; integration tests use real in-memory components where appropriate; UI tests use deterministic fakes.
-- **Shared scenarios**: API tests use shared JSON scenarios. Flag inline API payloads, including multiline JSON strings, unless the test is not API-related and the reason is recorded.
+- **Shared scenarios**: API tests use shared JSON scenarios. Flag inline API payloads, including multiline JSON strings,
+  unless the test is not API-related and the reason is recorded. When integration ownership is in the UI-test target,
+  verify that the loopback server is started before app launch, the shipped client is exercised, and redacted request
+  receipts prove the boundary; direct server-helper calls are supplemental only.
 - **Import hygiene**: no unnecessary framework imports in unit tests, explicit test imports.
 
 ### B4. Check conditional behavior categories

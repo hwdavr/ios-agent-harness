@@ -51,7 +51,9 @@ Gate: Run `bash harness/scripts/check-stage-artifacts.sh feature-delivery implem
 ### Stage 3 — Implementation (Data + Domain + UI)
 **INVOKE** the `ios-implementation` skill via the Skill tool (name: `ios-implementation`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
-Output: All source files across Data, Domain, and UI layers created or modified; `docs/current/summary_v<N>.md` updated with Implementation stage marked complete.
+Output: All required source files across Data, Domain, UI, or test-infrastructure layers created or modified;
+`docs/current/summary_v<N>.md` updated with Implementation stage marked complete. Test-infrastructure changes must
+keep fixture state in the test target and leave production ViewModels/repositories unaware of fixture selection.
 Gate: `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS -destination 'platform=iOS Simulator,name=iPhone 16' build` passes, all layer rules are satisfied, and UI changes conform to `docs/product/design_system.md` plus any explicit approved exception in `docs/current/design.md`.
 
 ---
@@ -59,7 +61,8 @@ Gate: `xcodebuild -project NotesTakingAppiOS.xcodeproj -scheme NotesTakingAppiOS
 ### Stage 4 — Testing
 **INVOKE** the `ios-testing` skill via the Skill tool (name: `ios-testing`). Reading the SKILL.md manually is not a substitute — the Skill tool is the required mechanism.
 
-Output: Unit tests, integration tests, and shared JSON scenarios created or updated; `docs/current/summary_v<N>.md` updated with test count and coverage.
+Output: Unit tests, integration tests, loopback-boundary tests when required, and shared JSON scenarios created or
+updated; `docs/current/summary_v<N>.md` updated with test count, request-receipt evidence, and coverage.
 Gate: tests pass, coverage targets met. Additionally, run `bash harness/scripts/check-journey-registry.sh --run-all` to verify no existing critical journey is regressed. A failure blocks the pipeline.
 
 ---

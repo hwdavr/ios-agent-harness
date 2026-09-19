@@ -27,7 +27,7 @@ update the specification if a new test trigger appears.
 | Layer | Included | Reason |
 |-------|----------|--------|
 | Unit tests (`NotesTakingAppiOSTests/`) | ✅ / ❌ | |
-| Integration tests (`NotesTakingAppiOSTests/`) | ✅ / ❌ | |
+| Integration tests (`NotesTakingAppiOSTests/` or UI-test loopback boundary) | ✅ / ❌ | |
 | UI tests (`NotesTakingAppiOSUITests/`) | ✅ / ❌ | |
 
 ---
@@ -63,9 +63,11 @@ List every test case grouped by the class under test. Assign a short ID (e.g. `T
 | T1 | \<precondition\> | \<action / trigger\> | \<expected outcome\> |
 | T2 | \<precondition\> | \<action / trigger\> | \<expected outcome\> |
 
-### `<ClassName>IntegrationTests.swift` — Integration
+### `<ClassName>IntegrationTests.swift` or `<FixtureServer>UITests.swift` — Integration
 
-> **MANDATORY**: Every new API endpoint must have at least one integration test using a shared JSON scenario.
+> **MANDATORY**: Every new or exercised API endpoint must have at least one integration test using a shared JSON
+> scenario. When a real app-process `URLSession` boundary is required, the owning test may run in the UI-test target
+> beside a loopback server and must assert request receipts plus the shipped client's observable result.
 
 | ID | Given | When | Then | Shared Scenario |
 |----|-------|------|------|-----------------|
@@ -96,7 +98,7 @@ List every test case grouped by the class under test. Assign a short ID (e.g. `T
 |---------------|----------|-----------------|-------------|
 | `scenario.json` | ✅ | ✅ | ✅ |
 
-Location: `sharedContracts/test-scenarios/`
+Location: `sharedContracts/test-scenarios/` or a feature-owned JSON resource catalog in the test target.
 
 ---
 

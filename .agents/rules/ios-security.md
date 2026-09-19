@@ -48,6 +48,10 @@ none apply, record `SEC: Not applicable — no iOS security boundary is changed`
 - Any development or domain-specific exception must be narrowly scoped, documented,
   approved, and excluded from release configuration. Never trust invalid TLS
   certificates or disable certificate validation in production.
+- A UI-test-only cleartext endpoint is permitted only when the launch is explicitly
+  gated by `-UITesting`, the URL is allow-listed to `127.0.0.1` or `[::1]` with a
+  valid port, and invalid or missing configuration fails closed to an unreachable
+  loopback endpoint. It must never fall back to the live production API.
 - Validate and map remote payloads before domain/UI use; do not let transport
   success imply authorization.
 

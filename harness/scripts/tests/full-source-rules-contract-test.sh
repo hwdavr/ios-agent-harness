@@ -53,6 +53,8 @@ grep -Fq -- '--all' "$BUNDLE" || fail "bundle does not force full-source scans"
 grep -Fq 'failed=0' "$BUNDLE" || fail "bundle does not aggregate checker failures"
 grep -Fq 'check-ai-security-rules.sh' "$BUNDLE" \
   || fail "bundle does not invoke the AI security evaluator"
+grep -Fq 'check-ui-test-http-boundary.sh' "$BUNDLE" \
+  || fail "bundle does not invoke the UI-test HTTP boundary checker"
 grep -Fq 'ai-security-rules-contract-test.sh' "$BUNDLE" \
   || fail "bundle does not invoke the AI security contract test"
 
@@ -106,6 +108,8 @@ for expected in \
   "Localization rules (full source)" \
   "Navigation rules (full source)" \
   "Test assertion rules (full test source)" \
+  "UI-test HTTP boundary" \
+  "UI-test HTTP boundary contract" \
   "AI security rules" \
   "AI security rule contract"; do
   printf '%s\n' "$output" | grep -Fq ">> $expected" \

@@ -12,6 +12,9 @@ hardware/device capabilities, models, locales, permissions, or visual evidence.
 - Use `XCUIApplication` with stable `accessibilityIdentifier` attributes for all interactive and structural elements.
 - Do not use `sleep()` — use `waitForExistence(timeout:)` or asynchronous expectations.
 - Do not call a real production backend; use deterministic local mocked endpoints.
+- When a UI-test loopback server supplies the mocked endpoint, it must start before app launch, pass a validated
+  loopback URL through the composition boundary, record redacted method/path/status receipts, and stop at teardown.
+  Listener failure, missing URL, zero requests, or a live-network fallback is blocked evidence.
 
 ## Platform-Bound Evidence
 

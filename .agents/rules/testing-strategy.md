@@ -30,12 +30,16 @@ Use for business rules, domain use case logic, ViewModel state transitions, mapp
 - Test struct/class names end with `Tests`
 - Keep one main scenario per test
 
-### Integration tests (`NotesTakingAppiOSTests/`)
+### Integration tests (`NotesTakingAppiOSTests/` or the UI-test loopback boundary)
 Use for repository + use case + ViewModel data flow, DTO parsing, error mapping, SwiftData in-memory store, retry, and fallback logic.
 
 - Use Swift Testing or XCTest with `async`/`await`
 - API tests use shared JSON scenarios; do not inline mock response data
 - Assert `expected.ui` when the ViewModel owns the endpoint and `expected.domain` when only the repository or use case owns it
+- When the claim crosses the real app process and `URLSession` transport, the integration owner may live in
+  `NotesTakingAppiOSUITests/` beside a deterministic loopback HTTP server. The test must launch the shipped app,
+  exercise the shipped client, assert server request receipts and decoded state, and never call the server helper
+  directly as a substitute for the client boundary.
 
 ### UI tests (`NotesTakingAppiOSUITests/`)
 Use only when SwiftUI rendering, user gestures, navigation, back-stack, lifecycle, iOS SDK behavior, device capabilities, permissions, or visual verification is part of the claim. Load `.agents/rules/testing-runtime-evidence.md` before planning, implementing, or reviewing such evidence.
@@ -83,4 +87,6 @@ bash harness/scripts/check-coverage.sh "$(find Build/Logs/Test -maxdepth 1 -type
 
 ## Shared JSON Scenarios
 
-Every affected API endpoint has at least one integration test backed by `sharedContracts/test-scenarios/`. A scenario may contain `apiMocks`, `expected.domain`, and `expected.ui`; each test asserts only the layer it owns.
+Every affected API endpoint has at least one integration test backed by `sharedContracts/test-scenarios/` or a
+feature-owned test-target scenario resource when the endpoint is exercised through a UI-test loopback server. A
+scenario may contain `apiMocks`, `expected.domain`, and `expected.ui`; each test asserts only the layer it owns.

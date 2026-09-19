@@ -37,6 +37,7 @@ the specification if implementation introduces a new trigger.
 | Domain | `path/to/UseCase.swift` | new |
 | Data | `path/to/DTO.swift`, `path/to/Mapper.swift` | modify |
 | Navigation | `path/to/ContentView.swift` | extend |
+| Test infrastructure | `path/to/FixtureServer.swift`, `path/to/TestHarness.swift` | new/modify |
 | Tests | `path/to/ViewModelTests.swift` | modify |
 
 ---

@@ -57,7 +57,8 @@ List every FR, AC, and documented edge case from the active specification and sp
 - [ ] Each mapped test has a direct observable assertion for the requirement.
 - [ ] No unused capture variables, tautological assertions, empty verifies, or assertion-free interaction tests.
 - [ ] Unit/integration/UI test isolation is appropriate for its layer.
-- [ ] API tests use shared JSON scenarios where applicable.
+- [ ] API tests use shared JSON scenarios where applicable; UI-test loopback ownership is documented when the real app process is required.
+- [ ] Loopback-boundary tests drive the shipped client and record redacted request receipts; direct fixture-helper calls are not the sole evidence.
 - [ ] Import hygiene passes.
 
 ### Conditional Categories

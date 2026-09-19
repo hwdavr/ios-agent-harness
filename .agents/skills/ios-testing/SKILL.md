@@ -56,9 +56,11 @@ non-applicable/exception rows; do not invent analytics or logging tests without 
 Write unit tests for all new or modified use cases, ViewModels, mappers, and formatters.
 Follow `skills/ios-unit-test/SKILL.md` for framework, naming, and coverage rules.
 
-### 3. Integration tests (`NotesTakingAppiOSTests/`)
+### 3. Integration tests (`NotesTakingAppiOSTests/` or `NotesTakingAppiOSUITests/` loopback boundary)
 Write integration tests if an API is involved. Test success, 4xx, 5xx, malformed payload, timeout, and unknown enum fallback per endpoint.
-Follow `skills/ios-integration-test/SKILL.md` — use shared JSON scenarios, do not inline mock data.
+Follow `skills/ios-integration-test/SKILL.md` — use shared JSON scenarios, do not inline mock data. When the test
+target owns a loopback server, start it before `XCUIApplication.launch()`, drive the shipped `URLSession` client,
+assert redacted request receipts and decoded results, and fail if the listener or endpoint setup is unavailable.
 
 ### 4. UI tests (`NotesTakingAppiOSUITests/`)
 Write UI tests only when simulator runtime or real UI rendering is required.
@@ -103,7 +105,7 @@ Update `summary_{feature_id}.md` (or `summary_v<N>.md` depending on the active w
 - [ ] `xcodebuild test` — exit code 0
 - [ ] Coverage gate passes: overall project-owned coverage ≥ 80%, new classes ≥ 90% (via `harness/scripts/check-coverage.sh` and `--min-file` thresholds)
 - [ ] Total test count `> 0` (not `0/0` — this is a gate failure)
-- [ ] At least one integration test per new or changed API endpoint (when API is in scope)
+- [ ] At least one integration test per new or changed API endpoint (when API is in scope), owned by the lowest useful target; a UI-test loopback boundary is valid when the real app process is part of the claim
 - [ ] Shared JSON scenarios used — no inline mock response data in test files (when API is in scope)
 - [ ] UI tests pass (if added)
 - [ ] Every `Required` Rule Applicability row from the canonical specification has the planned verification evidence
