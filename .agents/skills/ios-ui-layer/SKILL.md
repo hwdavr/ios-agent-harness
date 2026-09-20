@@ -8,6 +8,11 @@ description: Implement SwiftUI views, ViewModels, UI models, and navigation flow
 ## Purpose
 Implement the UI Layer: ViewModels, UI models, mappers, and SwiftUI Views.
 
+For a small UI-only adjustment to one existing screen or component, this skill is a
+direct implementation lane. Do not create unrelated feature, bug-fixing, or
+`create-ui-and-verify` workflow artifacts unless the change expands beyond the
+skill's scope or explicitly requires their visual-verification contract.
+
 ---
 
 ## Load

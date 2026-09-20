@@ -9,6 +9,12 @@ description: Diagnose and fix an iOS bug with RED reproduction, approved plannin
 - A regression or test failure
 - Unexpected app behavior
 
+Do not use this workflow for a localized, intentional UI-only adjustment to an
+existing screen when the change has no API, persistence, domain, ViewModel behavior,
+navigation, or new user-journey impact. Route that request to the **Small UI Patch
+Triage** direct `ios-ui-layer` skill lane; it does not need this workflow's RED
+reproduction, fix-plan, or other workflow stages.
+
 This workflow prioritises root-cause analysis over quick patching.
 
 ---

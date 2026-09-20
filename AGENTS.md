@@ -48,11 +48,12 @@ Do not preload unrelated skills. Requirements, planning, and review must load th
 | **Evaluator** | Performs automated & manual quality gates | Runs code quality checks, static analysis, & test coverage reviews |
 ---
 ## Workflow Routing — Mandatory Step Before Any Task
-**Before starting ANY task, you MUST:** identify the task type, read the matching workflow file **in full**, and follow that pipeline without skipping stages or stops. Do not write code before reading the workflow file.
+**Before starting ANY task, you MUST:** identify the task type, then read the matching workflow or direct skill **in full** and follow its pipeline without skipping stages or stops. Direct skill lanes do not require unrelated workflow artifacts. Do not write code before reading the selected workflow or skill.
 
 ### Ad-hoc Development (Simple Features & Bug Fixing)
 | Task type | Read this file first |
 |-----------|----------------------|
+| Small UI-only adjustment to an existing screen | `.agents/skills/ios-ui-layer/SKILL.md` (direct skill lane; no workflow stages) |
 | Bug, crash, regression, or unexpected behavior | `.agents/workflows/bug-fixing.md` |
 | New feature or simple enhancement | `.agents/workflows/feature-delivery.md` |
 | Migrating behavior or business logic from the Android app | `.agents/workflows/android-to-ios-migration.md` |
